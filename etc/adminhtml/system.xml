@@ -1,0 +1,317 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © 2017 Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="magmodules" translate="label" sortOrder="500">
+            <label>Magmodules</label>
+        </tab>
+        <section id="magmodules_sooqr" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Sooqr Connect</label>
+            <tab>magmodules</tab>
+            <resource>Magmodules_Sooqr::config</resource>
+            <group id="branding" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Branding</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Header</frontend_model>
+            </group>
+            <group id="general" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General</label>
+                <field id="version" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Version</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Version</frontend_model>
+                </field>
+                <field id="token" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Token</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Token</frontend_model>
+                </field>
+                <field id="enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="implementation" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Frontend Implementation</label>
+                <comment>Set the general settings to connect your store with the Sooqr API. You can find your Sooqr Account ID and Sooqr API Key in your Sooqr account.</comment>
+                <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="heading_api" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>API Details</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>You can find your Sooqr Account ID in your Sooqr account, you can find the link in the information box at the top of this page. Your Sooqr Account ID should look like SQ-12345-1.</comment>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="account_id" translate="label" type="text" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sooqr Account ID</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="api_key" translate="label" type="text" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sooqr API Key</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="statistics" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Statistics</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="heading_advanced" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Advanced Settings</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Only recommended for Developers.</comment>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="advanced_parent" translate="label" type="text" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Parent HTML node</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="advanced_staging" translate="label" type="select" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Staging Environment</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="advanced_debug" translate="label" type="select" sortOrder="23" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Debugging</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="advanced_version" translate="label" type="select" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Frontend Version</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Frontend</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="advanced_custom_js" translate="label" type="textarea" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Custom JS</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="data" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Data</label>
+                <comment>This section lists all the available attributes for the Sooqr Product Feed. Some attributes are required for all products and some are required for certain product types such as apparel, others are recommended. To get the best results with Sooqr lease make sure that you provide most of the attributes.</comment>
+                <field id="heading_name" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product Fields</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Connect the right attributes for the name and description to export the values to the Sooqr feed. The description will be truncated to a maximum of 5000 characters and stripped from html.</comment>
+                </field>
+                <field id="name_attribute" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Name</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                </field>
+                <field id="sku_attribute" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Sku</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                </field>
+                <field id="description_attribute" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Description</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                </field>
+                <field id="brand_attribute" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Brand</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                </field>
+                <field id="heading_image" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Images</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Connect the right attributes for the name and description to export the values to the Sooqr feed. The description will be truncated to a maximum of 5000 characters and stripped from html.</comment>
+                </field>
+                <field id="image_source" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Source</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ImageSource</source_model>
+                </field>
+                <field id="image_resize" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Resize Image</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ImageSize</source_model>
+                </field>
+                <field id="image_size_fixed" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Image Size</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ImageResize</source_model>
+                    <comment>List of available sizes in cache directory.</comment>
+                    <depends>
+                        <field id="image_resize">fixed</field>
+                    </depends>
+                </field>
+                <field id="image_size_custom" translate="label comment" type="text" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Image Size</label>
+                    <comment>Example format: 200x300</comment>
+                    <depends>
+                        <field id="image_resize">custom</field>
+                    </depends>
+                </field>
+                <field id="heading_extra" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Extra Fields</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>You can add custom fields to your feed when needed. Please make sure that your using the latest custom fields standards to prevent error messages in the feed. The guidelines for the custom fields can be found right in our knowledgebase.</comment>
+                </field>
+                <field id="extra_fields" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Extra Fields</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\ExtraFields</frontend_model>
+                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                </field>
+
+                <field id="heading_config" translate="label comment" type="text" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Configurable &amp; Grouped products</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>When your using configurable or grouped products the simple products will be shown in the feed by default. You can choose to pull the information from the parent products. Select the fall-back data for the configurable / grouped products in the multiple-select box below.</comment>
+                </field>
+                <field id="relations" translate="label" type="select" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="parent_atts" translate="label" type="multiselect" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Parent Product Data for Simple Products</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ParentAttributes</source_model>
+                    <depends>
+                        <field id="relations">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="filter" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Filter Options</label>
+                <comment>This option allows you to include/exclude products from the Sooqr feed based on the product visibility or stock information.</comment>
+                <field id="heading_visibility" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Filter on Visibility</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Include or exclude products based on the visibility.</comment>
+                </field>
+                <field id="visbility_enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="visbility" translate="label" type="multiselect" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Only add products with the following Visibility</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ProductVisibility</source_model>
+                    <comment>Add products with the selected visibility.</comment>
+                    <depends>
+                        <field id="visbility_enable">1</field>
+                    </depends>
+                </field>
+                <field id="heading_category" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Filter by Category</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Include or exclude products based on the category.</comment>
+                </field>
+                <field id="category_enable" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="category_type" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Type of filter</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CategoryTypeList</source_model>
+                    <depends>
+                        <field id="category_enable">1</field>
+                    </depends>
+                </field>
+                <field id="category" translate="label" type="multiselect" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Category</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CategoryList</source_model>
+                    <depends>
+                        <field id="category_enable">1</field>
+                    </depends>
+                </field>
+                <field id="heading_stock" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Exclude Out of Stock</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Exclude products that are out of stock in your store.</comment>
+                </field>
+                <field id="stock" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+            </group>
+            <group id="cms" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>CMS Pages</label>
+                <comment>Export your CMS pages into the feed to use them in the Sooqr Search engine.</comment>
+                <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CmsEnable</source_model>
+                </field>
+                <!--<field id="heading_generation" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                   <label>CMS Export</label>
+                   <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                   <comment>Export all CMS pages, a selection or disable the option. </comment>
+               </field>
+              <field id="cms_pages" translate="label" type="multiselect" sortOrder="11" showInDefault="1" showInStore="1" showInWebsite="1">
+                   <label>CMS Pages</label>
+                   <source_model>Magento\Cms\Model\Config\Source\Page</source_model>
+                   <depends>
+                       <field id="enable">2</field>
+                   </depends>
+               </field>-->
+            </group>
+            <group id="generate" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Feed Generation Settings</label>
+                <comment>Each store view will have it's own Sooqr feed, you can easily enable or disable the Sooqr feed generation on store level or automatically generate the Sooqr feed. In case your not using the cron job functionality it's possible to generate the Sooqr feed manually.</comment>
+                <field id="heading_generation" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Feed Generation</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Enable or disable the feed generation for this store view or change the filename.</comment>
+                </field>
+                <field id="enable" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="filename" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Filename</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="limit" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Limit</label>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="heading_cron" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Cron</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>A cronjob is a daemon which continues running and gets activated at a certain interval (time period). Please ensure that your default Magento Cron is working. If not, contact your hosting company for help.</comment>
+                </field>
+                <field id="cron" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="cron_frequency" translate="label" type="select" sortOrder="22" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Frequency</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CronFrequency</source_model>
+                    <backend_model>Magmodules\Sooqr\Model\Config\Backend\Cron</backend_model>
+                </field>
+                <field id="custom_frequency" translate="label" type="text" sortOrder="23" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Custom Frequency</label>
+                    <depends>
+                        <field id="cron_frequency">custom</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="feeds" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sooqr - Feeds</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Feeds</frontend_model>
+            </group>
+        </section>
+    </system>
+</config>

@@ -1,0 +1,50 @@
+<?php
+/**
+ * Copyright © 2017 Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ * @var $block Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Feeds
+ */
+?>
+<?php if ($feedData = $block->getFeedData()) { ?>
+    <div class="mm-block-sooqr-feeds">
+        <table class="mm-block-sooqr-feed-table">
+            <thead>
+            <span class="title">Feeds</span>
+            All active feeds are shown in the overview below.<br>The .XML URL is the URL which can be provided into your
+            Sooqr Account. Regarding some cache settings in the browser it's also possible to download the
+            Feed to make sure that you are viewing the latest version. There is a small note at the end of the XML 
+            file where you can find the time of generation and the number of products.<br><br><strong>Note:</strong> 
+            Make sure that you save the configuration after the settings are changed and before you generate the feed.
+            </thead>
+            <tbody>
+            <?php foreach ($feedData as $data) { ?>
+                <tr>
+                    <td>
+                        <p><?php echo $data['name']; ?></p>
+                        <p>
+                            <small><?php echo $data['code']; ?></small>
+                        </p>
+                    </td>
+                    <td>
+                        <?php if (!empty($data['feed'])) { ?>
+                            <p><a href="<?php echo $data['feed']; ?>" target="_blank"><?php echo $data['feed']; ?></a>
+                            </p>
+                            <p>
+                                <small><?php echo $data['result']; ?></small>
+                            </p>
+                        <?php } ?>
+                    </td>
+                    <td>
+                        <p><a class="generate"
+                              href="<?php echo $block->getGenerateUrl($data['store_id']); ?>">Generate</a></p>
+                        <p><a class="preview" href="<?php echo $block->getPreviewUrl($data['store_id']); ?>"
+                              target="_blank">Preview</a></p>
+                        <p><a class="download"
+                              href="<?php echo $block->getDownloadUrl($data['store_id']);; ?>">Download</a></p>
+                    </td>
+                </tr>
+            <?php } ?>
+            </tbody>
+        </table>
+    </div>
+<?php } ?>
