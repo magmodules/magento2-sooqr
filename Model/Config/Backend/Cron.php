@@ -3,36 +3,46 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magmodules\Sooqr\Model\Config\Backend;
 
-class Cron extends \Magento\Framework\App\Config\Value
+use Magento\Framework\App\Config\Value;
+use Magento\Framework\Model\Context;
+use Magento\Framework\Registry;
+use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\ValueFactory;
+use Magento\Framework\Model\ResourceModel\AbstractResource;
+use Magento\Framework\Data\Collection\AbstractDb;
+use Magento\Framework\Exception\LocalizedException;
+
+class Cron extends Value
 {
 
     const CRON_STRING_PATH = 'crontab/default/jobs/magmodules_sooqr/schedule/cron_expr';
 
     protected $_configValueFactory;
 
-
     /**
-     * @param \Magento\Framework\Model\Context                        $context
-     * @param \Magento\Framework\Registry                             $registry
-     * @param \Magento\Framework\App\Config\ScopeConfigInterface      $config
-     * @param \Magento\Framework\App\Cache\TypeListInterface          $cacheTypeList
-     * @param \Magento\Framework\App\Config\ValueFactory              $configValueFactory
-     * @param \Magento\Framework\Model\ResourceModel\AbstractResource $resource
-     * @param \Magento\Framework\Data\Collection\AbstractDb           $resourceCollection
-     * @param string                                                  $runModelPath
-     * @param array                                                   $data
+     * Cron constructor.
+     *
+     * @param Context               $context
+     * @param Registry              $registry
+     * @param ScopeConfigInterface  $config
+     * @param TypeListInterface     $cacheTypeList
+     * @param ValueFactory          $configValueFactory
+     * @param AbstractResource|null $resource
+     * @param AbstractDb|null       $resourceCollection
+     * @param string                $runModelPath
+     * @param array                 $data
      */
     public function __construct(
-        \Magento\Framework\Model\Context $context,
-        \Magento\Framework\Registry $registry,
-        \Magento\Framework\App\Config\ScopeConfigInterface $config,
-        \Magento\Framework\App\Cache\TypeListInterface $cacheTypeList,
-        \Magento\Framework\App\Config\ValueFactory $configValueFactory,
-        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
-        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
+        Context $context,
+        Registry $registry,
+        ScopeConfigInterface $config,
+        TypeListInterface $cacheTypeList,
+        ValueFactory $configValueFactory,
+        AbstractResource $resource = null,
+        AbstractDb $resourceCollection = null,
         $runModelPath = '',
         array $data = []
     ) {
@@ -41,10 +51,8 @@ class Cron extends \Magento\Framework\App\Config\Value
     }
 
     /**
-     * {@inheritdoc}
-     *
      * @return $this
-     * @throws \Exception
+     * @throws LocalizedException
      */
     public function afterSave()
     {
@@ -56,7 +64,7 @@ class Cron extends \Magento\Framework\App\Config\Value
         }
 
         try {
-            $this->_configValueFactory->create()->load(
+            $this->configValueFactory->create()->load(
                 self::CRON_STRING_PATH,
                 'path'
             )->setValue(
@@ -65,7 +73,7 @@ class Cron extends \Magento\Framework\App\Config\Value
                 self::CRON_STRING_PATH
             )->save();
         } catch (\Exception $e) {
-            throw new \Exception(__('We can\'t save the cron expression.'));
+            throw new LocalizedException(__('We can\'t save the cron expression.'));
         }
 
         return parent::afterSave();

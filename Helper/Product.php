@@ -27,6 +27,7 @@ class Product extends AbstractHelper
     private $catalogProductTypeConfigurable;
     private $attributeSet;
     private $productImageHelper;
+    private $galleryReadHandler;
 
     /**
      * Product constructor.
@@ -61,9 +62,9 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $product
-     * @param $parent
-     * @param $config
+     * @param \Magento\Catalog\Model\Product $product
+     * @param \Magento\Catalog\Model\Product $parent
+     * @param                                $config
      *
      * @return array
      */
@@ -149,11 +150,11 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $type
-     * @param $attribute
-     * @param $config
-     * @param $product
-     * @param $simple
+     * @param                                $type
+     * @param                                $attribute
+     * @param                                $config
+     * @param \Magento\Catalog\Model\Product $product
+     * @param \Magento\Catalog\Model\Product $simple
      *
      * @return mixed|string
      */
@@ -273,9 +274,9 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $product
-     * @param $source
-     * @param $size
+     * @param \Magento\Catalog\Model\Product $product
+     * @param                                $source
+     * @param                                $size
      *
      * @return string
      */
@@ -285,9 +286,10 @@ class Product extends AbstractHelper
         $width = $size[0];
         $height = end($size);
 
-        $imageId = ['image'       => 'product_base_image',
-                    'thumbnail'   => 'product_thumbnail_image',
-                    'small_image' => 'product_small_image'
+        $imageId = [
+            'image'       => 'product_base_image',
+            'thumbnail'   => 'product_thumbnail_image',
+            'small_image' => 'product_small_image'
         ];
 
         if (isset($imageId[$source])) {
@@ -310,7 +312,7 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      *
      * @return mixed
      */
@@ -321,9 +323,9 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $attribute
-     * @param $product
-     * @param $inventory
+     * @param                                $attribute
+     * @param \Magento\Catalog\Model\Product $product
+     * @param                                $inventory
      *
      * @return bool
      */
@@ -359,11 +361,13 @@ class Product extends AbstractHelper
                 return $product->getData('qty_increments');
             }
         }
+
+        return '';
     }
 
     /**
-     * @param $attribute
-     * @param $product
+     * @param                                $attribute
+     * @param \Magento\Catalog\Model\Product $product
      *
      * @return string
      */
@@ -435,9 +439,9 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $type
-     * @param $config
-     * @param $product
+     * @param                                $type
+     * @param                                $config
+     * @param \Magento\Catalog\Model\Product $product
      *
      * @return array
      */

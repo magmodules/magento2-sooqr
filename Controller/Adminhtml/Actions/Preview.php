@@ -7,7 +7,6 @@ namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-
 use Magmodules\Sooqr\Model\Generate as GenerateModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
