@@ -40,13 +40,13 @@ class Download extends Action
     }
 
     /**
-     * Execute function for download of the Google Shopping feed in admin.
+     * Execute function for download of the Sooqr feed in admin.
      */
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
         $feed = $this->feed->getFeedLocation($storeId);
-        if (!empty($feed['path'])) {
+        if (!empty($feed['path']) && file_exists($feed['path'])) {
             $this->fileFactory->create(
                 $feed['path'],
                 null,
@@ -57,6 +57,9 @@ class Download extends Action
             $resultRaw = $this->resultRawFactory->create();
             $resultRaw->setContents(file_get_contents($feed['path']));
             return $resultRaw;
+        } else {
+            $this->messageManager->addError(__('File not found, please generate new feed.'));
+            $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
         }
     }
 

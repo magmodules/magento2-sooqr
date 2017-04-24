@@ -3,7 +3,6 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
-
 namespace Magmodules\Sooqr\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -221,8 +220,6 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $storeId
-     *
      * @return bool|mixed
      */
     public function getImageResize()
@@ -241,8 +238,6 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $storeId
-     *
      * @return array
      */
     public function getExtraFields()
@@ -262,9 +257,7 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $storeId
-     *
-     * @return array|bool|mixed
+     * @return array|mixed
      */
     public function getParentAttributes()
     {
@@ -295,7 +288,6 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $storeId
      * @param $type
      *
      * @return array
@@ -358,7 +350,7 @@ class Source extends AbstractHelper
 
     /**
      * @param $dataRow
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      * @param $config
      *
      * @return string
@@ -374,7 +366,7 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      * @param $categories
      *
      * @return array
@@ -382,18 +374,29 @@ class Source extends AbstractHelper
     public function getCategoryData($product, $categories)
     {
         $data = [];
-        $i = 1;
+        $categoryData = [];
         foreach ($product->getCategoryIds() as $catId) {
             if (!empty($categories[$catId])) {
-                $p = 1;
+                $i = 0;
                 $category = $categories[$catId];
                 foreach ($category['path'] as $path) {
-                    $data['sqr:category' . $i]['node' . $p] = $path;
+                    $categoryData[$i][] = $path;
+                    $i++;
+                }
+            }
+        }
+        $i = 1;
+        $p = 0;
+        if (!empty($categoryData)) {
+            foreach ($categoryData as $cat) {
+                foreach (array_unique($cat) as $catName) {
+                    $data['sqr:category' . $i]['node' . $p] = $catName;
                     $p++;
                 }
                 $i++;
             }
         }
+
         return $data;
     }
 
@@ -428,5 +431,4 @@ class Source extends AbstractHelper
 
         return $xml;
     }
-
 }

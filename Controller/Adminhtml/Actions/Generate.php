@@ -21,8 +21,10 @@ class Generate extends Action
 
     /**
      * Generate constructor.
-     * @param Context $context
-     * @param GenerateModel $generateModel
+     *
+     * @param Context         $context
+     * @param GenerateModel   $generateModel
+     * @param GeneralHelper   $generalHelper
      * @param LoggerInterface $logger
      */
     public function __construct(
@@ -38,13 +40,13 @@ class Generate extends Action
     }
 
     /**
-     * Execute function for generation of the Google Shopping feed in admin.
+     * Execute function for generation of the Sooqr feed in admin.
      */
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
         $type = $this->getRequest()->getParam('type');
-        
+
         if (!$this->general->getEnabled($storeId)) {
             $errorMsg = __('Please enable the extension before generating the feed.');
             $this->messageManager->addError($errorMsg);

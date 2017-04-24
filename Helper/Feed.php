@@ -11,6 +11,8 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem;
+use Magento\Framework\UrlInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
@@ -116,7 +118,7 @@ class Feed extends AbstractHelper
             $fileName = substr($fileName, 0, -4) . $extra;
         }
 
-        $mediaUrl = $this->storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+        $mediaUrl = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
         $feedUrl = $mediaUrl . self::DEFAULT_DIRECTORY;
 
         $location = [];
@@ -161,12 +163,13 @@ class Feed extends AbstractHelper
         if ($this->stream) {
             return $this->stream;
         } else {
-            throw new \Magento\Framework\Exception\LocalizedException(__('File handler unreachable'));
+            throw new LocalizedException(__('File handler unreachable'));
         }
     }
 
     /**
      * @param $config
+     * @param $headerConfig
      */
     public function createFeed($config, $headerConfig)
     {
@@ -175,7 +178,7 @@ class Feed extends AbstractHelper
 
         $header = '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
         $header .= '<rss xmlns:sqr="http://base.sooqr.com/ns/1.0" version="2.0" encoding="utf-8">' . PHP_EOL;
-        $header .= $headerConfig . PHP_EOL;
+        $header .= $headerConfig;
         $header .= ' <products>' . PHP_EOL;
 
         $this->getStream()->write($header);

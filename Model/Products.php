@@ -92,7 +92,7 @@ class Products
         if (empty($count)) {
             return $collection->load();
         } else {
-            return $collection->count();
+            return $collection->getSize();
         }
     }
 

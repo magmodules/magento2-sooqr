@@ -10,6 +10,7 @@ use Magento\Framework\Option\ArrayInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class ImageResize implements ArrayInterface
 {
@@ -39,10 +40,10 @@ class ImageResize implements ArrayInterface
         $imageSourcePath = 'magmodules_sooqr/data/image_source';
 
         if ($websiteId > 0) {
-            $scope = \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE;
+            $scope = ScopeInterface::SCOPE_WEBSITE;
             $source = $this->scopeConfig->getValue($imageSourcePath, $scope, $websiteId);
         } else {
-            $scope = \Magento\Store\Model\ScopeInterface::SCOPE_STORE;
+            $scope = ScopeInterface::SCOPE_STORE;
             $source = $this->scopeConfig->getValue($imageSourcePath, $scope, $storeId);
         }
 
@@ -56,7 +57,7 @@ class ImageResize implements ArrayInterface
 
         if (file_exists($dir)) {
             $dirs = array_filter(glob($dir . '*'), 'is_dir');
-            if (count($dirs)) {
+            if (!empty($dirs)) {
                 foreach ($dirs as $imgOption) {
                     $imgOption = str_replace($dir, '', $imgOption);
                     if (strlen($imgOption) < 8) {
