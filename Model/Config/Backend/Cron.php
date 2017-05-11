@@ -20,7 +20,7 @@ class Cron extends Value
 
     const CRON_STRING_PATH = 'crontab/default/jobs/magmodules_sooqr/schedule/cron_expr';
 
-    protected $_configValueFactory;
+    protected $configValueFactory;
 
     /**
      * Cron constructor.
@@ -46,7 +46,7 @@ class Cron extends Value
         $runModelPath = '',
         array $data = []
     ) {
-        $this->_configValueFactory = $configValueFactory;
+        $this->configValueFactory = $configValueFactory;
         parent::__construct($context, $registry, $config, $cacheTypeList, $resource, $resourceCollection, $data);
     }
 
