@@ -4,7 +4,6 @@ namespace Magmodules\Sooqr\Block;
 
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Framework\View\Element\Template;
-use Magento\Store\Model\StoreManagerInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magento\Framework\Locale\Resolver;
 
@@ -20,23 +19,22 @@ class Init extends Template
     /**
      * Init constructor.
      *
-     * @param Context               $context
-     * @param StoreManagerInterface $storeManager
-     * @param GeneralHelper         $generalHelper
-     * @param array                 $data
+     * @param Context       $context
+     * @param GeneralHelper $generalHelper
+     * @param Resolver      $localeResolver
+     * @param array         $data
      */
     public function __construct(
         Context $context,
-        StoreManagerInterface $storeManager,
         GeneralHelper $generalHelper,
         Resolver $localeResolver,
         array $data = []
     ) {
         $this->scopeConfig = $context->getScopeConfig();
-        $this->generalHelper = $generalHelper;
-        $this->storeManager = $storeManager;
+        $this->storeManager = $context->getStoreManager();
         $this->storeId = $this->storeManager->getStore()->getId();
         $this->localeResolver = $localeResolver;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context, $data);
     }
 

@@ -21,6 +21,7 @@ class Header extends Field
 
     private $general;
     private $request;
+
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/header.phtml';
 
     /**
