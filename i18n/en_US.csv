@@ -80,7 +80,7 @@
 "Feed Generation","Feed Generation"
 "Enable or disable the feed generation for this store view or change the filename.","Enable or disable the feed generation for this store view or change the filename."
 "Filename","Filename"
-"Limit,Limit"
+"Limit","Limit"
 "Cron,Cron"
 "A cronjob is a daemon which continues running and gets activated at a certain interval (time period). Please ensure that your default Magento Cron is working. If not, contact your hosting company for help.","A cronjob is a daemon which continues running and gets activated at a certain interval (time period). Please ensure that your default Magento Cron is working. If not, contact your hosting company for help."
 "Frequency","Frequency"
