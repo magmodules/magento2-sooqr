@@ -28,7 +28,7 @@ class GenerateFeeds
     }
 
     /**
-     * Execute: Run all Google Shopping Feed generation.
+     * Execute: Run all Sooqr Feed generation.
      */
     public function execute()
     {

@@ -33,7 +33,7 @@ class Preview extends Action
     }
 
     /**
-     * Execute function for preview of the Google Shopping feed in admin.
+     * Execute function for preview of the Sooqr feed in admin.
      */
     public function execute()
     {
