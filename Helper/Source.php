@@ -178,14 +178,15 @@ class Source extends AbstractHelper
         $attributes['assoc_id'] = [
             'label'  => 'sqr:assoc_id',
             'source' => $attributes['id']['source'],
-            'parent' => 2
+            'parent_selection_disabled' => 1,
+            'parent' => 1
         ];
         $attributes['is_bundle'] = [
             'label'                     => 'sqr:is_bundle',
             'source'                    => 'type_id',
             'condition'                 => [
                 '*:false',
-                'bundle:1',
+                'bundle:true',
             ],
             'parent_selection_disabled' => 1,
         ];
@@ -194,7 +195,7 @@ class Source extends AbstractHelper
             'source'                    => 'type_id',
             'condition'                 => [
                 '*:false',
-                'configurable:1',
+                'configurable:true',
             ],
             'parent_selection_disabled' => 1,
         ];
