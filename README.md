@@ -6,7 +6,7 @@ The official extension to connect Sooqr with your Magento® 2 store and improve 
 
 #### Magento® Marketplace
 
-This extension will also be available on the Magento® Marketplace when approved.
+This extension will also be available on the Magento® Marketplace once approved.
 
 #### Install via Composer
 
@@ -26,7 +26,7 @@ This extension will also be available on the Magento® Marketplace when approved
    php bin/magento cache:clean
    ```
 
-4. If Magento® is running in production mode, deploy static content: 
+4. If Magento® is running in production mode, deploy static content with the following command: 
 
    ```
    php bin/magento setup:static-content:deploy
@@ -34,11 +34,11 @@ This extension will also be available on the Magento® Marketplace when approved
 
 #### Install from GitHub
 
-1. Download zip package by clicking "Clone or Download" and selecting Download ZIP at the top of this page.
+1. Download zip package by clicking "Clone or Download" and select "Download ZIP" from the dropdown.
 
 2. Create an app/code/Magmodules/Sooqr directory in your Magento® 2 root folder.
 
-3. Extract the contents of magento2-sooqr-master from the zip and copy or upload everything to app/code/Magmodules/Sooqr
+3. Extract the contents from the "magento2-sooqr-master" zip and copy or upload everything to app/code/Magmodules/Sooqr
 
 4. Run the following commands from the Magento® 2 root folder to install and enable the module:
 
@@ -48,7 +48,7 @@ This extension will also be available on the Magento® Marketplace when approved
    php bin/magento cache:clean
    ```
 
-5. If Magento® is running in production mode, deploy static content: 
+5. If Magento® is running in production mode, deploy static content with the following command: 
 
    ```
    php bin/magento setup:static-content:deploy

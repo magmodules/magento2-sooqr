@@ -4,7 +4,7 @@
     <fieldset name="sooqr">
         <argument name="data" xsi:type="array">
             <item name="config" xsi:type="array">
-                <item name="label" xsi:type="string" translate="true">Google Shopping</item>
+                <item name="label" xsi:type="string" translate="true">Sooqr</item>
                 <item name="collapsible" xsi:type="boolean">true</item>
                 <item name="sortOrder" xsi:type="number">100</item>
             </item>
@@ -15,7 +15,7 @@
                     <item name="sortOrder" xsi:type="number">1</item>
                     <item name="dataType" xsi:type="string">string</item>
                     <item name="formElement" xsi:type="string">input</item>
-                    <item name="label" xsi:type="string" translate="true">Google Shopping Category</item>
+                    <item name="label" xsi:type="string" translate="true">Sooqr  Category</item>
                 </item>
             </argument>
         </field>
