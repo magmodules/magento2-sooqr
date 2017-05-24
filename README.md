@@ -2,6 +2,58 @@
 
 The official extension to connect Sooqr with your Magento® 2 store and improve your Search & Navigation.
 
+## Installation
+
+#### Magento® Marketplace
+
+This extension will also be available on the Magento® Marketplace when approved.
+
+#### Install via Composer
+
+1. Go to Magento® 2 root folder
+
+2. Enter following commands to install module:
+
+   ```
+   composer require magmodules/magento2-sooqr
+   ```
+
+3. Enter following commands to enable module:
+
+   ```
+   php bin/magento module:enable Magmodules_Sooqr
+   php bin/magento setup:upgrade
+   php bin/magento cache:clean
+   ```
+
+4. If Magento® is running in production mode, deploy static content: 
+
+   ```
+   php bin/magento setup:static-content:deploy
+   ```
+
+#### Install from GitHub
+
+1. Download zip package by clicking "Clone or Download" and selecting Download ZIP at the top of this page.
+
+2. Create an app/code/Magmodules/Sooqr directory in your Magento® 2 root folder.
+
+3. Extract the contents of magento2-sooqr-master from the zip and copy or upload everything to app/code/Magmodules/Sooqr
+
+4. Run the following commands from the Magento® 2 root folder to install and enable the module:
+
+   ```
+   php bin/magento module:enable Magmodules_Sooqr
+   php bin/magento setup:upgrade
+   php bin/magento cache:clean
+   ```
+
+5. If Magento® is running in production mode, deploy static content: 
+
+   ```
+   php bin/magento setup:static-content:deploy
+   ```
+   
 ## Development by Magmodules
 
 We are a Dutch Magento® Only Agency dedicated to the development of extensions for Magento® 1 and Magento® 2. All our extensions are coded by our own team and our support team is always there to help you out. 

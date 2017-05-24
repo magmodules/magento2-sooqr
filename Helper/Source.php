@@ -186,7 +186,7 @@ class Source extends AbstractHelper
             'source'                    => 'type_id',
             'condition'                 => [
                 '*:false',
-                'bundle:1',
+                'bundle:true',
             ],
             'parent_selection_disabled' => 1,
         ];
@@ -195,7 +195,7 @@ class Source extends AbstractHelper
             'source'                    => 'type_id',
             'condition'                 => [
                 '*:false',
-                'configurable:1',
+                'configurable:true',
             ],
             'parent_selection_disabled' => 1,
         ];
