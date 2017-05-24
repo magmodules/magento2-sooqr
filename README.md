@@ -16,7 +16,7 @@ This extension will also be available on the Magento® Marketplace once approved
 
    ```
    composer require magmodules/magento2-sooqr
-   ```
+   ``` 
 
 3. Enter following commands to enable module:
 
