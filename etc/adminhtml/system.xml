@@ -34,7 +34,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="implementation" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="implementation" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Frontend Implementation</label>
                 <comment>Set the general settings to connect your store with the Sooqr API. You can find your Sooqr Account ID and Sooqr API Key in your Sooqr account.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -110,9 +110,9 @@
                     </depends>
                 </field>
             </group>
-            <group id="data" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="data" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Data</label>
-                <comment>This section lists all the available attributes for the Sooqr Product Feed. Some attributes are required for all products and some are required for certain product types such as apparel, others are recommended. To get the best results with Sooqr lease make sure that you provide most of the attributes.</comment>
+                <comment>This section lists all the default attributes for the Sooqr Product Feed. Some attributes are required for all products and some are required for certain product types such as apparel, others are recommended. To get the best results with Sooqr lease make sure that you provide most of the attributes.</comment>
                 <field id="heading_name" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product Fields</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
@@ -190,7 +190,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="filter" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="filter" translate="label comment" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Filter Options</label>
                 <comment>This option allows you to include/exclude products from the Sooqr feed based on the product visibility or stock information.</comment>
                 <field id="heading_visibility" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -243,7 +243,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>
-            <group id="cms" translate="label" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="cms" translate="label comment" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>CMS Pages</label>
                 <comment>Export your CMS pages into the feed to use them in the Sooqr Search engine.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -263,7 +263,7 @@
                    </depends>
                </field>-->
             </group>
-            <group id="generate" translate="label" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="generate" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Feed Generation Settings</label>
                 <comment>Each store view will have it's own Sooqr feed, you can easily enable or disable the Sooqr feed generation on store level or automatically generate the Sooqr feed. In case your not using the cron job functionality it's possible to generate the Sooqr feed manually.</comment>
                 <field id="heading_generation" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -308,7 +308,7 @@
                     </depends>
                 </field>
             </group>
-            <group id="feeds" translate="label" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="feeds" translate="label comment" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sooqr - Feeds</label>
                 <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Feeds</frontend_model>
             </group>
