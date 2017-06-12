@@ -27,11 +27,12 @@ class Feed extends AbstractHelper
     const XML_PATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
     const XML_PATH_FEED_FILENAME = 'magmodules_sooqr/generate/filename';
 
-    private $general;
+    private $generalHelper;
     private $storeManager;
     private $directory;
     private $stream;
     private $datetime;
+    private $baseDir = null;
 
     /**
      * Feed constructor.
@@ -39,19 +40,22 @@ class Feed extends AbstractHelper
      * @param Context               $context
      * @param StoreManagerInterface $storeManager
      * @param Filesystem            $filesystem
+     * @param DirectoryList         $directoryList
      * @param DateTime              $datetime
-     * @param General               $general
+     * @param General               $generalHelper
      */
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
         Filesystem $filesystem,
+        DirectoryList $directoryList,
         DateTime $datetime,
-        GeneralHelper $general
+        GeneralHelper $generalHelper
     ) {
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
         $this->directory = $filesystem->getDirectoryWrite(DirectoryList::ROOT);
+        $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         $this->datetime = $datetime;
         parent::__construct($context);
     }
@@ -70,9 +74,9 @@ class Feed extends AbstractHelper
                 'code'      => $store->getCode(),
                 'name'      => $store->getName(),
                 'is_active' => $store->getIsActive(),
-                'status'    => $this->general->getStoreValue(self::XML_PATH_GENERATE_ENABLED, $storeId),
+                'status'    => $this->generalHelper->getStoreValue(self::XML_PATH_GENERATE_ENABLED, $storeId),
                 'feed'      => $this->getFeedUrl($storeId),
-                'result'    => $this->general->getStoreValue(self::XML_PATH_FEED_RESULT, $storeId),
+                'result'    => $this->generalHelper->getStoreValue(self::XML_PATH_FEED_RESULT, $storeId),
             ];
         }
         return $feedData;
@@ -100,7 +104,7 @@ class Feed extends AbstractHelper
      */
     public function getFeedLocation($storeId, $type = '')
     {
-        $fileName = $this->general->getStoreValue(self::XML_PATH_FEED_FILENAME, $storeId);
+        $fileName = $this->generalHelper->getStoreValue(self::XML_PATH_FEED_FILENAME, $storeId);
 
         if (empty($fileName)) {
             $fileName = self::DEFAULT_FILENAME;
@@ -123,6 +127,7 @@ class Feed extends AbstractHelper
 
         $location = [];
         $location['path'] = self::DEFAULT_DIRECTORY_PATH . '/' . $fileName;
+        $location['full_path'] = $this->baseDir . '/' . self::DEFAULT_DIRECTORY_PATH . '/' . $fileName;
         $location['url'] = $feedUrl . '/' . $fileName;
         $location['file_name'] = $fileName;
         $location['base_dir'] = self::DEFAULT_DIRECTORY_PATH;
@@ -143,7 +148,7 @@ class Feed extends AbstractHelper
             $type = 'manual';
         }
         $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $qty, $time);
-        $this->general->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
+        $this->generalHelper->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
     }
 
     /**
@@ -203,10 +208,10 @@ class Feed extends AbstractHelper
         $summary = [];
         $summary['system'] = 'Magento 2';
         $summary['extension'] = GeneralHelper::MODULE_CODE;
-        $summary['version'] = $this->general->getExtensionVersion();
-        $summary['token'] = $this->general->getToken();
-        $summary['magento_version'] = $this->general->getMagentoVersion();
-        $summary['base_url'] = $this->general->getBaseUrl();
+        $summary['version'] = $this->generalHelper->getExtensionVersion();
+        $summary['token'] = $this->generalHelper->getToken();
+        $summary['magento_version'] = $this->generalHelper->getMagentoVersion();
+        $summary['base_url'] = $this->generalHelper->getBaseUrl();
 
         return $summary;
     }
@@ -234,7 +239,7 @@ class Feed extends AbstractHelper
     public function getInstallation()
     {
         $json = [];
-        $storeIds = $this->general->getEnabledArray();
+        $storeIds = $this->generalHelper->getEnabledArray();
 
         foreach ($storeIds as $storeId) {
             $feedLocacation = $this->getFeedLocation($storeId);
@@ -243,15 +248,15 @@ class Feed extends AbstractHelper
             } else {
                 $feedUrl = '';
             }
-            $json['feeds'][$storeId]['name'] =  $this->general->getStoreName($storeId);
+            $json['feeds'][$storeId]['name'] =  $this->generalHelper->getStoreName($storeId);
             $json['feeds'][$storeId]['feed_url'] = $feedUrl;
-            $json['feeds'][$storeId]['currency'] = $this->general->getCurrecyCode($storeId);
-            $json['feeds'][$storeId]['locale'] = $this->general->getStoreValue('general/locale/code', $storeId);
-            $json['feeds'][$storeId]['country'] = $this->general->getStoreValue('general/country/default', $storeId);
-            $json['feeds'][$storeId]['timezone'] = $this->general->getStoreValue('general/locale/timezone', $storeId);
+            $json['feeds'][$storeId]['currency'] = $this->generalHelper->getCurrecyCode($storeId);
+            $json['feeds'][$storeId]['locale'] = $this->generalHelper->getStoreValue('general/locale/code', $storeId);
+            $json['feeds'][$storeId]['country'] = $this->generalHelper->getStoreValue('general/country/default', $storeId);
+            $json['feeds'][$storeId]['timezone'] = $this->generalHelper->getStoreValue('general/locale/timezone', $storeId);
             $json['feeds'][$storeId]['extension'] = 'Magmodules_Sooqr';
-            $json['feeds'][$storeId]['platform_version'] = $this->general->getMagentoVersion();
-            $json['feeds'][$storeId]['extension_version'] = $this->general->getExtensionVersion();
+            $json['feeds'][$storeId]['platform_version'] = $this->generalHelper->getMagentoVersion();
+            $json['feeds'][$storeId]['extension_version'] = $this->generalHelper->getExtensionVersion();
         }
         return $json;
     }

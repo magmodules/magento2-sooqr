@@ -14,19 +14,19 @@ use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 class Feeds extends Field
 {
 
-    private $feed;
+    private $feedHelper;
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/feeds.phtml';
 
     /**
      * Feeds constructor.
      * @param Context $context
-     * @param FeedHelper $feed
+     * @param FeedHelper $feedHelper
      */
     public function __construct(
         Context $context,
-        FeedHelper $feed
+        FeedHelper $feedHelper
     ) {
-        $this->feed = $feed;
+        $this->feedHelper = $feedHelper;
         parent::__construct($context);
     }
 
@@ -46,7 +46,7 @@ class Feeds extends Field
      */
     public function getFeedData()
     {
-        return $this->feed->getConfigData();
+        return $this->feedHelper->getConfigData();
     }
 
     /**

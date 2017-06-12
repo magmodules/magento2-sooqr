@@ -9,33 +9,33 @@ namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
-use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\Filesystem\DirectoryList;
 
 class Download extends Action
 {
 
-    private $feed;
-    private $resultRawFactory;
+    private $feedHelper;
     private $fileFactory;
+    private $baseDir = null;
 
     /**
      * Download constructor.
-     * @param Context $context
-     * @param RawFactory $resultRawFactory
-     * @param FileFactory $fileFactory
-     * @param FeedHelper $feed
+     *
+     * @param Context       $context
+     * @param FileFactory   $fileFactory
+     * @param FeedHelper    $feedHelper
+     * @param DirectoryList $directoryList
      */
     public function __construct(
         Context $context,
-        RawFactory $resultRawFactory,
         FileFactory $fileFactory,
-        FeedHelper $feed
+        FeedHelper $feedHelper,
+        DirectoryList $directoryList
     ) {
-        $this->feed = $feed;
-        $this->resultRawFactory = $resultRawFactory;
+        $this->feedHelper = $feedHelper;
         $this->fileFactory = $fileFactory;
+        $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         parent::__construct($context);
     }
 
@@ -45,18 +45,16 @@ class Download extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
-        $feed = $this->feed->getFeedLocation($storeId);
-        if (!empty($feed['path']) && file_exists($feed['path'])) {
-            $this->fileFactory->create(
-                $feed['path'],
-                null,
+        $feed = $this->feedHelper->getFeedLocation($storeId);
+        if (!empty($feed['full_path']) && file_exists($feed['full_path'])) {
+            $response = $this->fileFactory->create(
+                basename($feed['full_path']),
+                file_get_contents($feed['full_path']),
                 DirectoryList::ROOT,
                 'application/octet-stream',
                 null
             );
-            $resultRaw = $this->resultRawFactory->create();
-            $resultRaw->setContents(file_get_contents($feed['path']));
-            return $resultRaw;
+            return $response;
         } else {
             $this->messageManager->addError(__('File not found, please generate new feed.'));
             $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');

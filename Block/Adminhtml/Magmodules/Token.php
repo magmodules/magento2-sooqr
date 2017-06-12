@@ -14,18 +14,19 @@ use Magento\Backend\Block\Template\Context;
 class Token extends Field
 {
 
-    private $general;
+    private $generalHelper;
 
     /**
-     * Version constructor.
-     * @param Context $context
-     * @param GeneralHelper $general
+     * Token constructor.
+     *
+     * @param Context       $context
+     * @param GeneralHelper $generalHelper
      */
     public function __construct(
         Context $context,
-        GeneralHelper $general
+        GeneralHelper $generalHelper
     ) {
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
@@ -38,7 +39,7 @@ class Token extends Field
     {
         $html = '<tr id="row_' . $element->getHtmlId() . '">';
         $html .= '  <td class="label">' . $element->getData('label') . '</td>';
-        $html .= '  <td class="value">' . $this->general->getToken() . '</td>';
+        $html .= '  <td class="value">' . $this->generalHelper->getToken() . '</td>';
         $html .= '  <td></td>';
         $html .= '</tr>';
 

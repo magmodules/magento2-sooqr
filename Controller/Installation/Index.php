@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Controller\Installation;
 
 use Magento\Framework\App\Action\Action;
@@ -13,7 +14,7 @@ use Magmodules\Sooqr\Helper\Feed;
 class Index extends Action
 {
 
-    private $feed;
+    private $feedHelper;
     private $resultJsonFactory;
 
     /**
@@ -28,7 +29,7 @@ class Index extends Action
         Feed $feedHelper,
         JsonFactory $resultJsonFactory
     ) {
-        $this->feed = $feedHelper;
+        $this->feedHelper = $feedHelper;
         $this->resultJsonFactory = $resultJsonFactory;
         parent::__construct($context);
     }
@@ -38,7 +39,7 @@ class Index extends Action
      */
     public function execute()
     {
-        if ($feed = $this->feed->getInstallation()) {
+        if ($feed = $this->feedHelper->getInstallation()) {
             $result = $this->resultJsonFactory->create();
             return $result->setData($feed);
         }

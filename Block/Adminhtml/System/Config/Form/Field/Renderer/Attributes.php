@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer;
 
 use Magento\Framework\View\Element\Html\Select;

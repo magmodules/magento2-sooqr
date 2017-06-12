@@ -19,7 +19,7 @@ class Header extends Field
     const MODULE_SUPPORT_LINK = 'https://support.sooqr.com/?base=';
     const MODULE_SINGUP_LINK = 'https://signup.sooqr.com/?base=';
 
-    private $general;
+    private $generalHelper;
     private $request;
 
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/header.phtml';
@@ -29,14 +29,14 @@ class Header extends Field
      *
      * @param Context       $context
      * @param Http          $request
-     * @param GeneralHelper $general
+     * @param GeneralHelper $generalHelper
      */
     public function __construct(
         Context $context,
         Http $request,
-        GeneralHelper $general
+        GeneralHelper $generalHelper
     ) {
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         $this->request = $request;
         parent::__construct($context);
     }
@@ -53,13 +53,14 @@ class Header extends Field
     }
 
     /**
-     * Image with extension and magento version
+     * Image with extension and magento version.
+     *
      * @return string
      */
     public function getImage()
     {
-        $extVersion = $this->general->getExtensionVersion();
-        $magVersion = $this->general->getMagentoVersion();
+        $extVersion = $this->generalHelper->getExtensionVersion();
+        $magVersion = $this->generalHelper->getMagentoVersion();
 
         return sprintf('https://www.magmodules.eu/logo/%s/%s/%s/logo.png', self::MODULE_CODE, $extVersion, $magVersion);
     }
@@ -70,7 +71,7 @@ class Header extends Field
     public function getBaseUrl()
     {
         $storeId = (int)$this->request->getParam('store', 0);
-        $baseUrl = parse_url($this->general->getBaseUrl($storeId));
+        $baseUrl = parse_url($this->generalHelper->getBaseUrl($storeId));
         if (isset($baseUrl['host'])) {
             return $baseUrl['host'];
         }
@@ -78,7 +79,8 @@ class Header extends Field
     }
 
     /**
-     * Contact link for extension
+     * Contact link for extension.
+     *
      * @return string
      */
     public function getSingupLink()
@@ -87,7 +89,8 @@ class Header extends Field
     }
 
     /**
-     * Support link for extension
+     * Support link for extension.
+     *
      * @return string
      */
     public function getSupportLink()

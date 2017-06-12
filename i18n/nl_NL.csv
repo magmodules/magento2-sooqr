@@ -9,8 +9,6 @@
 "None / Do not use","Geen / Gebruik niet"
 "Include by Category","Meetellen per categorie"
 "Exclude by Category","Uitsluiten per categorie"
-"No","Nee"
-"Yes","Ja"
 "Daily","Dagelijks "
 "Every 6 hours","Elke zes uur"
 "Every 4 hours","Elke vier uur"
@@ -85,3 +83,12 @@
 "Frequency","Frequentie"
 "Custom Frequency","Aangepaste frequentie"
 "Sooqr - Feeds","Sooqr - Feeds"
+"Set the general settings to connect your store with the Sooqr API. You can find your Sooqr Account ID and Sooqr API Key in your Sooqr account.","Stel de algemene instellingen in om de webwinkel te verbinden met de Sooqr API. Je kunt de Sooqr account ID en API key vinden in het Sooqr account."
+"This section lists all the default attributes for the Sooqr Product Feed. Some attributes are required for all products and some are required for certain product types such as apparel, others are recommended. To get the best results with Sooqr lease make sure that you provide most of the attributes.","In deze sectie worden alle beschikbare attributen voor de Sooqr Feed ingesteld. Sommige eigenschappen zijn vereist voor alle producten en sommige zijn voor bepaalde typen producten zoals kleding aanbevolen. Om het maximale resultaat uit Sooqr te halen raden we aan om zoveel mogelijk data te gebruiken."
+"This option allows you to include/exclude products from the Sooqr feed based on the product visibility or stock information.","Deze optie maakt het mogelijk om producten uit te sluiten van de Sooqr feed. Om producten uit te sluiten is het mogelijk om op product-niveau via de Sooqr tab te kiezen voor uistluiten: ja."
+"Export your CMS pages into the feed to use them in the Sooqr Search engine.","Exporteer de CMS pagina's inhoud naar de Feed om deze te gebruiken in de Sooqr Search."
+"Each store view will have it's own Sooqr feed, you can easily enable or disable the Sooqr feed generation on store level or automatically generate the Sooqr feed. In case your not using the cron job functionality it's possible to generate the Sooqr feed manually.","Elk winkelzicht heeft zijn eigen Sooqr-feed. U kunt deze gemakkelijk activeren of de-activeren en Sooqr-feed automatisch laten genereren. In het geval dat u de cronjob functionaliteit niet gebruikt is het mogelijk om de Sooqr-feed handmatig te genereren."
+"All active feeds are shown in the overview below.<br>The .XML URL is the URL which can be provided into your Sooqr Account. Regarding some cache settings in the browser it's also possible to download the Feed to make sure that you are viewing the latest version. There is a small note at the end of the XML file where you can find the time of generation and the number of products.<br><br><strong>Note:</strong>  Make sure that you save the configuration after the settings are changed and before you generate the feed."
+
+
+"Alle actieve feeds worden weergegeven in het onderstaande overzicht.<br>De .XML-URL is de URL die in het Sooqr-account kan worden ingegeven. Omdat sommige cache-instellingen in de browser ervoor zorgt dat de feed wordt gecached in de browser is het ook mogelijk om de feed te downloaden om ervoor te zorgen dat u de laatste versie bekijkt. Er is een kleine note aan het eind van het XML-bestand waar u de tijd van de generatie en het aantal producten kunt vinden.<br><br><strong>Opmerking:</strong> Zorg ervoor dat u de configuratie opslaat nadat de instellingen zijn gewijzigd voordat u de feed genereren."

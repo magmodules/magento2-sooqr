@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 
 use Magento\Backend\App\Action;
@@ -14,7 +15,7 @@ class Preview extends Action
 {
 
     private $generate;
-    private $general;
+    private $generalHelper;
 
     /**
      * Preview constructor.
@@ -28,7 +29,7 @@ class Preview extends Action
         GenerateModel $generateModel
     ) {
         $this->generate = $generateModel;
-        $this->general = $generalHelper;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
@@ -38,12 +39,14 @@ class Preview extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
-        if (!$this->general->getEnabled($storeId)) {
+        if (!$this->generalHelper->getEnabled($storeId)) {
             $errorMsg = __('Please enable the extension before generating the feed.');
             $this->messageManager->addError($errorMsg);
             $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
         } else {
-            if ($result = $this->generate->generateByStore($storeId, 'preview')) {
+            $page = $this->getRequest()->getParam('page', 1);
+            $productId = $this->getRequest()->getParam('pid', []);
+            if ($result = $this->generate->generateByStore($storeId, ' preview', $productId, $page)) {
                 $this->getResponse()->setHeader('Content-type', 'text/xml');
                 $this->getResponse()->setBody(file_get_contents($result['path']));
             } else {

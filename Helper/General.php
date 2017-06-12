@@ -21,6 +21,7 @@ class General extends AbstractHelper
     const MODULE_CODE = 'Magmodules_Sooqr';
     const XML_PATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
     const XML_PATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
+    const XML_PATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
     const XML_PATH_API_KEY = 'magmodules_sooqr/implementation/api_key';
     const XML_PATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
     const XML_PATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
@@ -81,7 +82,7 @@ class General extends AbstractHelper
     }
 
     /**
-     * General check if Extension is enabled
+     * General check if Extension is enabled..
      *
      * @param null $storeId
      *
@@ -93,7 +94,18 @@ class General extends AbstractHelper
     }
 
     /**
-     * Get Configuration data
+     * Check if cron is enabled.
+     *
+     * @return bool
+     */
+    public function getCronEnabled()
+    {
+        return (boolean) $this->getStoreValue(self::XML_PATH_CRON_ENABLED);
+    }
+
+
+    /**
+     * Get configuration data.
      *
      * @param      $path
      * @param      $scope
@@ -108,6 +120,26 @@ class General extends AbstractHelper
         }
 
         return $this->scopeConfig->getValue($path, $scope, $storeId);
+    }
+
+    /**
+     * Get configuration data array.
+     *
+     * @param      $path
+     * @param null $storeId
+     * @param null $scope
+     *
+     * @return array|mixed
+     */
+    public function getStoreValueArray($path, $storeId = null, $scope = null)
+    {
+        $value = $this->getStoreValue($path, $storeId, $scope);
+        $value = @unserialize($value);
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return false;
     }
 
     /**

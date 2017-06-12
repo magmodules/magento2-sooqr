@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
@@ -38,10 +39,10 @@ class Source extends AbstractHelper
     const XML_PATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
     const XML_PATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
 
-    private $general;
-    private $product;
-    private $category;
-    private $feed;
+    private $generalHelper;
+    private $productHelper;
+    private $categoryHelper;
+    private $feedHelper;
     private $storeManager;
 
     /**
@@ -49,23 +50,23 @@ class Source extends AbstractHelper
      *
      * @param Context               $context
      * @param StoreManagerInterface $storeManager
-     * @param General               $general
-     * @param Category              $category
-     * @param Product               $product
-     * @param Feed                  $feed
+     * @param General               $generalHelper
+     * @param Category              $categoryHelper
+     * @param Product               $productHelper
+     * @param Feed                  $feedHelper
      */
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
-        GeneralHelper $general,
-        CategoryHelper $category,
-        ProductHelper $product,
-        FeedHelper $feed
+        GeneralHelper $generalHelper,
+        CategoryHelper $categoryHelper,
+        ProductHelper $productHelper,
+        FeedHelper $feedHelper
     ) {
-        $this->general = $general;
-        $this->product = $product;
-        $this->category = $category;
-        $this->feed = $feed;
+        $this->generalHelper = $generalHelper;
+        $this->productHelper = $productHelper;
+        $this->categoryHelper = $categoryHelper;
+        $this->feedHelper = $feedHelper;
         $this->storeManager = $storeManager;
         parent::__construct($context);
     }
@@ -87,14 +88,12 @@ class Source extends AbstractHelper
         $config['currency'] = $config['price_config']['currency'];
         $config['url_type_media'] = $this->storeManager->getStore()->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
         $config['base_url'] = $this->storeManager->getStore()->getBaseUrl();
-        $config['feed_locations'] = $this->feed->getFeedLocation($storeId, $type);
+        $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
         $config['filters'] = $this->getProductFilters($type);
-        $config['default_category'] = $this->general->getStoreValue(self::XML_PATH_CATEGORY);
+        $config['default_category'] = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY);
         $config['inventory'] = $this->getInventoryData();
-        $config['categories'] = $this->category->getCollection(
-            'sooqr_cat',
-            $config['default_category']
-        );
+        $config['categories'] = $this->categoryHelper->getCollection($storeId, 'sooqr_cat',
+            $config['default_category']);
 
         return $config;
     }
@@ -120,12 +119,12 @@ class Source extends AbstractHelper
         ];
         $attributes['name'] = [
             'label'  => 'sqr:title',
-            'source' => $this->general->getStoreValue(self::XML_PATH_NAME_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_NAME_SOURCE),
             'max'    => 200
         ];
         $attributes['sku'] = [
             'label'  => 'sqr:sku',
-            'source' => $this->general->getStoreValue(self::XML_PATH_SKU_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_SKU_SOURCE),
             'max'    => 70
         ];
         $attributes['link'] = [
@@ -136,13 +135,13 @@ class Source extends AbstractHelper
         ];
         $attributes['description'] = [
             'label'   => 'sqr:description',
-            'source'  => $this->general->getStoreValue(self::XML_PATH_DESCRIPTION_SOURCE),
+            'source'  => $this->generalHelper->getStoreValue(self::XML_PATH_DESCRIPTION_SOURCE),
             'max'     => 5000,
             'actions' => ['striptags']
         ];
         $attributes['image_link'] = [
             'label'  => 'sqr:image_link',
-            'source' => $this->general->getStoreValue(self::XML_PATH_IMAGE_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SOURCE),
             'resize' => $this->getImageResize(),
         ];
         $attributes['price'] = [
@@ -157,7 +156,7 @@ class Source extends AbstractHelper
         ];
         $attributes['brand'] = [
             'label'  => 'sqr:brand',
-            'source' => $this->general->getStoreValue(self::XML_PATH_BRAND_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_BRAND_SOURCE),
             'max'    => 70
         ];
         $attributes['product_type'] = [
@@ -176,10 +175,10 @@ class Source extends AbstractHelper
             'parent_selection_disabled' => 1,
         ];
         $attributes['assoc_id'] = [
-            'label'  => 'sqr:assoc_id',
-            'source' => $attributes['id']['source'],
+            'label'                     => 'sqr:assoc_id',
+            'source'                    => $attributes['id']['source'],
             'parent_selection_disabled' => 1,
-            'parent' => 1
+            'parent'                    => 1
         ];
         $attributes['is_bundle'] = [
             'label'                     => 'sqr:is_bundle',
@@ -216,7 +215,7 @@ class Source extends AbstractHelper
             return $attributes;
         } else {
             $parentAttributes = $this->getParentAttributes();
-            return $this->product->addAttributeData($attributes, $parentAttributes);
+            return $this->productHelper->addAttributeData($attributes, $parentAttributes);
         }
     }
 
@@ -226,13 +225,13 @@ class Source extends AbstractHelper
     public function getImageResize()
     {
 
-        $resize = $this->general->getStoreValue(self::XML_PATH_IMAGE_RESIZE);
+        $resize = $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_RESIZE);
 
         if ($resize == 'fixed') {
-            return $this->general->getStoreValue(self::XML_PATH_IMAGE_SIZE_FIXED);
+            return $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SIZE_FIXED);
         }
         if ($resize == 'custom') {
-            return $this->general->getStoreValue(self::XML_PATH_IMAGE_SIZE_CUSTOM);
+            return $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SIZE_CUSTOM);
         }
 
         return false;
@@ -244,8 +243,7 @@ class Source extends AbstractHelper
     public function getExtraFields()
     {
         $extraFields = [];
-        if ($attributes = $this->general->getStoreValue(self::XML_PATH_EXTRA_FIELDS)) {
-            $attributes = @unserialize($attributes);
+        if ($attributes = $this->generalHelper->getStoreValueArray(self::XML_PATH_EXTRA_FIELDS)) {
             foreach ($attributes as $attribute) {
                 $extraFields[$attribute['attribute']] = [
                     'label'  => 'sqr:' . strtolower($attribute['attribute']),
@@ -262,9 +260,9 @@ class Source extends AbstractHelper
      */
     public function getParentAttributes()
     {
-        $enabled = $this->general->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
+        $enabled = $this->generalHelper->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
         if ($enabled) {
-            if ($attributes = $this->general->getStoreValue(self::XML_PATH_PARENT_ATTS)) {
+            if ($attributes = $this->generalHelper->getStoreValue(self::XML_PATH_PARENT_ATTS)) {
                 $attributes = explode(',', $attributes);
 
                 return $attributes;
@@ -297,9 +295,9 @@ class Source extends AbstractHelper
     {
         $filters = [];
 
-        $visibilityFilter = $this->general->getStoreValue(self::XML_PATH_VISBILITY);
+        $visibilityFilter = $this->generalHelper->getStoreValue(self::XML_PATH_VISBILITY);
         if ($visibilityFilter) {
-            $visibility = $this->general->getStoreValue(self::XML_PATH_VISIBILITY_OPTIONS);
+            $visibility = $this->generalHelper->getStoreValue(self::XML_PATH_VISIBILITY_OPTIONS);
             $filters['visibility'] = explode(',', $visibility);
         } else {
             $filters['visibility'] = [
@@ -309,10 +307,12 @@ class Source extends AbstractHelper
             ];
         }
 
-        $relations = $this->general->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
+        $relations = $this->generalHelper->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
         if ($relations) {
             $filters['relations'] = 1;
-            array_push($filters['visibility'], Visibility::VISIBILITY_NOT_VISIBLE);
+            if (!$visibilityFilter) {
+                array_push($filters['visibility'], Visibility::VISIBILITY_NOT_VISIBLE);
+            }
         } else {
             $filters['relations'] = 0;
         }
@@ -320,15 +320,15 @@ class Source extends AbstractHelper
         if ($type == 'preview') {
             $filters['limit'] = '100';
         } else {
-            $filters['limit'] = (int)$this->general->getStoreValue(self::XML_PATH_LIMIT);
+            $filters['limit'] = (int)$this->generalHelper->getStoreValue(self::XML_PATH_LIMIT);
         }
 
-        $filters['stock'] = $this->general->getStoreValue(self::XML_PATH_STOCK);
+        $filters['stock'] = $this->generalHelper->getStoreValue(self::XML_PATH_STOCK);
 
-        $categoryFilter = $this->general->getStoreValue(self::XML_PATH_CATEGORY_FILTER);
+        $categoryFilter = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_FILTER);
         if ($categoryFilter) {
-            $categoryIds = $this->general->getStoreValue(self::XML_PATH_CATEGORY_IDS);
-            $filterType = $this->general->getStoreValue(self::XML_PATH_CATEGORY_FILTER_TYPE);
+            $categoryIds = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_IDS);
+            $filterType = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_FILTER_TYPE);
             if (!empty($categoryIds) && !empty($filterType)) {
                 $filters['category_ids'] = explode(',', $categoryIds);
                 $filters['category_type'] = $filterType;
@@ -350,9 +350,9 @@ class Source extends AbstractHelper
     }
 
     /**
-     * @param $dataRow
+     * @param                                $dataRow
      * @param \Magento\Catalog\Model\Product $product
-     * @param $config
+     * @param                                $config
      *
      * @return string
      */
@@ -368,7 +368,7 @@ class Source extends AbstractHelper
 
     /**
      * @param \Magento\Catalog\Model\Product $product
-     * @param $categories
+     * @param                                $categories
      *
      * @return array
      */

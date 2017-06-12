@@ -10,15 +10,23 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductColl
 use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as ProductAttributeCollectionFactory;
 use Magento\Catalog\Model\Indexer\Product\Flat\StateFactory;
 use Magento\CatalogInventory\Helper\Stock as StockHelper;
+use Magento\Catalog\Model\Product\Attribute\Source\Status;
 
 class Products
 {
+
+    private $productCollectionFactory;
+    private $productAttributeCollectionFactory;
+    private $productFlatState;
+    private $stockHelper;
+
     /**
      * Products constructor.
-     * @param ProductCollectionFactory $productCollectionFactory
+     *
+     * @param ProductCollectionFactory          $productCollectionFactory
      * @param ProductAttributeCollectionFactory $productAttributeCollectionFactory
-     * @param StockHelper $stockHelper
-     * @param StateFactory $productFlatState
+     * @param StockHelper                       $stockHelper
+     * @param StateFactory                      $productFlatState
      */
     public function __construct(
         ProductCollectionFactory $productCollectionFactory,
@@ -33,15 +41,15 @@ class Products
     }
 
     /**
-     * @param $config
-     * @param int $page
-     * @param string $productId
+     * @param        $config
+     * @param        $productIds
+     * @param int    $page
      * @param string $count
-     * @return mixed
+     *
+     * @return $this|int
      */
-    public function getCollection($config, $page = 1, $productId = '', $count = '')
+    public function getCollection($config, $productIds, $page = 1, $count = '')
     {
-
         $flat = $config['flat'];
         $filters = $config['filters'];
         $attributes = $this->getAttributes($config['attributes']);
@@ -55,11 +63,12 @@ class Products
         $collection = $this->productCollectionFactory
             ->create(['catalogProductFlatState' => $productFlatState])
             ->addAttributeToSelect($attributes)
+            ->addAttributeToFilter('status', Status::STATUS_ENABLED)
             ->addMinimalPrice()
             ->addUrlRewrite()
             ->addFinalPrice();
 
-        if (($filters['limit'] > 0) && empty($productId) && empty($count)) {
+        if (($filters['limit'] > 0) && empty($productIds) && empty($count)) {
             $collection->setPage($page, $filters['limit'])->getCurPage();
         }
 
@@ -71,8 +80,8 @@ class Products
             $this->stockHelper->addInStockFilterToCollection($collection);
         }
 
-        if (!empty($productId)) {
-            $collection->addAttributeToFilter('entity_id', $productId);
+        if (!empty($productIds)) {
+            $collection->addAttributeToFilter('entity_id', ['in' => $productIds]);
         }
 
         if (!empty($filters['category_ids'])) {
@@ -98,6 +107,7 @@ class Products
 
     /**
      * @param $selectedAttrs
+     *
      * @return array
      */
     public function getAttributes($selectedAttrs)
@@ -119,13 +129,24 @@ class Products
      */
     public function getProductAttributes()
     {
-        return ['entity_id', 'image', 'price', 'special_price', 'special_from_date',
-            'special_to_date', 'status', 'tax_class_id', 'weight', 'product_has_weight'];
+        return [
+            'entity_id',
+            'image',
+            'price',
+            'special_price',
+            'special_from_date',
+            'special_to_date',
+            'status',
+            'tax_class_id',
+            'weight',
+            'product_has_weight'
+        ];
     }
 
     /**
      * @param $parentId
      * @param $attributes
+     *
      * @return mixed
      */
     public function loadParentProduct($parentId, $attributes)
