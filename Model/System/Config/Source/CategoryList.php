@@ -7,6 +7,8 @@
 namespace Magmodules\Sooqr\Model\System\Config\Source;
 
 use Magento\Framework\Option\ArrayInterface;
+use Magento\Catalog\Model\CategoryFactory;
+use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory;
 
 class CategoryList implements ArrayInterface
 {
@@ -17,12 +19,12 @@ class CategoryList implements ArrayInterface
     /**
      * CategoryList constructor.
      *
-     * @param \Magento\Catalog\Model\CategoryFactory                          $categoryFactory
-     * @param \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory
+     * @param CategoryFactory   $categoryFactory
+     * @param CollectionFactory $categoryCollectionFactory
      */
     public function __construct(
-        \Magento\Catalog\Model\CategoryFactory $categoryFactory,
-        \Magento\Catalog\Model\ResourceModel\Category\CollectionFactory $categoryCollectionFactory
+        CategoryFactory $categoryFactory,
+        CollectionFactory $categoryCollectionFactory
     ) {
         $this->categoryFactory = $categoryFactory;
         $this->categoryCollectionFactory = $categoryCollectionFactory;

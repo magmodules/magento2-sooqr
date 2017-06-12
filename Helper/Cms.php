@@ -18,7 +18,7 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 class Cms extends AbstractHelper
 {
 
-    private $general;
+    private $generalHelper;
     private $pageRepository;
     private $page;
     private $searchCriteriaBuilder;
@@ -29,7 +29,7 @@ class Cms extends AbstractHelper
      * Cms constructor.
      *
      * @param Context                 $context
-     * @param General                 $general
+     * @param General                 $generalHelper
      * @param PageRepositoryInterface $pageRepositoryInterface
      * @param PageInterface           $pageInterface
      * @param PageHelper              $cmsPage
@@ -38,14 +38,14 @@ class Cms extends AbstractHelper
      */
     public function __construct(
         Context $context,
-        GeneralHelper $general,
+        GeneralHelper $generalHelper,
         PageRepositoryInterface $pageRepositoryInterface,
         PageInterface $pageInterface,
         PageHelper $cmsPage,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder
     ) {
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         $this->pageRepository = $pageRepositoryInterface;
         $this->page = $pageInterface;
         $this->cmsPage = $cmsPage;

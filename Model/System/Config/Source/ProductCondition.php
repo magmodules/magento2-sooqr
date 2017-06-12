@@ -17,9 +17,9 @@ class ProductCondition implements ArrayInterface
     public function toOptionArray()
     {
         return [
-            ['value'=>'new', 'label'=> __('New')],
-            ['value'=>'refurbished', 'label'=> __('Refurbished')],
-            ['value'=>'used', 'label'=> __('Uses')],
+            ['value' => 'new', 'label' => __('New')],
+            ['value' => 'refurbished', 'label' => __('Refurbished')],
+            ['value' => 'used', 'label' => __('Uses')],
         ];
     }
 }

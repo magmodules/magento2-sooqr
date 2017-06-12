@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 
 use Magento\Framework\DataObject;

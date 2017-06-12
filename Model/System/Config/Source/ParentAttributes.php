@@ -9,21 +9,33 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 use Magento\Framework\Option\ArrayInterface;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 use Magento\Framework\App\Request\Http;
+use Magento\Framework\App\Area;
+use Magento\Store\Model\App\Emulation;
 
 class ParentAttributes implements ArrayInterface
 {
 
-    private $source;
+    private $sourceHelper;
     private $request;
+    private $appEmulation;
 
+    /**
+     * ParentAttributes constructor.
+     *
+     * @param Http         $request
+     * @param Emulation    $appEmulation
+     * @param SourceHelper $sourceHelper
+     */
     public function __construct(
         Http $request,
-        SourceHelper $source
+        Emulation $appEmulation,
+        SourceHelper $sourceHelper
     ) {
-        $this->source = $source;
+        $this->sourceHelper = $sourceHelper;
+        $this->appEmulation = $appEmulation;
         $this->request = $request;
     }
-        
+
     /**
      * @return array
      */
@@ -31,17 +43,21 @@ class ParentAttributes implements ArrayInterface
     {
         $attributes = [];
         $storeId = $this->request->getParam('store');
-        $source = $this->source->getAttributes($storeId, 'parent');
+        $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+        $source = $this->sourceHelper->getAttributes('parent');
+        $this->appEmulation->stopEnvironmentEmulation();
+
         foreach ($source as $key => $attribute) {
             if (empty($attribute['parent_selection_disabled']) && empty($attribute['parent'])) {
-                $label = str_replace('_', ' ', $attribute['label']);
-                $label = str_replace(['sqr:','Sqr:'], '', $label);
+                $label = str_replace('_', ' ', $key);
                 $attributes[] = [
                     'value' => $key,
                     'label' => ucwords($label),
                 ];
             }
         }
+
         return $attributes;
     }
+
 }

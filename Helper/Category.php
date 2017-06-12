@@ -13,13 +13,12 @@ use Magento\Catalog\Model\CategoryRepository as CategoryRepository;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
-
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
 class Category extends AbstractHelper
 {
 
-    private $general;
+    private $generalHelper;
     private $categoryRepository;
     private $category;
     private $storeManager;
@@ -28,17 +27,18 @@ class Category extends AbstractHelper
 
     /**
      * Category constructor.
-     * @param Context $context
-     * @param General $general
-     * @param CategoryHelper $category
-     * @param StoreManagerInterface $storeManager
-     * @param CategoryRepository $categoryRepository
-     * @param CategoryFactory $categoryFactory
+     *
+     * @param Context                   $context
+     * @param General                   $generalHelper
+     * @param CategoryHelper            $category
+     * @param StoreManagerInterface     $storeManager
+     * @param CategoryRepository        $categoryRepository
+     * @param CategoryFactory           $categoryFactory
      * @param CategoryCollectionFactory $categoryCollectionFactory
      */
     public function __construct(
         Context $context,
-        GeneralHelper $general,
+        GeneralHelper $generalHelper,
         CategoryHelper $category,
         StoreManagerInterface $storeManager,
         CategoryRepository $categoryRepository,
@@ -47,7 +47,7 @@ class Category extends AbstractHelper
     ) {
         $this->category = $category;
         $this->categoryRepository = $categoryRepository;
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
         $this->categoryFactory = $categoryFactory;
         $this->categoryCollectionFactory = $categoryCollectionFactory;
@@ -56,54 +56,72 @@ class Category extends AbstractHelper
     }
 
     /**
-     * @param $field
-     * @param $default
+     * @param        $storeId
+     * @param string $field
+     * @param string $default
+     * @param string $exclude
      *
      * @return array
      */
-    public function getCollection($field, $default)
+    public function getCollection($storeId, $field = '', $default = '', $exclude = '')
     {
         $data = [];
-        $parent = $this->storeManager->getStore()->getRootCategoryId();
-        $attributes = ['name', 'level', 'path', 'is_active', $field];
+        $parent = $this->storeManager->getStore($storeId)->getRootCategoryId();
+        $attributes = ['name', 'level', 'path', 'is_active'];
+
+        if (!empty($field)) {
+            $attributes[] = $field;
+        }
+
+        if (!empty($exclude)) {
+            $attributes[] = $exclude;
+        }
 
         $collection = $this->categoryCollectionFactory->create()
+            ->setStoreId($storeId)
             ->addAttributeToSelect($attributes)
             ->addFieldToFilter('is_active', ['eq' => 1])
             ->load();
-        
+
         foreach ($collection as $category) {
-            $custom = $category->getData($field);
             $data[$category->getId()] = [
-                    'name' => $category->getName(),
-                    'level' => $category->getLevel(),
-                    'path' => $category->getPath(),
-                    'custom' => $custom
-                ];
+                'name'    => $category->getName(),
+                'level'   => $category->getLevel(),
+                'path'    => $category->getPath(),
+                'custom'  => (!empty($field) ? $category->getData($field) : ''),
+                'exclude' => (!empty($exclude) ? $category->getData($exclude) : 0),
+            ];
         }
-                
+
+        $categories = [];
         foreach ($data as $key => $category) {
             $paths = explode('/', $category['path']);
-            $path_text = [];
+            $pathText = [];
             $custom = $default;
             $level = 0;
+            $exclude = 0;
             foreach ($paths as $path) {
                 if (!empty($data[$path]['name']) && ($path != $parent)) {
-                    $path_text[] = $data[$path]['name'];
+                    $pathText[] = $data[$path]['name'];
                     if (!empty($data[$path]['custom'])) {
                         $custom = $data[$path]['custom'];
+                    }
+                    if (!empty($data[$path]['exclude'])) {
+                        $exclude = 1;
                     }
                     $level++;
                 }
             }
-            $data[$key] = [
-                'name' => $category['name'],
-                'level' => $level,
-                'path' => $path_text,
-                'custom' => $custom
-            ];
+            if (!$exclude) {
+                $categories[$key] = [
+                    'name'   => $category['name'],
+                    'level'  => $level,
+                    'path'   => $pathText,
+                    'custom' => $custom
+                ];
+            }
         }
-        
-        return $data;
+
+        return $categories;
     }
 }

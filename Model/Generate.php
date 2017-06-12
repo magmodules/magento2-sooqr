@@ -3,9 +3,10 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Model;
 
-use Magmodules\Sooqr\Model\Products as ProductsModel;
+use Magmodules\Sooqr\Model\Products as ProductModel;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Cms as CmsHelper;
@@ -21,39 +22,41 @@ class Generate
     const XML_PATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
     const XML_PATH_GENERATE = 'magmodules_sooqr/generate/enable';
 
-    private $products;
-    private $source;
-    private $product;
-    private $general;
-    private $feed;
+    private $productModel;
+    private $sourceHelper;
+    private $productHelper;
+    private $generalHelper;
+    private $feedHelper;
+    private $cmsHelper;
 
     /**
      * Generate constructor.
      *
-     * @param Products        $products
-     * @param SourceHelper    $source
-     * @param ProductHelper   $product
-     * @param CmsHelper       $cms
-     * @param GeneralHelper   $general
-     * @param FeedHelper      $feed
+     * @param Products        $productModel
+     * @param SourceHelper    $sourceHelper
+     * @param ProductHelper   $productHelper
+     * @param CmsHelper       $cmsHelper
+     * @param GeneralHelper   $generalHelper
+     * @param FeedHelper      $feedHelper
+     * @param Emulation       $appEmulation
      * @param LoggerInterface $logger
      */
     public function __construct(
-        ProductsModel $products,
-        SourceHelper $source,
-        ProductHelper $product,
-        CmsHelper $cms,
-        GeneralHelper $general,
-        FeedHelper $feed,
+        ProductModel $productModel,
+        SourceHelper $sourceHelper,
+        ProductHelper $productHelper,
+        CmsHelper $cmsHelper,
+        GeneralHelper $generalHelper,
+        FeedHelper $feedHelper,
         Emulation $appEmulation,
         LoggerInterface $logger
     ) {
-        $this->products = $products;
-        $this->source = $source;
-        $this->product = $product;
-        $this->cms = $cms;
-        $this->general = $general;
-        $this->feed = $feed;
+        $this->productModel = $productModel;
+        $this->sourceHelper = $sourceHelper;
+        $this->productHelper = $productHelper;
+        $this->cmsHelper = $cmsHelper;
+        $this->generalHelper = $generalHelper;
+        $this->feedHelper = $feedHelper;
         $this->appEmulation = $appEmulation;
         $this->logger = $logger;
     }
@@ -63,28 +66,31 @@ class Generate
      */
     public function generateAll()
     {
-        $storeIds = $this->general->getEnabledArray(self::XML_PATH_GENERATE);
+        $storeIds = $this->generalHelper->getEnabledArray(self::XML_PATH_GENERATE);
         foreach ($storeIds as $storeId) {
             $this->generateByStore($storeId, 'cron');
         }
     }
 
     /**
-     * @param $storeId
+     * @param        $storeId
      * @param string $type
+     * @param array  $productIds
+     * @param int    $page
+     *
      * @return array
      */
-    public function generateByStore($storeId, $type = 'manual')
+    public function generateByStore($storeId, $type = 'manual', $productIds = [], $page = 1)
     {
         $timeStart = microtime(true);
         $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
 
-        $config = $this->source->getConfig($storeId, $type);
-        $header = $this->feed->getFeedHeader();
-        $header = $this->source->getXmlFromArray($header, 'config');
-        $this->feed->createFeed($config, $header);
+        $config = $this->sourceHelper->getConfig($storeId, $type);
+        $header = $this->feedHelper->getFeedHeader();
+        $header = $this->sourceHelper->getXmlFromArray($header, 'config');
+        $this->feedHelper->createFeed($config, $header);
 
-        $products = $this->products->getCollection($config);
+        $products = $this->productModel->getCollection($config, $productIds, $page);
         $relations = $config['filters']['relations'];
         $limit = $config['filters']['limit'];
         $count = 0;
@@ -92,33 +98,33 @@ class Generate
         foreach ($products as $product) {
             $parent = '';
             if ($relations) {
-                if ($parentId = $this->product->getParentId($product->getEntityId())) {
+                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
                     $parent = $products->getItemById($parentId);
                     if (!$parent) {
-                        $parent = $this->products->loadParentProduct($parentId, $config['attributes']);
+                        $parent = $this->productModel->loadParentProduct($parentId, $config['attributes']);
                     }
                 }
             }
-            if ($dataRow = $this->product->getDataRow($product, $parent, $config)) {
-                if ($row = $this->source->reformatData($dataRow, $product, $config)) {
-                    $this->feed->writeRow($row);
+            if ($dataRow = $this->productHelper->getDataRow($product, $parent, $config)) {
+                if ($row = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
+                    $this->feedHelper->writeRow($row);
                     $count++;
                 }
             }
         }
 
-        if ($cmsPages = $this->cms->getCmsPages()) {
+        if ($cmsPages = $this->cmsHelper->getCmsPages()) {
             foreach ($cmsPages as $item) {
-                $row = $this->source->getXmlFromArray($item, 'item');
-                $this->feed->writeRow($row);
+                $row = $this->sourceHelper->getXmlFromArray($item, 'item');
+                $this->feedHelper->writeRow($row);
             }
         }
 
-        $results = $this->feed->getFeedResults($timeStart, $count, $limit);
-        $footer = $this->source->getXmlFromArray($results, 'results');
+        $results = $this->feedHelper->getFeedResults($timeStart, $count, $limit);
+        $footer = $this->sourceHelper->getXmlFromArray($results, 'results');
 
-        $this->feed->writeFooter($footer);
-        $this->feed->updateResult($storeId, $count, $results['processing_time'], $results['date_created'], $type);
+        $this->feedHelper->writeFooter($footer);
+        $this->feedHelper->updateResult($storeId, $count, $results['processing_time'], $results['date_created'], $type);
 
         $this->appEmulation->stopEnvironmentEmulation();
 

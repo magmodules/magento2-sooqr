@@ -17,7 +17,7 @@ class Generate extends Action
 
     private $generate;
     private $logger;
-    private $general;
+    private $generalHelper;
 
     /**
      * Generate constructor.
@@ -35,7 +35,7 @@ class Generate extends Action
     ) {
         $this->generate = $generateModel;
         $this->logger = $logger;
-        $this->general = $generalHelper;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
@@ -47,7 +47,7 @@ class Generate extends Action
         $storeId = $this->getRequest()->getParam('store_id');
         $type = $this->getRequest()->getParam('type');
 
-        if (!$this->general->getEnabled($storeId)) {
+        if (!$this->generalHelper->getEnabled($storeId)) {
             $errorMsg = __('Please enable the extension before generating the feed.');
             $this->messageManager->addError($errorMsg);
         } else {

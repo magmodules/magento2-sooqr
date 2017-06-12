@@ -14,18 +14,18 @@ use Magento\Backend\Block\Template\Context;
 class Version extends Field
 {
 
-    private $general;
+    private $generalHelper;
 
     /**
      * Version constructor.
      * @param Context $context
-     * @param GeneralHelper $general
+     * @param GeneralHelper $generalHelper
      */
     public function __construct(
         Context $context,
-        GeneralHelper $general
+        GeneralHelper $generalHelper
     ) {
-        $this->general = $general;
+        $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
 
@@ -38,7 +38,7 @@ class Version extends Field
     {
         $html = '<tr id="row_' . $element->getHtmlId() . '">';
         $html .= '  <td class="label">' . $element->getData('label') . '</td>';
-        $html .= '  <td class="value">' . $this->general->getExtensionVersion() . '</td>';
+        $html .= '  <td class="value">' . $this->generalHelper->getExtensionVersion() . '</td>';
         $html .= '  <td></td>';
         $html .= '</tr>';
 

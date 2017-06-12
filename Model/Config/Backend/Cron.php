@@ -3,6 +3,7 @@
  * Copyright © 2017 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+
 namespace Magmodules\Sooqr\Model\Config\Backend;
 
 use Magento\Framework\App\Config\Value;

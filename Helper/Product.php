@@ -16,12 +16,10 @@ use Magento\Framework\Filter\FilterManager;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
-use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
 class Product extends AbstractHelper
 {
 
-    private $general;
     private $eavConfig;
     private $filter;
     private $catalogProductTypeConfigurable;
@@ -35,7 +33,6 @@ class Product extends AbstractHelper
      * @param Context                         $context
      * @param GalleryReadHandler              $galleryReadHandler
      * @param ProductImageHelper              $productImageHelper
-     * @param General                         $general
      * @param EavConfig                       $eavConfig
      * @param FilterManager                   $filter
      * @param AttributeSetRepositoryInterface $attributeSet
@@ -45,7 +42,6 @@ class Product extends AbstractHelper
         Context $context,
         GalleryReadHandler $galleryReadHandler,
         ProductImageHelper $productImageHelper,
-        GeneralHelper $general,
         EavConfig $eavConfig,
         FilterManager $filter,
         AttributeSetRepositoryInterface $attributeSet,
@@ -53,7 +49,6 @@ class Product extends AbstractHelper
     ) {
         $this->galleryReadHandler = $galleryReadHandler;
         $this->productImageHelper = $productImageHelper;
-        $this->general = $general;
         $this->eavConfig = $eavConfig;
         $this->filter = $filter;
         $this->attributeSet = $attributeSet;
@@ -86,7 +81,6 @@ class Product extends AbstractHelper
             if (($attribute['parent'] == 2) && !$parent) {
                 continue;
             }
-
             if (!empty($attribute['source']) || ($attribute['label'] == 'image_link')) {
                 $dataRow[$attribute['label']] = $this->getAttributeValue(
                     $type,
@@ -211,7 +205,11 @@ class Product extends AbstractHelper
             $url = $config['base_url'] . $requestPath;
         }
         if (!empty($config['utm_code'])) {
-            $url .= $config['utm_code'];
+            if($config['utm_code'][0] != '?') {
+                $url .= '?' . $config['utm_code'];
+            } else {
+                $url .= $config['utm_code'];
+            }
         }
         if (!empty($simple)) {
             if ($product->getTypeId() == 'configurable') {
@@ -258,13 +256,11 @@ class Product extends AbstractHelper
             return $images;
         } else {
             $img = '';
-
             if (!empty($attribute['resize'])) {
                 $source = $attribute['source'];
                 $size = $attribute['resize'];
                 return $this->getResizedImage($product, $source, $size);
             }
-
             if ($url = $product->getData($attribute['source'])) {
                 $img = $config['url_type_media'] . 'catalog/product' . $url;
             }
@@ -409,6 +405,15 @@ class Product extends AbstractHelper
             if (in_array('number', $actions)) {
                 $value = number_format($value, 2);
             }
+            if (in_array('round', $actions)) {
+                $value = round($value);
+            }
+            if (in_array('replacetags', $actions)) {
+                $value = str_replace(array("\r", "\n"), "", $value);
+                $value = str_replace(array("<br>", "<br/>", "<br />"), '\\' . '\n', $value);
+                $value = strip_tags($value);
+                $value = rtrim($value);
+            }
         }
         if (!empty($attribute['max'])) {
             $value = $this->filter->truncate($value, ['length' => $attribute['max']]);
@@ -500,6 +505,14 @@ class Product extends AbstractHelper
             $prices[$config['max_price']] = $this->formatPrice($product['max_price'], $config);
         }
 
+        if (!empty($config['discount_perc']) && isset($prices[$config['sales_price']])) {
+            $discount = ($prices[$config['sales_price']] - $prices[$config['price']]) / $prices[$config['price']];
+            $discount = $discount * -100;
+            if ($discount > 0) {
+                $prices[$config['discount_perc']] = round($discount, 1) . '%';
+            }
+        }
+
         return $prices;
     }
 
@@ -512,8 +525,8 @@ class Product extends AbstractHelper
     public function formatPrice($data, $config)
     {
         $price = number_format($data, 2, '.', '');
-        if (empty($config['hide_currency'])) {
-            $price = $price . ' ' . $config['currency'];
+        if (!empty($config['use_currency']) && ($price >= 0)) {
+            $price .= ' ' . $config['currency'];
         }
         return $price;
     }
