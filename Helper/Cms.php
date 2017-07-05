@@ -78,8 +78,8 @@ class Cms extends AbstractHelper
                     'sqr:content_type' => 'cms',
                     'sqr:id'           => $item['identifier'],
                     'sqr:title'        => $item['title'],
-                    'sqr:content'      => $this->cleanData($item['content']),
-                    'sqr:url'          => strtok($url, '?'),
+                    'sqr:description'  => $this->cleanData($item['content']),
+                    'sqr:link'         => strtok($url, '?'),
                 ];
             }
         }
