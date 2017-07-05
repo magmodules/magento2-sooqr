@@ -208,7 +208,7 @@ class Feed extends AbstractHelper
         $summary = [];
         $summary['system'] = 'Magento 2';
         $summary['extension'] = GeneralHelper::MODULE_CODE;
-        $summary['version'] = $this->generalHelper->getExtensionVersion();
+        $summary['extension_version'] = $this->generalHelper->getExtensionVersion();
         $summary['token'] = $this->generalHelper->getToken();
         $summary['magento_version'] = $this->generalHelper->getMagentoVersion();
         $summary['base_url'] = $this->generalHelper->getBaseUrl();
