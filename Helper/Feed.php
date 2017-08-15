@@ -14,6 +14,7 @@ use Magento\Framework\Filesystem;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
 class Feed extends AbstractHelper
@@ -31,6 +32,7 @@ class Feed extends AbstractHelper
     private $storeManager;
     private $directory;
     private $stream;
+    private $timezone;
     private $datetime;
     private $baseDir = null;
 
@@ -42,6 +44,7 @@ class Feed extends AbstractHelper
      * @param Filesystem            $filesystem
      * @param DirectoryList         $directoryList
      * @param DateTime              $datetime
+     * @param TimezoneInterface     $timezone
      * @param General               $generalHelper
      */
     public function __construct(
@@ -50,12 +53,14 @@ class Feed extends AbstractHelper
         Filesystem $filesystem,
         DirectoryList $directoryList,
         DateTime $datetime,
+        TimezoneInterface $timezone,
         GeneralHelper $generalHelper
     ) {
         $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
         $this->directory = $filesystem->getDirectoryWrite(DirectoryList::ROOT);
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
+        $this->timezone = $timezone;
         $this->datetime = $datetime;
         parent::__construct($context);
     }
@@ -69,6 +74,7 @@ class Feed extends AbstractHelper
         $stores = $this->storeManager->getStores();
         foreach ($stores as $store) {
             $storeId = $store->getStoreId();
+            $location = $this->getFeedLocation($storeId);
             $feedData[$storeId] = [
                 'store_id'  => $storeId,
                 'code'      => $store->getCode(),
@@ -76,24 +82,12 @@ class Feed extends AbstractHelper
                 'is_active' => $store->getIsActive(),
                 'status'    => $this->generalHelper->getStoreValue(self::XML_PATH_GENERATE_ENABLED, $storeId),
                 'feed'      => $this->getFeedUrl($storeId),
-                'result'    => $this->generalHelper->getStoreValue(self::XML_PATH_FEED_RESULT, $storeId),
+                'full_path' => (!empty($location['full_path']) ? $location['full_path'] : ''),
+                'result'    => $this->generalHelper->getUncachedStoreValue(self::XML_PATH_FEED_RESULT, $storeId),
+                'available' => (!empty($location['full_path']) ? file_exists($location['full_path']) : false)
             ];
         }
         return $feedData;
-    }
-
-    /**
-     * @param $storeId
-     *
-     * @return mixed
-     */
-    public function getFeedUrl($storeId)
-    {
-        if ($location = $this->getFeedLocation($storeId)) {
-            return $location['url'];
-        }
-
-        return false;
     }
 
     /**
@@ -137,18 +131,31 @@ class Feed extends AbstractHelper
 
     /**
      * @param $storeId
+     *
+     * @return mixed
+     */
+    public function getFeedUrl($storeId)
+    {
+        if ($location = $this->getFeedLocation($storeId)) {
+            return $location['url'];
+        }
+
+        return false;
+    }
+
+    /**
+     * @param $storeId
      * @param $qty
      * @param $time
      * @param $date
      * @param $type
      */
-    public function updateResult($storeId, $qty, $time, $date, $type)
+    public function updateResult($storeId, $qty, $time, $date, $type = 'manual')
     {
-        if (empty($type)) {
-            $type = 'manual';
+        if ($type != 'preview') {
+            $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $qty, $time);
+            $this->generalHelper->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
         }
-        $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $qty, $time);
-        $this->generalHelper->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
     }
 
     /**
@@ -229,7 +236,7 @@ class Feed extends AbstractHelper
         $summary['products_total'] = $count;
         $summary['products_limit'] = $limit;
         $summary['processing_time'] = number_format((microtime(true) - $timeStart), 2) . ' sec';
-        $summary['date_created'] = $this->datetime->gmtDate();
+        $summary['date_created'] = $this->timezone->date($this->datetime->date())->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
         return $summary;
     }
 
@@ -248,12 +255,14 @@ class Feed extends AbstractHelper
             } else {
                 $feedUrl = '';
             }
-            $json['feeds'][$storeId]['name'] =  $this->generalHelper->getStoreName($storeId);
+            $json['feeds'][$storeId]['name'] = $this->generalHelper->getStoreName($storeId);
             $json['feeds'][$storeId]['feed_url'] = $feedUrl;
             $json['feeds'][$storeId]['currency'] = $this->generalHelper->getCurrecyCode($storeId);
             $json['feeds'][$storeId]['locale'] = $this->generalHelper->getStoreValue('general/locale/code', $storeId);
-            $json['feeds'][$storeId]['country'] = $this->generalHelper->getStoreValue('general/country/default', $storeId);
-            $json['feeds'][$storeId]['timezone'] = $this->generalHelper->getStoreValue('general/locale/timezone', $storeId);
+            $json['feeds'][$storeId]['country'] = $this->generalHelper->getStoreValue('general/country/default',
+                $storeId);
+            $json['feeds'][$storeId]['timezone'] = $this->generalHelper->getStoreValue('general/locale/timezone',
+                $storeId);
             $json['feeds'][$storeId]['extension'] = 'Magmodules_Sooqr';
             $json['feeds'][$storeId]['platform_version'] = $this->generalHelper->getMagentoVersion();
             $json['feeds'][$storeId]['extension_version'] = $this->generalHelper->getExtensionVersion();

@@ -19,7 +19,8 @@ class Preview extends Action
 
     /**
      * Preview constructor.
-     * @param Context $context
+     *
+     * @param Context       $context
      * @param GeneralHelper $generalHelper
      * @param GenerateModel $generateModel
      */
@@ -46,7 +47,7 @@ class Preview extends Action
         } else {
             $page = $this->getRequest()->getParam('page', 1);
             $productId = $this->getRequest()->getParam('pid', []);
-            if ($result = $this->generate->generateByStore($storeId, ' preview', $productId, $page)) {
+            if ($result = $this->generate->generateByStore($storeId, 'preview', $productId, $page)) {
                 $this->getResponse()->setHeader('Content-type', 'text/xml');
                 $this->getResponse()->setBody(file_get_contents($result['path']));
             } else {

@@ -45,7 +45,7 @@ class Generate extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
-        $type = $this->getRequest()->getParam('type');
+        $type = $this->getRequest()->getParam('type', 'manual');
 
         if (!$this->generalHelper->getEnabled($storeId)) {
             $errorMsg = __('Please enable the extension before generating the feed.');

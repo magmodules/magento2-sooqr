@@ -12,6 +12,8 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Config\Model\ResourceModel\Config;
+use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
+use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 
@@ -35,17 +37,19 @@ class General extends AbstractHelper
     private $metadata;
     private $storeManager;
     private $objectManager;
+    private $configDataCollectionFactory;
     private $config;
 
     /**
      * General constructor.
      *
-     * @param Context                  $context
-     * @param ObjectManagerInterface   $objectManager
-     * @param StoreManagerInterface    $storeManager
-     * @param ModuleListInterface      $moduleList
-     * @param ProductMetadataInterface $metadata
-     * @param Config                   $config
+     * @param Context                     $context
+     * @param ObjectManagerInterface      $objectManager
+     * @param StoreManagerInterface       $storeManager
+     * @param ModuleListInterface         $moduleList
+     * @param ProductMetadataInterface    $metadata
+     * @param ConfigDataCollectionFactory $configDataCollectionFactory
+     * @param Config                      $config
      */
     public function __construct(
         Context $context,
@@ -53,12 +57,14 @@ class General extends AbstractHelper
         StoreManagerInterface $storeManager,
         ModuleListInterface $moduleList,
         ProductMetadataInterface $metadata,
+        ConfigDataCollectionFactory $configDataCollectionFactory,
         Config $config
     ) {
         $this->objectManager = $objectManager;
         $this->storeManager = $storeManager;
         $this->moduleList = $moduleList;
         $this->metadata = $metadata;
+        $this->configDataCollectionFactory = $configDataCollectionFactory;
         $this->config = $config;
         parent::__construct($context);
     }
@@ -94,17 +100,6 @@ class General extends AbstractHelper
     }
 
     /**
-     * Check if cron is enabled.
-     *
-     * @return bool
-     */
-    public function getCronEnabled()
-    {
-        return (boolean) $this->getStoreValue(self::XML_PATH_CRON_ENABLED);
-    }
-
-
-    /**
      * Get configuration data.
      *
      * @param      $path
@@ -120,26 +115,6 @@ class General extends AbstractHelper
         }
 
         return $this->scopeConfig->getValue($path, $scope, $storeId);
-    }
-
-    /**
-     * Get configuration data array.
-     *
-     * @param      $path
-     * @param null $storeId
-     * @param null $scope
-     *
-     * @return array|mixed
-     */
-    public function getStoreValueArray($path, $storeId = null, $scope = null)
-    {
-        $value = $this->getStoreValue($path, $storeId, $scope);
-        $value = @unserialize($value);
-        if (is_array($value)) {
-            return $value;
-        }
-
-        return false;
     }
 
     /**
@@ -160,6 +135,55 @@ class General extends AbstractHelper
     public function getApiKey($storeId = null)
     {
         return $this->getStoreValue(self::XML_PATH_API_KEY, $storeId);
+    }
+
+    /**
+     * Check if cron is enabled.
+     *
+     * @return bool
+     */
+    public function getCronEnabled()
+    {
+        return (boolean)$this->getStoreValue(self::XML_PATH_CRON_ENABLED);
+    }
+
+    /**
+     * Get Uncached Value from core_config_data
+     *
+     * @param      $path
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getUncachedStoreValue($path, $storeId)
+    {
+        $collection = $this->configDataCollectionFactory->create();
+        $collection->addFieldToSelect('value');
+        $collection->addFieldToFilter('path', $path);
+        $collection->addFieldToFilter('scope_id', $storeId);
+        $collection->addFieldToFilter('scope', 'stores');
+
+        return $collection->getFirstItem()->getValue();
+    }
+
+    /**
+     * Get configuration data array.
+     *
+     * @param      $path
+     * @param null $storeId
+     * @param null $scope
+     *
+     * @return array|mixed
+     */
+    public function getStoreValueArray($path, $storeId = null, $scope = null)
+    {
+        $value = $this->getStoreValue($path, $storeId, $scope);
+        $value = @unserialize($value);
+        if (is_array($value)) {
+            return $value;
+        }
+
+        return false;
     }
 
     /**
@@ -296,7 +320,7 @@ class General extends AbstractHelper
     public function getStoreName($storeId = null)
     {
         $baseUrl = $this->getBaseUrl($storeId);
-        return str_replace(['https://','http://','www'], '', $baseUrl);
+        return str_replace(['https://', 'http://', 'www'], '', $baseUrl);
     }
 
     /**
