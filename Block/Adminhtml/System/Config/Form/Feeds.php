@@ -31,6 +31,14 @@ class Feeds extends Field
     }
 
     /**
+     * @return null
+     */
+    public function getCacheLifetime()
+    {
+        return null;
+    }
+
+    /**
      * @param AbstractElement $element
      * @return string
      */

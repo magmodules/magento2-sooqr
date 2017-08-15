@@ -130,9 +130,9 @@ class Generate
 
         return [
             'status' => 'success',
-            'qty' => $count,
-            'path' => $config['feed_locations']['path'],
-            'url' => $config['feed_locations']['url']
+            'qty'    => $count,
+            'path'   => $config['feed_locations']['full_path'],
+            'url'    => $config['feed_locations']['url']
         ];
     }
 }

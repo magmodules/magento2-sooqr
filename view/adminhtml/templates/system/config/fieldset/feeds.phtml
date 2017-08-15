@@ -17,33 +17,53 @@
             Make sure that you save the configuration after the settings are changed and before you generate the feed.
             </thead>
             <tbody>
-            <?php foreach ($feedData as $data) { ?>
-                <tr>
-                    <td>
-                        <p><?php echo $data['name']; ?></p>
-                        <p>
-                            <small><?php echo $data['code']; ?></small>
-                        </p>
-                    </td>
-                    <td>
-                        <?php if (!empty($data['feed'])) { ?>
-                            <p><a href="<?php echo $data['feed']; ?>" target="_blank"><?php echo $data['feed']; ?></a>
+                <?php foreach ($feedData as $data) { ?>
+                    <tr>
+                        <td>
+                            <p><?php echo $data['name']; ?></p>
+                            <p>
+                                <small><?php echo $data['code']; ?></small>
+                            </p>
+                        </td>
+                        <td>
+                            <?php if (!empty($data['feed']) && $data['available']) { ?>
+                                <p>
+                                    <a href="<?php echo $data['feed']; ?>" target="_blank">
+                                        <?php echo $data['feed']; ?>
+                                    </a>
+                                </p>
+                                <p>
+                                    <small><?php echo $data['result']; ?></small>
+                                </p>
+                            <?php } else { ?>
+                                <p>
+                                    <?php echo $data['feed']; ?>
+                                </p>
+                                <p>
+                                    <small>
+                                        <?php echo __('Feed not available, please generate the feed first.') ?>
+                                    </small>
+                                </p>
+                            <?php } ?>
+                        </td>
+                        <td>
+                            <p>
+                                <a class="generate"
+                                   href="<?php echo $block->getGenerateUrl($data['store_id']); ?>">Generate</a>
                             </p>
                             <p>
-                                <small><?php echo $data['result']; ?></small>
+                                <a class="preview" href="<?php echo $block->getPreviewUrl($data['store_id']); ?>"
+                                   target="_blank">Preview</a>
                             </p>
-                        <?php } ?>
-                    </td>
-                    <td>
-                        <p><a class="generate"
-                              href="<?php echo $block->getGenerateUrl($data['store_id']); ?>">Generate</a></p>
-                        <p><a class="preview" href="<?php echo $block->getPreviewUrl($data['store_id']); ?>"
-                              target="_blank">Preview</a></p>
-                        <p><a class="download"
-                              href="<?php echo $block->getDownloadUrl($data['store_id']);; ?>">Download</a></p>
-                    </td>
-                </tr>
-            <?php } ?>
+                            <p>
+                                <?php if (!empty($data['full_path']) && $data['available']) { ?>
+                                    <a class="download"
+                                       href="<?php echo $block->getDownloadUrl($data['store_id']); ?>">Download</a>
+                                <?php } ?>
+                            </p>
+                        </td>
+                    </tr>
+                <?php } ?>
             </tbody>
         </table>
     </div>
