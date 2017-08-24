@@ -11,6 +11,7 @@ use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as P
 use Magento\Catalog\Model\Indexer\Product\Flat\StateFactory;
 use Magento\CatalogInventory\Helper\Stock as StockHelper;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
+use Magmodules\Sooqr\Helper\Product as ProductHelper;
 
 class Products
 {
@@ -19,6 +20,7 @@ class Products
     private $productAttributeCollectionFactory;
     private $productFlatState;
     private $stockHelper;
+    private $productHelper;
 
     /**
      * Products constructor.
@@ -27,28 +29,29 @@ class Products
      * @param ProductAttributeCollectionFactory $productAttributeCollectionFactory
      * @param StockHelper                       $stockHelper
      * @param StateFactory                      $productFlatState
+     * @param ProductHelper                     $productHelper
      */
     public function __construct(
         ProductCollectionFactory $productCollectionFactory,
         ProductAttributeCollectionFactory $productAttributeCollectionFactory,
         StockHelper $stockHelper,
-        StateFactory $productFlatState
+        StateFactory $productFlatState,
+        ProductHelper $productHelper
     ) {
         $this->productCollectionFactory = $productCollectionFactory;
         $this->productAttributeCollectionFactory = $productAttributeCollectionFactory;
         $this->productFlatState = $productFlatState;
         $this->stockHelper = $stockHelper;
+        $this->productHelper = $productHelper;
     }
 
     /**
      * @param        $config
      * @param        $productIds
-     * @param int    $page
-     * @param string $count
      *
      * @return $this|int
      */
-    public function getCollection($config, $productIds, $page = 1, $count = '')
+    public function getCollection($config, $productIds)
     {
         $flat = $config['flat'];
         $filters = $config['filters'];
@@ -67,10 +70,6 @@ class Products
             ->addMinimalPrice()
             ->addUrlRewrite()
             ->addFinalPrice();
-
-        if (($filters['limit'] > 0) && empty($productIds) && empty($count)) {
-            $collection->setPage($page, $filters['limit'])->getCurPage();
-        }
 
         if (!empty($filters['visibility'])) {
             $collection->addAttributeToFilter('visibility', ['in' => $filters['visibility']]);
@@ -98,11 +97,13 @@ class Products
             );
         }
 
-        if (empty($count)) {
-            return $collection->load();
-        } else {
-            return $collection->getSize();
+        if (isset($filters['page_size']) && ($filters['page_size'] > 0)) {
+            $collection->setPageSize($filters['page_size'])->getCurPage();
         }
+
+        $collection->getSelect()->group('e.entity_id');
+
+        return $collection;
     }
 
     /**
@@ -144,30 +145,46 @@ class Products
     }
 
     /**
-     * @param $parentId
-     * @param $attributes
+     * @param $products
+     * @param $config
      *
-     * @return mixed
+     * @return $this|array
      */
-    public function loadParentProduct($parentId, $attributes)
+    public function getParents($products, $config)
     {
-        $flat = false;
+        if (!empty($config['filters']['relations'])) {
+            $ids = [];
+            foreach ($products as $product) {
+                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
+                    $ids[] = $parentId;
+                }
+            }
 
-        if (!$flat) {
-            $productFlatState = $this->productFlatState->create(['isAvailable' => false]);
-        } else {
-            $productFlatState = $this->productFlatState->create(['isAvailable' => true]);
+            if (empty($ids)) {
+                return [];
+            }
+
+            $flat = false;
+
+            if (!$flat) {
+                $productFlatState = $this->productFlatState->create(['isAvailable' => false]);
+            } else {
+                $productFlatState = $this->productFlatState->create(['isAvailable' => true]);
+            }
+
+            $attributes = $this->getAttributes($config['attributes']);
+
+            $collection = $this->productCollectionFactory
+                ->create(['catalogProductFlatState' => $productFlatState])
+                ->addAttributeToFilter('status', Status::STATUS_ENABLED)
+                ->addAttributeToFilter('entity_id', ['in' => $ids])
+                ->addAttributeToSelect($attributes)
+                ->addMinimalPrice()
+                ->addUrlRewrite();
+
+            return $collection->load();
         }
 
-        $attributes = $this->getAttributes($attributes);
-
-        $parent = $this->productCollectionFactory
-            ->create(['catalogProductFlatState' => $productFlatState])
-            ->addAttributeToFilter('entity_id', $parentId)
-            ->addAttributeToSelect($attributes)
-            ->addUrlRewrite()
-            ->getFirstItem();
-
-        return $parent;
+        return [];
     }
 }

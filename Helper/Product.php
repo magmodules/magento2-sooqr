@@ -409,8 +409,8 @@ class Product extends AbstractHelper
                 $value = round($value);
             }
             if (in_array('replacetags', $actions)) {
-                $value = str_replace(array("\r", "\n"), "", $value);
-                $value = str_replace(array("<br>", "<br/>", "<br />"), '\\' . '\n', $value);
+                $value = str_replace(["\r", "\n"], "", $value);
+                $value = str_replace(["<br>", "<br/>", "<br />"], '\\' . '\n', $value);
                 $value = strip_tags($value);
                 $value = rtrim($value);
             }

@@ -38,6 +38,9 @@ class Source extends AbstractHelper
     const XML_PATH_STOCK = 'magmodules_sooqr/filter/stock';
     const XML_PATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
     const XML_PATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
+    const XML_PATH_ADVANCED = 'magmodules_sooqr/generate/advanced';
+    const XML_PATH_PAGING = 'magmodules_sooqr/generate/paging';
+    const XML_PATH_DEBUG_MEMORY = 'magmodules_sooqr/generate/debug_memory';
 
     private $generalHelper;
     private $productHelper;
@@ -91,9 +94,9 @@ class Source extends AbstractHelper
         $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
         $config['filters'] = $this->getProductFilters($type);
         $config['default_category'] = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY);
+        $config['debug_memory'] = $this->generalHelper->getStoreValue(self::XML_PATH_DEBUG_MEMORY);
         $config['inventory'] = $this->getInventoryData();
-        $config['categories'] = $this->categoryHelper->getCollection($storeId, 'sooqr_cat',
-            $config['default_category']);
+        $config['categories'] = $this->categoryHelper->getCollection($storeId, 'sooqr_cat', $config['default_category']);
 
         return $config;
     }
@@ -319,9 +322,13 @@ class Source extends AbstractHelper
         }
 
         if ($type == 'preview') {
-            $filters['limit'] = '100';
+            $filters['page_size'] = '100';
         } else {
-            $filters['limit'] = (int)$this->generalHelper->getStoreValue(self::XML_PATH_LIMIT);
+            $advanced = (int)$this->generalHelper->getStoreValue(self::XML_PATH_ADVANCED);
+            $paging = $this->generalHelper->getStoreValue(self::XML_PATH_PAGING);
+            if ($advanced && ($paging > 0)) {
+                $filters['page_size'] = $paging;
+            }
         }
 
         $filters['stock'] = $this->generalHelper->getStoreValue(self::XML_PATH_STOCK);

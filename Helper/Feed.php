@@ -16,6 +16,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magmodules\Sooqr\Logger\SooqrLogger;
 
 class Feed extends AbstractHelper
 {
@@ -34,6 +35,7 @@ class Feed extends AbstractHelper
     private $stream;
     private $timezone;
     private $datetime;
+    private $sooqrLogger;
     private $baseDir = null;
 
     /**
@@ -46,6 +48,7 @@ class Feed extends AbstractHelper
      * @param DateTime              $datetime
      * @param TimezoneInterface     $timezone
      * @param General               $generalHelper
+     * @param SooqrLogger           $soorqLogger
      */
     public function __construct(
         Context $context,
@@ -54,7 +57,8 @@ class Feed extends AbstractHelper
         DirectoryList $directoryList,
         DateTime $datetime,
         TimezoneInterface $timezone,
-        GeneralHelper $generalHelper
+        GeneralHelper $generalHelper,
+        SooqrLogger $soorqLogger
     ) {
         $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
@@ -62,6 +66,7 @@ class Feed extends AbstractHelper
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         $this->timezone = $timezone;
         $this->datetime = $datetime;
+        $this->sooqrLogger = $soorqLogger;
         parent::__construct($context);
     }
 
@@ -145,15 +150,25 @@ class Feed extends AbstractHelper
 
     /**
      * @param $storeId
-     * @param $qty
+     * @param $processed
      * @param $time
      * @param $date
      * @param $type
+     * @param $pages
      */
-    public function updateResult($storeId, $qty, $time, $date, $type = 'manual')
+    public function updateResult($storeId, $processed, $time, $date, $type, $pages)
     {
+        if (empty($type)) {
+            $type = 'manual';
+        }
+
         if ($type != 'preview') {
-            $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $qty, $time);
+            $pages--;
+            if ($pages > 1) {
+                $html = sprintf('Date: %s (%s) - Products: %s (%s pages) - Time: %s', $date, $type, $processed, $pages, $time);
+            } else {
+                $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $processed, $time);
+            }
             $this->generalHelper->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
         }
     }
@@ -225,15 +240,15 @@ class Feed extends AbstractHelper
 
     /**
      * @param $timeStart
-     * @param $count
+     * @param $processed
      * @param $limit
      *
      * @return array
      */
-    public function getFeedResults($timeStart, $count, $limit)
+    public function getFeedResults($timeStart, $processed, $limit)
     {
         $summary = [];
-        $summary['products_total'] = $count;
+        $summary['products_total'] = $processed;
         $summary['products_limit'] = $limit;
         $summary['processing_time'] = number_format((microtime(true) - $timeStart), 2) . ' sec';
         $summary['date_created'] = $this->timezone->date($this->datetime->date())->format(\Magento\Framework\Stdlib\DateTime::DATETIME_PHP_FORMAT);
@@ -259,14 +274,31 @@ class Feed extends AbstractHelper
             $json['feeds'][$storeId]['feed_url'] = $feedUrl;
             $json['feeds'][$storeId]['currency'] = $this->generalHelper->getCurrecyCode($storeId);
             $json['feeds'][$storeId]['locale'] = $this->generalHelper->getStoreValue('general/locale/code', $storeId);
-            $json['feeds'][$storeId]['country'] = $this->generalHelper->getStoreValue('general/country/default',
-                $storeId);
-            $json['feeds'][$storeId]['timezone'] = $this->generalHelper->getStoreValue('general/locale/timezone',
-                $storeId);
+            $json['feeds'][$storeId]['country'] = $this->generalHelper->getStoreValue('general/country/default', $storeId);
+            $json['feeds'][$storeId]['timezone'] = $this->generalHelper->getStoreValue('general/locale/timezone', $storeId);
             $json['feeds'][$storeId]['extension'] = 'Magmodules_Sooqr';
             $json['feeds'][$storeId]['platform_version'] = $this->generalHelper->getMagentoVersion();
             $json['feeds'][$storeId]['extension_version'] = $this->generalHelper->getExtensionVersion();
         }
         return $json;
+    }
+
+    /**
+     * @param $page
+     * @param $pages
+     */
+    public function addLog($page, $pages)
+    {
+        $memUsage = memory_get_usage(true);
+        if ($memUsage < 1024) {
+            $usage = $memUsage . ' b';
+        } elseif ($memUsage < 1048576) {
+            $usage = round($memUsage / 1024, 2) . ' KB';
+        } else {
+            $usage = round($memUsage / 1048576, 2) . ' MB';
+        }
+
+        $msg = $page . '/' . $pages . ': ' . $usage;
+        $this->sooqrLogger->addInfoLog($msg);
     }
 }

@@ -84,34 +84,33 @@ class Generate
     {
         $timeStart = microtime(true);
         $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
-
         $config = $this->sourceHelper->getConfig($storeId, $type);
         $header = $this->feedHelper->getFeedHeader();
         $header = $this->sourceHelper->getXmlFromArray($header, 'config');
         $this->feedHelper->createFeed($config, $header);
+        $products = $this->productModel->getCollection($config, $productIds);
+        $pages = ($type == 'preview') ? $page : $products->getLastPageNumber();
+        $processed = 0;
 
-        $products = $this->productModel->getCollection($config, $productIds, $page);
-        $relations = $config['filters']['relations'];
-        $limit = $config['filters']['limit'];
-        $count = 0;
+        do {
+            $products->setCurPage($page);
+            $products->load();
 
-        foreach ($products as $product) {
-            $parent = '';
-            if ($relations) {
-                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
-                    $parent = $products->getItemById($parentId);
-                    if (!$parent) {
-                        $parent = $this->productModel->loadParentProduct($parentId, $config['attributes']);
-                    }
-                }
+            if ($pages > 1) {
+                $parents = $this->productModel->getParents($products, $config);
+                $processed += $this->getFeedData($products, $parents, $config);
+            } else {
+                $processed += $this->getFeedData($products, $products, $config);
             }
-            if ($dataRow = $this->productHelper->getDataRow($product, $parent, $config)) {
-                if ($row = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
-                    $this->feedHelper->writeRow($row);
-                    $count++;
-                }
+
+            if ($config['debug_memory']) {
+                $this->feedHelper->addLog($page, $pages);
             }
-        }
+
+            $products->clear();
+            $parents = null;
+            $page++;
+        } while ($page <= $pages);
 
         if ($cmsPages = $this->cmsHelper->getCmsPages()) {
             foreach ($cmsPages as $item) {
@@ -120,19 +119,48 @@ class Generate
             }
         }
 
-        $results = $this->feedHelper->getFeedResults($timeStart, $count, $limit);
+        $pageSize = isset($config['filters']['page_size']) ? $config['filters']['page_size'] : '';
+        $results = $this->feedHelper->getFeedResults($timeStart, $processed, $pageSize);
         $footer = $this->sourceHelper->getXmlFromArray($results, 'results');
 
         $this->feedHelper->writeFooter($footer);
-        $this->feedHelper->updateResult($storeId, $count, $results['processing_time'], $results['date_created'], $type);
+        $this->feedHelper->updateResult($storeId, $processed, $results['processing_time'], $results['date_created'], $type, $page);
 
         $this->appEmulation->stopEnvironmentEmulation();
 
         return [
             'status' => 'success',
-            'qty'    => $count,
+            'qty'    => $processed,
             'path'   => $config['feed_locations']['full_path'],
             'url'    => $config['feed_locations']['url']
         ];
+    }
+
+    /**
+     * @param $products
+     * @param $parents
+     * @param $config
+     *
+     * @return int
+     */
+    public function getFeedData($products, $parents, $config)
+    {
+        $qty = 0;
+        foreach ($products as $product) {
+            $parent = null;
+            if ($config['filters']['relations']) {
+                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
+                    $parent = $parents->getItemById($parentId);
+                }
+            }
+            if ($dataRow = $this->productHelper->getDataRow($product, $parent, $config)) {
+                if ($row = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
+                    $this->feedHelper->writeRow($row);
+                    $qty++;
+                }
+            }
+        }
+
+        return $qty;
     }
 }

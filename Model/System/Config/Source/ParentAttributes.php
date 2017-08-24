@@ -59,5 +59,4 @@ class ParentAttributes implements ArrayInterface
 
         return $attributes;
     }
-
 }

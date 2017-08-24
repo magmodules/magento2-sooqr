@@ -307,6 +307,30 @@
                         <field id="cron_frequency">custom</field>
                     </depends>
                 </field>
+                <field id="heading_advanced" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Advanced Settings</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>A cronjob is a daemon which continues running and gets activated at a certain interval (time period). Please ensure that your default Magento Cron is working. If not, contact your hosting company for help.</comment>
+                </field>
+                <field id="advanced" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="paging" translate="label" type="text" sortOrder="32" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Products per Batch</label>
+                    <depends>
+                        <field id="advanced">1</field>
+                    </depends>
+                    <comment>Use the paging function on big catalogs, e.g. catalogs of 50.000 SKU, use 5.000 per page.</comment>
+                </field>
+                <field id="debug_memory" translate="label" type="select" sortOrder="33" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Debug Memory Usage</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Write the memory usage to the var/log/sooqr.log file</comment>
+                    <depends>
+                        <field id="advanced">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="feeds" translate="label comment" type="text" sortOrder="9" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sooqr - Feeds</label>
