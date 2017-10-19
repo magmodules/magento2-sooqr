@@ -18,11 +18,36 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 class Cms extends AbstractHelper
 {
 
+    const XPATH_CMS_PAGES = 'magmodules_sooqr/cms/enable';
+
+    /**
+     * @var General
+     */
     private $generalHelper;
+
+    /**
+     * @var PageRepositoryInterface
+     */
     private $pageRepository;
+
+    /**
+     * @var PageInterface
+     */
     private $page;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
     private $searchCriteriaBuilder;
+
+    /**
+     * @var FilterBuilder
+     */
     private $filterBuilder;
+
+    /**
+     * @var PageHelper
+     */
     private $cmsPage;
 
     /**
@@ -60,6 +85,11 @@ class Cms extends AbstractHelper
     public function getCmsPages()
     {
         $cmspages = [];
+
+        if (!$this->generalHelper->getStoreValue(self::XPATH_CMS_PAGES)) {
+            return $cmspages;
+        }
+
         $this->searchCriteriaBuilder->addFilters(
             [
                 $this->filterBuilder
@@ -72,17 +102,24 @@ class Cms extends AbstractHelper
         $items = $this->pageRepository->getList($this->searchCriteriaBuilder->create())->getItems();
 
         foreach ($items as $item) {
-            if ($item['active']) {
-                $url = $this->cmsPage->getPageUrl($item['identifier']);
-                $cmspages[] = [
-                    'sqr:content_type' => 'cms',
-                    'sqr:id'           => $item['identifier'],
-                    'sqr:title'        => $item['title'],
-                    'sqr:description'  => $this->cleanData($item['content']),
-                    'sqr:link'         => strtok($url, '?'),
-                ];
+            if (isset($item['is_active']) && $item['is_active'] != 1) {
+                continue;
             }
+
+            if (isset($item['active']) && $item['active'] != 1) {
+                continue;
+            }
+
+            $url = $this->cmsPage->getPageUrl($item['identifier']);
+            $cmspages[] = [
+                'sqr:content_type' => 'cms',
+                'sqr:id'           => $item['identifier'],
+                'sqr:title'        => $item['title'],
+                'sqr:description'  => $this->cleanData($item['content']),
+                'sqr:link'         => strtok($url, '?'),
+            ];
         }
+
         return $cmspages;
     }
 

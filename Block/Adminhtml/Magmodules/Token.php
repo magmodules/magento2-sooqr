@@ -14,6 +14,9 @@ use Magento\Backend\Block\Template\Context;
 class Token extends Field
 {
 
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
 
     /**

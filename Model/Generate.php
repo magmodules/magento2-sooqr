@@ -6,7 +6,7 @@
 
 namespace Magmodules\Sooqr\Model;
 
-use Magmodules\Sooqr\Model\Products as ProductModel;
+use Magmodules\Sooqr\Model\Collection\Products as ProductModel;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Cms as CmsHelper;
@@ -19,20 +19,43 @@ use Psr\Log\LoggerInterface;
 class Generate
 {
 
-    const XML_PATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
-    const XML_PATH_GENERATE = 'magmodules_sooqr/generate/enable';
+    const XPATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
+    const XPATH_GENERATE = 'magmodules_sooqr/generate/enable';
 
+    /**
+     * @var ProductModel
+     */
     private $productModel;
+
+    /**
+     * @var SourceHelper
+     */
     private $sourceHelper;
+
+    /**
+     * @var ProductHelper
+     */
     private $productHelper;
+
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
+
+    /**
+     * @var FeedHelper
+     */
     private $feedHelper;
+
+    /**
+     * @var CmsHelper
+     */
     private $cmsHelper;
 
     /**
      * Generate constructor.
      *
-     * @param Products        $productModel
+     * @param ProductModel    $productModel
      * @param SourceHelper    $sourceHelper
      * @param ProductHelper   $productHelper
      * @param CmsHelper       $cmsHelper
@@ -66,7 +89,7 @@ class Generate
      */
     public function generateAll()
     {
-        $storeIds = $this->generalHelper->getEnabledArray(self::XML_PATH_GENERATE);
+        $storeIds = $this->generalHelper->getEnabledArray(self::XPATH_GENERATE);
         foreach ($storeIds as $storeId) {
             $this->generateByStore($storeId, 'cron');
         }
@@ -82,6 +105,9 @@ class Generate
      */
     public function generateByStore($storeId, $type = 'manual', $productIds = [], $page = 1)
     {
+        $processed = 0;
+        $pages = 1;
+
         $timeStart = microtime(true);
         $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
 
@@ -90,28 +116,36 @@ class Generate
         $header = $this->sourceHelper->getXmlFromArray($header, 'config');
         $this->feedHelper->createFeed($config, $header);
 
-        $products = $this->productModel->getCollection($config, $productIds, $page);
-        $relations = $config['filters']['relations'];
-        $limit = $config['filters']['limit'];
-        $count = 0;
+        $productCollection = $this->productModel->getCollection($config, $page, $productIds);
+        $size = $this->productModel->getCollectionCountWithFilters($productCollection);
 
-        foreach ($products as $product) {
-            $parent = '';
-            if ($relations) {
-                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
-                    $parent = $products->getItemById($parentId);
-                    if (!$parent) {
-                        $parent = $this->productModel->loadParentProduct($parentId, $config['attributes']);
-                    }
-                }
-            }
-            if ($dataRow = $this->productHelper->getDataRow($product, $parent, $config)) {
-                if ($row = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
-                    $this->feedHelper->writeRow($row);
-                    $count++;
-                }
-            }
+        if (($config['filters']['limit'] > 0) && empty($productId)) {
+            $pages = ceil($size / $config['filters']['limit']);
         }
+
+        if ($type == 'preview') {
+            $pages = $page;
+        }
+
+        do {
+            $productCollection->setCurPage($page);
+            $productCollection->load();
+
+            if ($pages > 1 || !empty($config['filters']['advanced'])) {
+                $parents = $this->productModel->getParents($productCollection, $config);
+                $processed += $this->getFeedData($productCollection, $parents, $config);
+            } else {
+                $processed += $this->getFeedData($productCollection, $productCollection, $config);
+            }
+
+            if ($config['debug_memory']) {
+                $this->feedHelper->addLog($page, $pages, $storeId);
+            }
+
+            $productCollection->clear();
+            $parents = null;
+            $page++;
+        } while ($page <= $pages);
 
         if ($cmsPages = $this->cmsHelper->getCmsPages()) {
             foreach ($cmsPages as $item) {
@@ -120,19 +154,53 @@ class Generate
             }
         }
 
-        $results = $this->feedHelper->getFeedResults($timeStart, $count, $limit);
+        $pageSize = isset($config['filters']['page_size']) ? $config['filters']['page_size'] : '';
+        $results = $this->feedHelper->getFeedResults($timeStart, $processed, $pageSize);
         $footer = $this->sourceHelper->getXmlFromArray($results, 'results');
 
         $this->feedHelper->writeFooter($footer);
-        $this->feedHelper->updateResult($storeId, $count, $results['processing_time'], $results['date_created'], $type);
+        $this->feedHelper->updateResult($storeId, $processed, $results['processing_time'], $results['date_created'], $type, $page);
 
         $this->appEmulation->stopEnvironmentEmulation();
 
         return [
             'status' => 'success',
-            'qty'    => $count,
+            'qty'    => $processed,
             'path'   => $config['feed_locations']['full_path'],
-            'url'    => $config['feed_locations']['url']
+            'url'    => $config['feed_locations']['url'],
+            'time'   => $results['processing_time']
         ];
+    }
+
+    /**
+     * @param $products
+     * @param $parents
+     * @param $config
+     *
+     * @return int
+     */
+    public function getFeedData($products, $parents, $config)
+    {
+        $qty = 0;
+        foreach ($products as $product) {
+            $parent = null;
+            if ($config['filters']['relations']) {
+                if ($parentId = $this->productHelper->getParentId($product->getEntityId())) {
+                    $parent = $parents->getItemById($parentId);
+                }
+            }
+
+            $dataRow = $this->productHelper->getDataRow($product, $parent, $config);
+            if (empty($dataRow)) {
+                continue;
+            }
+
+            if ($feedRow = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
+                $this->feedHelper->writeRow($feedRow);
+                $qty++;
+            }
+        }
+
+        return $qty;
     }
 }

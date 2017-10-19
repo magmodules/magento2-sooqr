@@ -14,12 +14,20 @@ use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 class Feeds extends Field
 {
 
-    private $feedHelper;
+    /**
+     * @var string
+     */
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/feeds.phtml';
 
     /**
+     * @var FeedHelper
+     */
+    private $feedHelper;
+
+    /**
      * Feeds constructor.
-     * @param Context $context
+     *
+     * @param Context    $context
      * @param FeedHelper $feedHelper
      */
     public function __construct(
@@ -40,6 +48,7 @@ class Feeds extends Field
 
     /**
      * @param AbstractElement $element
+     *
      * @return string
      */
     public function render(AbstractElement $element)
@@ -59,6 +68,7 @@ class Feeds extends Field
 
     /**
      * @param $storeId
+     *
      * @return string
      */
     public function getDownloadUrl($storeId)
@@ -68,6 +78,7 @@ class Feeds extends Field
 
     /**
      * @param $storeId
+     *
      * @return string
      */
     public function getGenerateUrl($storeId)
@@ -77,6 +88,7 @@ class Feeds extends Field
 
     /**
      * @param $storeId
+     *
      * @return string
      */
     public function getPreviewUrl($storeId)

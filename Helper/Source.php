@@ -19,30 +19,54 @@ use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 class Source extends AbstractHelper
 {
 
-    const XML_PATH_NAME_SOURCE = 'magmodules_sooqr/data/name_attribute';
-    const XML_PATH_SKU_SOURCE = 'magmodules_sooqr/data/sku_attribute';
-    const XML_PATH_DESCRIPTION_SOURCE = 'magmodules_sooqr/data/description_attribute';
-    const XML_PATH_BRAND_SOURCE = 'magmodules_sooqr/data/brand_attribute';
-    const XML_PATH_EXTRA_FIELDS = 'magmodules_sooqr/data/extra_fields';
-    const XML_PATH_IMAGE_SOURCE = 'magmodules_sooqr/data/image_source';
-    const XML_PATH_IMAGE_RESIZE = 'magmodules_sooqr/data/image_resize';
-    const XML_PATH_IMAGE_SIZE_FIXED = 'magmodules_sooqr/data/image_size_fixed';
-    const XML_PATH_IMAGE_SIZE_CUSTOM = 'magmodules_sooqr/data/image_size_custom';
-    const XML_PATH_LIMIT = 'magmodules_sooqr/generate/limit';
-    const XML_PATH_CATEGORY = 'magmodules_sooqr/data/category';
-    const XML_PATH_VISBILITY = 'magmodules_sooqr/filter/visbility_enable';
-    const XML_PATH_VISIBILITY_OPTIONS = 'magmodules_sooqr/filter/visbility';
-    const XML_PATH_CATEGORY_FILTER = 'magmodules_sooqr/filter/category_enable';
-    const XML_PATH_CATEGORY_FILTER_TYPE = 'magmodules_sooqr/filter/category_type';
-    const XML_PATH_CATEGORY_IDS = 'magmodules_sooqr/filter/category';
-    const XML_PATH_STOCK = 'magmodules_sooqr/filter/stock';
-    const XML_PATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
-    const XML_PATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
+    const XPATH_NAME_SOURCE = 'magmodules_sooqr/data/name_attribute';
+    const XPATH_SKU_SOURCE = 'magmodules_sooqr/data/sku_attribute';
+    const XPATH_DESCRIPTION_SOURCE = 'magmodules_sooqr/data/description_attribute';
+    const XPATH_BRAND_SOURCE = 'magmodules_sooqr/data/brand_attribute';
+    const XPATH_EXTRA_FIELDS = 'magmodules_sooqr/data/extra_fields';
+    const XPATH_IMAGE_SOURCE = 'magmodules_sooqr/data/image_source';
+    const XPATH_IMAGE_RESIZE = 'magmodules_sooqr/data/image_resize';
+    const XPATH_IMAGE_SIZE_FIXED = 'magmodules_sooqr/data/image_size_fixed';
+    const XPATH_IMAGE_SIZE_CUSTOM = 'magmodules_sooqr/data/image_size_custom';
+    const XPATH_LIMIT = 'magmodules_sooqr/generate/limit';
+    const XPATH_CATEGORY = 'magmodules_sooqr/data/category';
+    const XPATH_VISBILITY = 'magmodules_sooqr/filter/visbility_enable';
+    const XPATH_VISIBILITY_OPTIONS = 'magmodules_sooqr/filter/visbility';
+    const XPATH_CATEGORY_FILTER = 'magmodules_sooqr/filter/category_enable';
+    const XPATH_CATEGORY_FILTER_TYPE = 'magmodules_sooqr/filter/category_type';
+    const XPATH_CATEGORY_IDS = 'magmodules_sooqr/filter/category';
+    const XPATH_STOCK = 'magmodules_sooqr/filter/stock';
+    const XPATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
+    const XPATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
+    const XPATH_ADVANCED = 'magmodules_sooqr/generate/advanced';
+    const XPATH_PAGING = 'magmodules_sooqr/generate/paging';
+    const XPATH_DEBUG_MEMORY = 'magmodules_sooqr/generate/debug_memory';
+    const XPATH_FILTERS = 'magmodules_sooqr/filter/filters';
+    const XPATH_FILTERS_DATA = 'magmodules_sooqr/filter/filters_data';
 
+    /**
+     * @var General
+     */
     private $generalHelper;
+
+    /**
+     * @var Product
+     */
     private $productHelper;
+
+    /**
+     * @var Category
+     */
     private $categoryHelper;
+
+    /**
+     * @var Feed
+     */
     private $feedHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
 
     /**
@@ -90,10 +114,14 @@ class Source extends AbstractHelper
         $config['base_url'] = $this->storeManager->getStore()->getBaseUrl();
         $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
         $config['filters'] = $this->getProductFilters($type);
-        $config['default_category'] = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY);
+        $config['default_category'] = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY);
+        $config['debug_memory'] = $this->generalHelper->getStoreValue(self::XPATH_DEBUG_MEMORY);
         $config['inventory'] = $this->getInventoryData();
-        $config['categories'] = $this->categoryHelper->getCollection($storeId, 'sooqr_cat',
-            $config['default_category']);
+        $config['categories'] = $this->categoryHelper->getCollection(
+            $storeId,
+            'sooqr_cat',
+            $config['default_category']
+        );
 
         return $config;
     }
@@ -119,12 +147,12 @@ class Source extends AbstractHelper
         ];
         $attributes['name'] = [
             'label'  => 'sqr:title',
-            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_NAME_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XPATH_NAME_SOURCE),
             'max'    => 200
         ];
         $attributes['sku'] = [
             'label'  => 'sqr:sku',
-            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_SKU_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XPATH_SKU_SOURCE),
             'max'    => 70
         ];
         $attributes['link'] = [
@@ -135,13 +163,13 @@ class Source extends AbstractHelper
         ];
         $attributes['description'] = [
             'label'   => 'sqr:description',
-            'source'  => $this->generalHelper->getStoreValue(self::XML_PATH_DESCRIPTION_SOURCE),
+            'source'  => $this->generalHelper->getStoreValue(self::XPATH_DESCRIPTION_SOURCE),
             'max'     => 5000,
             'actions' => ['striptags']
         ];
         $attributes['image_link'] = [
             'label'  => 'sqr:image_link',
-            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XPATH_IMAGE_SOURCE),
             'resize' => $this->getImageResize(),
         ];
         $attributes['price'] = [
@@ -156,7 +184,7 @@ class Source extends AbstractHelper
         ];
         $attributes['brand'] = [
             'label'  => 'sqr:brand',
-            'source' => $this->generalHelper->getStoreValue(self::XML_PATH_BRAND_SOURCE),
+            'source' => $this->generalHelper->getStoreValue(self::XPATH_BRAND_SOURCE),
             'max'    => 70
         ];
         $attributes['product_type'] = [
@@ -225,13 +253,13 @@ class Source extends AbstractHelper
     public function getImageResize()
     {
 
-        $resize = $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_RESIZE);
+        $resize = $this->generalHelper->getStoreValue(self::XPATH_IMAGE_RESIZE);
 
         if ($resize == 'fixed') {
-            return $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SIZE_FIXED);
+            return $this->generalHelper->getStoreValue(self::XPATH_IMAGE_SIZE_FIXED);
         }
         if ($resize == 'custom') {
-            return $this->generalHelper->getStoreValue(self::XML_PATH_IMAGE_SIZE_CUSTOM);
+            return $this->generalHelper->getStoreValue(self::XPATH_IMAGE_SIZE_CUSTOM);
         }
 
         return false;
@@ -243,7 +271,7 @@ class Source extends AbstractHelper
     public function getExtraFields()
     {
         $extraFields = [];
-        if ($attributes = $this->generalHelper->getStoreValueArray(self::XML_PATH_EXTRA_FIELDS)) {
+        if ($attributes = $this->generalHelper->getStoreValueArray(self::XPATH_EXTRA_FIELDS)) {
             foreach ($attributes as $attribute) {
                 $label = strtolower(str_replace(' ', '_', $attribute['attribute']));
                 $extraFields[$label] = [
@@ -261,9 +289,9 @@ class Source extends AbstractHelper
      */
     public function getParentAttributes()
     {
-        $enabled = $this->generalHelper->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
+        $enabled = $this->generalHelper->getStoreValue(self::XPATH_RELATIONS_ENABLED);
         if ($enabled) {
-            if ($attributes = $this->generalHelper->getStoreValue(self::XML_PATH_PARENT_ATTS)) {
+            if ($attributes = $this->generalHelper->getStoreValue(self::XPATH_PARENT_ATTS)) {
                 $attributes = explode(',', $attributes);
 
                 return $attributes;
@@ -296,9 +324,9 @@ class Source extends AbstractHelper
     {
         $filters = [];
 
-        $visibilityFilter = $this->generalHelper->getStoreValue(self::XML_PATH_VISBILITY);
+        $visibilityFilter = $this->generalHelper->getStoreValue(self::XPATH_VISBILITY);
         if ($visibilityFilter) {
-            $visibility = $this->generalHelper->getStoreValue(self::XML_PATH_VISIBILITY_OPTIONS);
+            $visibility = $this->generalHelper->getStoreValue(self::XPATH_VISIBILITY_OPTIONS);
             $filters['visibility'] = explode(',', $visibility);
         } else {
             $filters['visibility'] = [
@@ -308,7 +336,7 @@ class Source extends AbstractHelper
             ];
         }
 
-        $relations = $this->generalHelper->getStoreValue(self::XML_PATH_RELATIONS_ENABLED);
+        $relations = $this->generalHelper->getStoreValue(self::XPATH_RELATIONS_ENABLED);
         if ($relations) {
             $filters['relations'] = 1;
             if (!$visibilityFilter) {
@@ -318,18 +346,31 @@ class Source extends AbstractHelper
             $filters['relations'] = 0;
         }
 
+        $filters['limit'] = '';
         if ($type == 'preview') {
             $filters['limit'] = '100';
         } else {
-            $filters['limit'] = (int)$this->generalHelper->getStoreValue(self::XML_PATH_LIMIT);
+            $advanced = (int)$this->generalHelper->getStoreValue(self::XPATH_ADVANCED);
+            $paging = $this->generalHelper->getStoreValue(self::XPATH_PAGING);
+            if ($advanced && ($paging > 0)) {
+                $filters['limit'] = $paging;
+            }
         }
 
-        $filters['stock'] = $this->generalHelper->getStoreValue(self::XML_PATH_STOCK);
+        $filters['stock'] = $this->generalHelper->getStoreValue(self::XPATH_STOCK);
 
-        $categoryFilter = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_FILTER);
+        $filters['advanced'] = [];
+        $productFilters = $this->generalHelper->getStoreValue(self::XPATH_FILTERS);
+        if ($productFilters) {
+            if ($advFilters = $this->generalHelper->getStoreValueArray(self::XPATH_FILTERS_DATA)) {
+                $filters['advanced'] = $advFilters;
+            }
+        }
+
+        $categoryFilter = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY_FILTER);
         if ($categoryFilter) {
-            $categoryIds = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_IDS);
-            $filterType = $this->generalHelper->getStoreValue(self::XML_PATH_CATEGORY_FILTER_TYPE);
+            $categoryIds = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY_IDS);
+            $filterType = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY_FILTER_TYPE);
             if (!empty($categoryIds) && !empty($filterType)) {
                 $filters['category_ids'] = explode(',', $categoryIds);
                 $filters['category_type'] = $filterType;

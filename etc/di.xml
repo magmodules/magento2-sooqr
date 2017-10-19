@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magmodules\Sooqr\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Logger\SooqrLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">Sooqr</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\SooqrHandler</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magento\Framework\Console\CommandList">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="config" xsi:type="object">Magmodules\Sooqr\Console\Command\Config</item>
+                <item name="feed-generate" xsi:type="object">Magmodules\Sooqr\Console\Command\FeedGenerate</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

@@ -12,14 +12,25 @@ use Magento\Framework\Option\ArrayInterface;
 class Country implements ArrayInterface
 {
 
+    /**
+     * @var CountryCollectionFactory
+     */
     private $countryCollectionFactory;
 
+    /**
+     * Country constructor.
+     *
+     * @param CountryCollectionFactory $countryCollectionFactory
+     */
     public function __construct(
         CountryCollectionFactory $countryCollectionFactory
     ) {
         $this->countryCollectionFactory = $countryCollectionFactory;
     }
 
+    /**
+     * @return array
+     */
     public function toOptionArray()
     {
         return $this->countryCollectionFactory->create()->toOptionArray('-- ');

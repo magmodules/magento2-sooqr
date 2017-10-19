@@ -16,10 +16,20 @@ use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 class Download extends Action
 {
 
+    /**
+     * @var FeedHelper
+     */
     private $feedHelper;
+
+    /**
+     * @var FileFactory
+     */
     private $fileFactory;
+
+    /**
+     * @var RawFactory
+     */
     private $resultRawFactory;
-    private $baseDir = null;
 
     /**
      * Download constructor.
@@ -40,7 +50,6 @@ class Download extends Action
         $this->feedHelper = $feedHelper;
         $this->fileFactory = $fileFactory;
         $this->resultRawFactory = $resultRawFactory;
-        $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         parent::__construct($context);
     }
 
@@ -54,13 +63,16 @@ class Download extends Action
         if (!empty($feed['full_path']) && file_exists($feed['full_path'])) {
             $this->fileFactory->create(
                 basename($feed['full_path']),
-                null,
-                DirectoryList::ROOT,
+                [
+                    'type'  => 'filename',
+                    'value' => 'sooqr/' . basename($feed['full_path']),
+                    'rm'    => false,
+                ],
+                DirectoryList::MEDIA,
                 'application/octet-stream',
                 null
             );
             $resultRaw = $this->resultRawFactory->create();
-            $resultRaw->setContents(file_get_contents($feed['full_path']));
             return $resultRaw;
         } else {
             $this->messageManager->addError(__('File not found, please generate new feed.'));

@@ -18,11 +18,34 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 class Category extends AbstractHelper
 {
 
+    /**
+     * @var General
+     */
     private $generalHelper;
+
+    /**
+     * @var CategoryRepository
+     */
     private $categoryRepository;
+
+    /**
+     * @var CategoryHelper
+     */
     private $category;
+
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
+
+    /**
+     * @var CategoryFactory
+     */
     private $categoryFactory;
+
+    /**
+     * @var CategoryCollectionFactory
+     */
     private $categoryCollectionFactory;
 
     /**
@@ -51,7 +74,7 @@ class Category extends AbstractHelper
         $this->storeManager = $storeManager;
         $this->categoryFactory = $categoryFactory;
         $this->categoryCollectionFactory = $categoryCollectionFactory;
-        
+
         parent::__construct($context);
     }
 

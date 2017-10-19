@@ -14,7 +14,14 @@ use Magmodules\Sooqr\Helper\Feed;
 class Index extends Action
 {
 
+    /**
+     * @var Feed
+     */
     private $feedHelper;
+
+    /**
+     * @var JsonFactory
+     */
     private $resultJsonFactory;
 
     /**

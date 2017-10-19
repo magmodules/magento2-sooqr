@@ -13,12 +13,25 @@ use Magento\Framework\Api\SearchCriteriaBuilder;
 class Attributes implements ArrayInterface
 {
 
+    /**
+     * @var Repository
+     */
     private $attributeRepository;
+
+    /**
+     * @var SearchCriteriaBuilder
+     */
     private $searchCriteriaBuilder;
 
     /**
+     * @var array
+     */
+    public $options;
+
+    /**
      * Attributes constructor.
-     * @param Repository $attributeRepository
+     *
+     * @param Repository            $attributeRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      */
     public function __construct(
@@ -34,19 +47,55 @@ class Attributes implements ArrayInterface
      */
     public function toOptionArray()
     {
+        if (!$this->options) {
+            $options[] = ['value' => '', 'label' => __('None / Do not use')];
+            $options[] = $this->getAttributesArray();
+            $this->options = $options;
+        }
+
+        return $this->options;
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttributesArray()
+    {
         $attributes = [];
-        $attributes[] = ['value' => '', 'label' => __('None / Do not use')];
+        $attributes[] = ['value' => 'attribute_set_id', 'label' => __('Attribute Set')];
+
+        $exclude = $this->getNonAvailableAttributes();
         $searchCriteria = $this->searchCriteriaBuilder->create();
         /** @var \Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute */
         foreach ($this->attributeRepository->getList($searchCriteria)->getItems() as $attribute) {
-            if ($attribute->getIsVisible()) {
+            if ($attribute->getIsVisible() && !in_array($attribute->getAttributeCode(), $exclude)) {
                 $attributes[] = [
                     'value' => $attribute->getAttributeCode(),
-                    'label' => str_replace("'", '', $attribute->getFrontendLabel())
+                    'label' => $this->getLabel($attribute)
                 ];
             }
         }
+        usort($attributes, function ($a, $b) {
+            return strcmp($a["label"], $b["label"]);
+        });
+        return ['label' => __('Atttibutes'), 'value' => $attributes, 'optgroup-name' => __('Atttibutes')];
+    }
 
-        return $attributes;
+    /**
+     * @return array
+     */
+    public function getNonAvailableAttributes()
+    {
+        return ['categories', 'gallery'];
+    }
+
+    /**
+     * @param $attribute
+     *
+     * @return mixed
+     */
+    public function getLabel($attribute)
+    {
+        return str_replace("'", '', $attribute->getFrontendLabel());
     }
 }

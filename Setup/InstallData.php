@@ -14,6 +14,9 @@ use Magento\Config\Model\ResourceModel\Config;
 class InstallData implements InstallDataInterface
 {
 
+    /**
+     * @var Config
+     */
     private $config;
 
     /**
