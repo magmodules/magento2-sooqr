@@ -15,13 +15,13 @@ use Magento\Framework\App\State;
 use Magmodules\Sooqr\Model\Generate as GenerateModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
-class GenerateFeed extends Command
+class FeedGenerate extends Command
 {
 
     /**
      *
      */
-    const COMMAND_NAME = 'sooqr:generate:feed';
+    const COMMAND_NAME = 'sooqr:feed:generate';
 
     /**
      * @var State
@@ -74,7 +74,7 @@ class GenerateFeed extends Command
     protected function configure()
     {
         $this->setName(self::COMMAND_NAME);
-        $this->setDescription('Generate Feed, use --store-id= for per store generation');
+        $this->setDescription('Generate Sooqr XML Feed');
         $this->addOption(
             'store-id',
             null,

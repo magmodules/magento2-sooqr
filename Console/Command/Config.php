@@ -64,7 +64,7 @@ class Config extends Command
      */
     protected function configure()
     {
-        $this->setName('sooqr:config');
+        $this->setName(self::COMMAND_NAME);
         $this->setDescription('Config Commands');
         $this->addOption(
             'run',

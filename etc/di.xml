@@ -18,13 +18,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="config" xsi:type="object">Magmodules\Sooqr\Console\Command\Config</item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Magento\Framework\Console\CommandList">
-        <arguments>
-            <argument name="commands" xsi:type="array">
-                <item name="generate-feed" xsi:type="object">Magmodules\Sooqr\Console\Command\GenerateFeed</item>
+                <item name="feed-generate" xsi:type="object">Magmodules\Sooqr\Console\Command\FeedGenerate</item>
             </argument>
         </arguments>
     </type>
