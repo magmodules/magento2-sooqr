@@ -12,10 +12,17 @@ class SooqrLogger extends Logger
 {
 
     /**
-     * @param $msg
+     * @param $type
+     * @param $data
      */
-    public function addInfoLog($msg)
+    public function add($type, $data)
     {
-        $this->addInfo($msg);
+        if (is_array($data)) {
+            $this->addInfo($type . ': ' . json_encode($data));
+        } elseif (is_object($data)) {
+            $this->addInfo($type . ': ' . json_encode($data));
+        } else {
+            $this->addInfo($type . ': ' . $data);
+        }
     }
 }

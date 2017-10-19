@@ -6,7 +6,7 @@
 
 namespace Magmodules\Sooqr\Model;
 
-use Magmodules\Sooqr\Model\Products as ProductModel;
+use Magmodules\Sooqr\Model\Collection\Products as ProductModel;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Cms as CmsHelper;
@@ -19,20 +19,43 @@ use Psr\Log\LoggerInterface;
 class Generate
 {
 
-    const XML_PATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
-    const XML_PATH_GENERATE = 'magmodules_sooqr/generate/enable';
+    const XPATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
+    const XPATH_GENERATE = 'magmodules_sooqr/generate/enable';
 
+    /**
+     * @var ProductModel
+     */
     private $productModel;
+
+    /**
+     * @var SourceHelper
+     */
     private $sourceHelper;
+
+    /**
+     * @var ProductHelper
+     */
     private $productHelper;
+
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
+
+    /**
+     * @var FeedHelper
+     */
     private $feedHelper;
+
+    /**
+     * @var CmsHelper
+     */
     private $cmsHelper;
 
     /**
      * Generate constructor.
      *
-     * @param Products        $productModel
+     * @param ProductModel    $productModel
      * @param SourceHelper    $sourceHelper
      * @param ProductHelper   $productHelper
      * @param CmsHelper       $cmsHelper
@@ -66,7 +89,7 @@ class Generate
      */
     public function generateAll()
     {
-        $storeIds = $this->generalHelper->getEnabledArray(self::XML_PATH_GENERATE);
+        $storeIds = $this->generalHelper->getEnabledArray(self::XPATH_GENERATE);
         foreach ($storeIds as $storeId) {
             $this->generateByStore($storeId, 'cron');
         }
@@ -82,32 +105,44 @@ class Generate
      */
     public function generateByStore($storeId, $type = 'manual', $productIds = [], $page = 1)
     {
+        $processed = 0;
+        $pages = 1;
+
         $timeStart = microtime(true);
         $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+
         $config = $this->sourceHelper->getConfig($storeId, $type);
         $header = $this->feedHelper->getFeedHeader();
         $header = $this->sourceHelper->getXmlFromArray($header, 'config');
         $this->feedHelper->createFeed($config, $header);
-        $products = $this->productModel->getCollection($config, $productIds);
-        $pages = ($type == 'preview') ? $page : $products->getLastPageNumber();
-        $processed = 0;
+
+        $productCollection = $this->productModel->getCollection($config, $page, $productIds);
+        $size = $this->productModel->getCollectionCountWithFilters($productCollection);
+
+        if (($config['filters']['limit'] > 0) && empty($productId)) {
+            $pages = ceil($size / $config['filters']['limit']);
+        }
+
+        if ($type == 'preview') {
+            $pages = $page;
+        }
 
         do {
-            $products->setCurPage($page);
-            $products->load();
+            $productCollection->setCurPage($page);
+            $productCollection->load();
 
-            if ($pages > 1) {
-                $parents = $this->productModel->getParents($products, $config);
-                $processed += $this->getFeedData($products, $parents, $config);
+            if ($pages > 1 || !empty($config['filters']['advanced'])) {
+                $parents = $this->productModel->getParents($productCollection, $config);
+                $processed += $this->getFeedData($productCollection, $parents, $config);
             } else {
-                $processed += $this->getFeedData($products, $products, $config);
+                $processed += $this->getFeedData($productCollection, $productCollection, $config);
             }
 
             if ($config['debug_memory']) {
-                $this->feedHelper->addLog($page, $pages);
+                $this->feedHelper->addLog($page, $pages, $storeId);
             }
 
-            $products->clear();
+            $productCollection->clear();
             $parents = null;
             $page++;
         } while ($page <= $pages);
@@ -132,7 +167,8 @@ class Generate
             'status' => 'success',
             'qty'    => $processed,
             'path'   => $config['feed_locations']['full_path'],
-            'url'    => $config['feed_locations']['url']
+            'url'    => $config['feed_locations']['url'],
+            'time'   => $results['processing_time']
         ];
     }
 
@@ -153,11 +189,15 @@ class Generate
                     $parent = $parents->getItemById($parentId);
                 }
             }
-            if ($dataRow = $this->productHelper->getDataRow($product, $parent, $config)) {
-                if ($row = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
-                    $this->feedHelper->writeRow($row);
-                    $qty++;
-                }
+
+            $dataRow = $this->productHelper->getDataRow($product, $parent, $config);
+            if (empty($dataRow)) {
+                continue;
+            }
+
+            if ($feedRow = $this->sourceHelper->reformatData($dataRow, $product, $config)) {
+                $this->feedHelper->writeRow($feedRow);
+                $qty++;
             }
         }
 

@@ -14,10 +14,29 @@ use Magento\Framework\Locale\Resolver;
 class Init extends Template
 {
 
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
     private $scopeConfig;
+
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
+
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
     private $storeManager;
+
+    /**
+     * @var int
+     */
     private $storeId;
+
+    /**
+     * @var Resolver
+     */
     private $localeResolver;
 
     /**

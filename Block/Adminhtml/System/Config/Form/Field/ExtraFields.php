@@ -12,7 +12,9 @@ use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 class ExtraFields extends AbstractFieldArray
 {
 
-    private $columns = [];
+    /**
+     * @var
+     */
     private $attributeRenderer;
 
     /**

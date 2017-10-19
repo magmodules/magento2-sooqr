@@ -1,7 +1,10 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
+        <referenceBlock name="head.additional">
+            <block class="Magmodules\Sooqr\Block\Head" name="sooqr.head" template="Magmodules_Sooqr::head.phtml"/>
+        </referenceBlock>
         <referenceContainer name="before.body.end">
-            <block class="Magmodules\Sooqr\Block\Init" name="sooqr.search" template="Magmodules_Sooqr::init.phtml"/>
+            <block class="Magmodules\Sooqr\Block\Init" name="sooqr.init" template="Magmodules_Sooqr::init.phtml"/>
         </referenceContainer>
     </body>
 </page>

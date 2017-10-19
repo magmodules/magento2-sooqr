@@ -13,7 +13,14 @@ use Magmodules\Sooqr\Model\System\Config\Source\Attributes as AttributesSource;
 class Attributes extends Select
 {
 
+    /**
+     * @var array
+     */
     private $attribute = [];
+
+    /**
+     * @var AttributesSource
+     */
     private $attributes;
 
     /**

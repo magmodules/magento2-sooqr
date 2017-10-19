@@ -16,7 +16,6 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Magmodules\Sooqr\Logger\SooqrLogger;
 
 class Feed extends AbstractHelper
 {
@@ -24,18 +23,44 @@ class Feed extends AbstractHelper
     const DEFAULT_FILENAME = 'sooqr.xml';
     const DEFAULT_DIRECTORY = 'sooqr';
     const DEFAULT_DIRECTORY_PATH = 'pub/media/sooqr';
-    const XML_PATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enabled';
-    const XML_PATH_FEED_URL = 'magmodules_sooqr/feeds/url';
-    const XML_PATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
-    const XML_PATH_FEED_FILENAME = 'magmodules_sooqr/generate/filename';
+    const XPATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enabled';
+    const XPATH_FEED_URL = 'magmodules_sooqr/feeds/url';
+    const XPATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
+    const XPATH_FEED_FILENAME = 'magmodules_sooqr/generate/filename';
 
+    /**
+     * @var General
+     */
     private $generalHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
+
+    /**
+     * @var Filesystem\Directory\WriteInterface
+     */
     private $directory;
+
+    /**
+     * @var
+     */
     private $stream;
+
+    /**
+     * @var TimezoneInterface
+     */
     private $timezone;
+
+    /**
+     * @var DateTime
+     */
     private $datetime;
-    private $sooqrLogger;
+
+    /**
+     * @var null|string
+     */
     private $baseDir = null;
 
     /**
@@ -48,7 +73,6 @@ class Feed extends AbstractHelper
      * @param DateTime              $datetime
      * @param TimezoneInterface     $timezone
      * @param General               $generalHelper
-     * @param SooqrLogger           $soorqLogger
      */
     public function __construct(
         Context $context,
@@ -57,8 +81,7 @@ class Feed extends AbstractHelper
         DirectoryList $directoryList,
         DateTime $datetime,
         TimezoneInterface $timezone,
-        GeneralHelper $generalHelper,
-        SooqrLogger $soorqLogger
+        GeneralHelper $generalHelper
     ) {
         $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
@@ -66,7 +89,6 @@ class Feed extends AbstractHelper
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         $this->timezone = $timezone;
         $this->datetime = $datetime;
-        $this->sooqrLogger = $soorqLogger;
         parent::__construct($context);
     }
 
@@ -85,10 +107,10 @@ class Feed extends AbstractHelper
                 'code'      => $store->getCode(),
                 'name'      => $store->getName(),
                 'is_active' => $store->getIsActive(),
-                'status'    => $this->generalHelper->getStoreValue(self::XML_PATH_GENERATE_ENABLED, $storeId),
+                'status'    => $this->generalHelper->getStoreValue(self::XPATH_GENERATE_ENABLED, $storeId),
                 'feed'      => $this->getFeedUrl($storeId),
                 'full_path' => (!empty($location['full_path']) ? $location['full_path'] : ''),
-                'result'    => $this->generalHelper->getUncachedStoreValue(self::XML_PATH_FEED_RESULT, $storeId),
+                'result'    => $this->generalHelper->getUncachedStoreValue(self::XPATH_FEED_RESULT, $storeId),
                 'available' => (!empty($location['full_path']) ? file_exists($location['full_path']) : false)
             ];
         }
@@ -103,7 +125,7 @@ class Feed extends AbstractHelper
      */
     public function getFeedLocation($storeId, $type = '')
     {
-        $fileName = $this->generalHelper->getStoreValue(self::XML_PATH_FEED_FILENAME, $storeId);
+        $fileName = $this->generalHelper->getStoreValue(self::XPATH_FEED_FILENAME, $storeId);
 
         if (empty($fileName)) {
             $fileName = self::DEFAULT_FILENAME;
@@ -165,11 +187,18 @@ class Feed extends AbstractHelper
         if ($type != 'preview') {
             $pages--;
             if ($pages > 1) {
-                $html = sprintf('Date: %s (%s) - Products: %s (%s pages) - Time: %s', $date, $type, $processed, $pages, $time);
+                $html = __(
+                    'Date: %1 (%2) - Products: %3 (%4 pages) - Time: %5',
+                    $date,
+                    $type,
+                    $processed,
+                    $pages,
+                    $time
+                );
             } else {
-                $html = sprintf('Date: %s (%s) - Products: %s - Time: %s', $date, $type, $processed, $time);
+                $html = __('Date: %1 (%2) - Products: %3 - Time: %4', $date, $type, $processed, $time);
             }
-            $this->generalHelper->setConfigData($html, self::XML_PATH_FEED_RESULT, $storeId);
+            $this->generalHelper->setConfigData($html, self::XPATH_FEED_RESULT, $storeId);
         }
     }
 
@@ -178,6 +207,7 @@ class Feed extends AbstractHelper
      */
     public function writeRow($row)
     {
+        $row = $this->stripInvalidXml($row);
         $this->getStream()->write($row);
     }
 
@@ -239,6 +269,48 @@ class Feed extends AbstractHelper
     }
 
     /**
+     *
+     * @param $value
+     *
+     * @return string
+     */
+    public function stripInvalidXml($value)
+    {
+        $regex = '/(
+            [\xC0-\xC1]
+            | [\xF5-\xFF]
+            | \xE0[\x80-\x9F]
+            | \xF0[\x80-\x8F]
+            | [\xC2-\xDF](?![\x80-\xBF])
+            | [\xE0-\xEF](?![\x80-\xBF]{2})
+            | [\xF0-\xF4](?![\x80-\xBF]{3})
+            | (?<=[\x0-\x7F\xF5-\xFF])[\x80-\xBF]
+            | (?<![\xC2-\xDF]|[\xE0-\xEF]|[\xE0-\xEF][\x80-\xBF]|[\xF0-\xF4]|[\xF0-\xF4][\x80-\xBF]|[\xF0-\xF4][\x80-\xBF]{2})[\x80-\xBF]
+            | (?<=[\xE0-\xEF])[\x80-\xBF](?![\x80-\xBF])
+            | (?<=[\xF0-\xF4])[\x80-\xBF](?![\x80-\xBF]{2})
+            | (?<=[\xF0-\xF4][\x80-\xBF])[\x80-\xBF](?![\x80-\xBF])
+        )/x';
+        $value = preg_replace($regex, '', $value);
+        $return = '';
+        $length = strlen($value);
+        for ($i = 0; $i < $length; $i++) {
+            $current = ord($value{$i});
+            if (($current == 0x9) ||
+                ($current == 0xA) ||
+                ($current == 0xD) ||
+                (($current >= 0x20) && ($current <= 0xD7FF)) ||
+                (($current >= 0xE000) && ($current <= 0xFFFD)) ||
+                (($current >= 0x10000) && ($current <= 0x10FFFF))
+            ) {
+                $return .= chr($current);
+            } else {
+                $return .= ' ';
+            }
+        }
+        return $return;
+    }
+
+    /**
      * @param $timeStart
      * @param $processed
      * @param $limit
@@ -286,8 +358,9 @@ class Feed extends AbstractHelper
     /**
      * @param $page
      * @param $pages
+     * @param $storeId
      */
-    public function addLog($page, $pages)
+    public function addLog($page, $pages, $storeId)
     {
         $memUsage = memory_get_usage(true);
         if ($memUsage < 1024) {
@@ -299,6 +372,6 @@ class Feed extends AbstractHelper
         }
 
         $msg = $page . '/' . $pages . ': ' . $usage;
-        $this->sooqrLogger->addInfoLog($msg);
+        $this->generalHelper->addTolog('Feed Generation StoreId: ' . $storeId, $msg);
     }
 }

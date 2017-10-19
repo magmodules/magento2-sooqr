@@ -170,9 +170,8 @@
                 <field id="extra_fields" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Extra Fields</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\ExtraFields</frontend_model>
-                    <backend_model>Magento\Config\Model\Config\Backend\Serialized\ArraySerialized</backend_model>
+                    <backend_model>Magmodules\Sooqr\Model\Config\Backend\Serialized\ExtraFields</backend_model>
                 </field>
-
                 <field id="heading_config" translate="label comment" type="text" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Configurable &amp; Grouped products</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
@@ -242,26 +241,34 @@
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="heading_filters" translate="label comment" type="text" sortOrder="30" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Advanced Filters</label>
+                    <frontend_model>Magmodules\GoogleShopping\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Configure the advanced filter using your attributes and different filter options.</comment>
+                </field>
+                <field id="filters" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="filters_data" translate="label" type="select" sortOrder="32" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Filter Conditions</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Filters</frontend_model>
+                    <backend_model>Magmodules\Sooqr\Model\Config\Backend\Serialized\Filters</backend_model>
+                    <depends>
+                        <field id="filters">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="cms" translate="label comment" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>CMS Pages</label>
                 <comment>Export your CMS pages into the feed to use them in the Sooqr Search engine.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
-                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CmsEnable</source_model>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <!--<field id="heading_generation" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                   <label>CMS Export</label>
-                   <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                   <comment>Export all CMS pages, a selection or disable the option. </comment>
-               </field>
-              <field id="cms_pages" translate="label" type="multiselect" sortOrder="11" showInDefault="1" showInStore="1" showInWebsite="1">
-                   <label>CMS Pages</label>
-                   <source_model>Magento\Cms\Model\Config\Source\Page</source_model>
-                   <depends>
-                       <field id="enable">2</field>
-                   </depends>
-               </field>-->
             </group>
             <group id="generate" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Feed Generation Settings</label>
@@ -277,12 +284,6 @@
                 </field>
                 <field id="filename" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Filename</label>
-                    <depends>
-                        <field id="enable">1</field>
-                    </depends>
-                </field>
-                <field id="limit" translate="label" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Limit</label>
                     <depends>
                         <field id="enable">1</field>
                     </depends>

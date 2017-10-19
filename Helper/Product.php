@@ -14,45 +14,86 @@ use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Framework\Filter\FilterManager;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable;
+use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Visibility;
+use Magento\Catalog\Model\Product\Media\Config as CatalogProductMediaConfig;
 
 class Product extends AbstractHelper
 {
 
+    /**
+     * @var EavConfig
+     */
     private $eavConfig;
+
+    /**
+     * @var FilterManager
+     */
     private $filter;
+
+    /**
+     * @var Configurable
+     */
     private $catalogProductTypeConfigurable;
+
+    /**
+     * @var Grouped
+     */
+    private $catalogProductTypeGrouped;
+
+    /**
+     * @var AttributeSetRepositoryInterface
+     */
     private $attributeSet;
+
+    /**
+     * @var ProductImageHelper
+     */
     private $productImageHelper;
+
+    /**
+     * @var GalleryReadHandler
+     */
     private $galleryReadHandler;
+
+    /**
+     * @var CatalogProductMediaConfig
+     */
+    private $catalogProductMediaConfig;
 
     /**
      * Product constructor.
      *
      * @param Context                         $context
      * @param GalleryReadHandler              $galleryReadHandler
+     * @param CatalogProductMediaConfig       $catalogProductMediaConfig
      * @param ProductImageHelper              $productImageHelper
      * @param EavConfig                       $eavConfig
      * @param FilterManager                   $filter
      * @param AttributeSetRepositoryInterface $attributeSet
+     * @param Grouped                         $catalogProductTypeGrouped
      * @param Configurable                    $catalogProductTypeConfigurable
      */
     public function __construct(
         Context $context,
         GalleryReadHandler $galleryReadHandler,
+        CatalogProductMediaConfig $catalogProductMediaConfig,
         ProductImageHelper $productImageHelper,
         EavConfig $eavConfig,
         FilterManager $filter,
         AttributeSetRepositoryInterface $attributeSet,
+        Grouped $catalogProductTypeGrouped,
         Configurable $catalogProductTypeConfigurable
     ) {
         $this->galleryReadHandler = $galleryReadHandler;
+        $this->catalogProductMediaConfig = $catalogProductMediaConfig;
         $this->productImageHelper = $productImageHelper;
         $this->eavConfig = $eavConfig;
         $this->filter = $filter;
         $this->attributeSet = $attributeSet;
         $this->catalogProductTypeConfigurable = $catalogProductTypeConfigurable;
+        $this->catalogProductTypeGrouped = $catalogProductTypeGrouped;
         parent::__construct($context);
     }
 
@@ -69,6 +110,10 @@ class Product extends AbstractHelper
 
         if (!$this->validateProduct($product, $parent, $config)) {
             return $dataRow;
+        }
+
+        if ($this->checkBackorder($product, $config['inventory'])) {
+            $product->setIsInStock(2);
         }
 
         foreach ($config['attributes'] as $type => $attribute) {
@@ -90,6 +135,20 @@ class Product extends AbstractHelper
                     $simple
                 );
             }
+            if (!empty($attribute['multi']) && empty($attribute['conditional']) && empty($attribute['condition'])) {
+                foreach ($attribute['multi'] as $multi) {
+                    $dataRow[$attribute['label']] = $this->getAttributeValue(
+                        $type,
+                        $multi,
+                        $config,
+                        $productData,
+                        $simple
+                    );
+                    if (!empty($dataRow[$attribute['label']])) {
+                        break;
+                    }
+                }
+            }
             if (!empty($attribute['static'])) {
                 $dataRow[$attribute['label']] = $attribute['static'];
             }
@@ -99,8 +158,13 @@ class Product extends AbstractHelper
             if (!empty($attribute['condition'])) {
                 $dataRow[$attribute['label']] = $this->getCondition(
                     $dataRow[$attribute['label']],
-                    $attribute['condition']
+                    $attribute['condition'],
+                    $productData,
+                    $attribute
                 );
+            }
+            if (!empty($attribute['conditional'])) {
+                $dataRow[$attribute['label']] = $this->getConditional($attribute, $productData);
             }
             if (!empty($attribute['collection'])) {
                 if ($dataCollection = $this->getAttributeCollection($type, $config, $productData)) {
@@ -140,6 +204,49 @@ class Product extends AbstractHelper
                 }
             }
         }
+
+        if ($product->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE) {
+            if (empty($parent)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param \Magento\Catalog\Model\Product $product
+     * @param                                $inv
+     *
+     * @return bool
+     */
+    public function checkBackorder($product, $inv)
+    {
+
+        if ($product->getUseConfigManageStock() && (!$inv['config_manage_stock'])) {
+            return false;
+        }
+
+        if (!$product->getUseConfigManageStock() && !$product->getManageStock()) {
+            return false;
+        }
+
+        if (!$product->getIsInStock()) {
+            return false;
+        }
+
+        if ($product->getIsInStock() && ($product->getQty() > 0)) {
+            return false;
+        }
+
+        if ($product->getUseConfigBackorders() && empty($inv['config_backorders'])) {
+            return false;
+        }
+
+        if (!$product->getBackorders()) {
+            return false;
+        }
+
         return true;
     }
 
@@ -159,7 +266,7 @@ class Product extends AbstractHelper
                 $value = $this->getProductUrl($product, $simple, $config);
                 break;
             case 'image_link':
-                $value = $this->getImage($attribute, $config, $product);
+                $value = $this->getImage($attribute, $product);
                 break;
             case 'attribute_set_id':
                 $value = $this->getAttributeSetName($product);
@@ -167,6 +274,7 @@ class Product extends AbstractHelper
             case 'manage_stock':
             case 'min_sale_qty':
             case 'qty_increments':
+            case 'allow_backorder':
                 $value = $this->getStockValue($type, $product, $config['inventory']);
                 break;
             default:
@@ -221,12 +329,12 @@ class Product extends AbstractHelper
                         $config['store_id']
                     )
                     ) {
-                        $url_extra[] = $option['attribute_id'] . '=' . $id;
+                        $urlExtra[] = $option['attribute_id'] . '=' . $id;
                     }
                 }
             }
-            if (!empty($url_extra)) {
-                $url = $url . '#' . implode('&', $url_extra);
+            if (!empty($urlExtra) && !empty($url)) {
+                $url = $url . '#' . implode('&', $urlExtra);
             }
         }
 
@@ -235,20 +343,26 @@ class Product extends AbstractHelper
 
     /**
      * @param                                $attribute
-     * @param                                $config
      * @param \Magento\Catalog\Model\Product $product
      *
      * @return string
      */
-    public function getImage($attribute, $config, $product)
+    public function getImage($attribute, $product)
     {
-        if (empty($attribute['source'])) {
+
+        if (empty($attribute['source']) || ($attribute['source'] == 'all')) {
             $images = [];
+            if (!empty($attribute['main'])) {
+                if ($url = $product->getData($attribute['main'])) {
+                    if ($url != 'no_selection') {
+                        $images[] = $this->catalogProductMediaConfig->getMediaUrl($url);
+                    }
+                }
+            }
             $this->galleryReadHandler->execute($product);
             $galleryImages = $product->getMediaGalleryImages();
-
             foreach ($galleryImages as $image) {
-                if (empty($image['disabled'])) {
+                if (empty($image['disabled']) && !in_array($image['url'], $images)) {
                     $images[] = $image['url'];
                 }
             }
@@ -262,9 +376,22 @@ class Product extends AbstractHelper
                 return $this->getResizedImage($product, $source, $size);
             }
             if ($url = $product->getData($attribute['source'])) {
-                $img = $config['url_type_media'] . 'catalog/product' . $url;
+                if ($url != 'no_selection') {
+                    $img = $this->catalogProductMediaConfig->getMediaUrl($url);
+                }
             }
 
+            if (empty($img)) {
+                $source = $attribute['source'];
+                if ($source == 'image') {
+                    $source = 'small_image';
+                }
+                if ($url = $product->getData($source)) {
+                    if ($url != 'no_selection') {
+                        $img = $this->catalogProductMediaConfig->getMediaUrl($url);
+                    }
+                }
+            }
             return $img;
         }
     }
@@ -290,6 +417,8 @@ class Product extends AbstractHelper
 
         if (isset($imageId[$source])) {
             $source = $imageId[$source];
+        } else {
+            $source = 'product_base_image';
         }
 
         $resizedImage = $this->productImageHelper->init($product, $source)
@@ -341,6 +470,13 @@ class Product extends AbstractHelper
                 return $product->getData('min_sale_qty');
             }
         }
+        if ($attribute == 'backorders') {
+            if ($product->getData('use_config_backorders')) {
+                return $inventory['use_config_backorders'];
+            } else {
+                return $product->getData('backorders');
+            }
+        }
         if ($attribute == 'qty_increments') {
             if ($product->getData('use_config_enable_qty_inc')) {
                 if (!$inventory['config_enable_qty_inc']) {
@@ -369,10 +505,18 @@ class Product extends AbstractHelper
      */
     public function getValue($attribute, $product)
     {
+        if ($attribute['type'] == 'media_image') {
+            if ($url = $product->getData($attribute['source'])) {
+                return $this->catalogProductMediaConfig->getMediaUrl($url);
+            }
+        }
         if ($attribute['type'] == 'select') {
             if ($attr = $product->getResource()->getAttribute($attribute['source'])) {
                 $value = $product->getData($attribute['source']);
-                return (string)$attr->getSource()->getOptionText($value);
+                $data = $attr->getSource()->getOptionText($value);
+                if (!is_array($data)) {
+                    return (string)$data;
+                }
             }
         }
         if ($attribute['type'] == 'multiselect') {
@@ -385,6 +529,7 @@ class Product extends AbstractHelper
                 return implode('/', $value_text);
             }
         }
+
         return $product->getData($attribute['source']);
     }
 
@@ -399,48 +544,115 @@ class Product extends AbstractHelper
         if (!empty($attribute['actions'])) {
             $actions = $attribute['actions'];
             if (in_array('striptags', $actions)) {
-                $value = str_replace(["\r", "\n"], "", $value);
+                $value = str_replace(["\r", "\n"], " ", $value);
                 $value = strip_tags($value);
             }
             if (in_array('number', $actions)) {
-                $value = number_format($value, 2);
+                if (is_numeric($value)) {
+                    $value = number_format($value, 2);
+                }
             }
             if (in_array('round', $actions)) {
-                $value = round($value);
+                if (is_numeric($value)) {
+                    $value = round($value);
+                }
             }
             if (in_array('replacetags', $actions)) {
                 $value = str_replace(["\r", "\n"], "", $value);
                 $value = str_replace(["<br>", "<br/>", "<br />"], '\\' . '\n', $value);
                 $value = strip_tags($value);
-                $value = rtrim($value);
+            }
+            if (in_array('replacetagsn', $actions)) {
+                $value = str_replace(["\r", "\n"], "", $value);
+                $value = str_replace("<li>", "- ", $value);
+                $value = str_replace(["<br>", "<br/>", "<br />", "</p>", "</li>"], '\\' . '\n', $value);
+                $value = strip_tags($value);
             }
         }
         if (!empty($attribute['max'])) {
             $value = $this->filter->truncate($value, ['length' => $attribute['max']]);
         }
-        return $value;
+
+        return rtrim($value);
     }
 
     /**
      * @param $value
      * @param $conditions
+     * @param $product
+     * @param $attribute
      *
-     * @return bool
+     * @return string
      */
-    public function getCondition($value, $conditions)
+    public function getCondition($value, $conditions, $product, $attribute)
     {
         $data = '';
         foreach ($conditions as $condition) {
             $ex = explode(':', $condition);
             if ($ex['0'] == '*') {
-                $data = $ex['1'];
+                $data = str_replace($ex[0] . ':', '', $condition);
             }
             if ($value == $ex['0']) {
-                $data = $ex[1];
+                $data = str_replace($ex[0] . ':', '', $condition);
+            }
+        }
+
+        if (!empty($attribute['multi'])) {
+            $attributes = $attribute['multi'];
+            foreach ($attributes as $att) {
+                $data = str_replace('{{' . $att['source'] . '}}', $this->getValue($att, $product), $data);
             }
         }
 
         return $data;
+    }
+
+    /**
+     * @param $attribute
+     * @param $product
+     *
+     * @return mixed|string
+     */
+    public function getConditional($attribute, $product)
+    {
+        $dataIf = '';
+        $dataElse = '';
+        $conditions = $attribute['conditional'];
+        $attributes = $attribute['multi'];
+
+        $values = [];
+        foreach ($attributes as $att) {
+            $values['{{' . $att['source'] . '}}'] = $this->getValue($att, $product);
+        }
+
+        foreach ($conditions as $condition) {
+            $ex = explode(':', $condition);
+            if ($ex['0'] == '*') {
+                if (isset($ex['1'])) {
+                    $dataElse = $ex['1'];
+                }
+            } else {
+                if (!empty($values[$ex['0']]) && isset($ex['1'])) {
+                    $dataIf = $ex['1'];
+                }
+            }
+        }
+
+        foreach ($values as $key => $value) {
+            $dataIf = str_replace($key, $value, $dataIf);
+            $dataElse = str_replace($key, $value, $dataElse);
+        }
+
+        if (!empty($attribute['actions'])) {
+            $dataIf = $this->getFormat($dataIf, $attribute);
+            $dataElse = $this->getFormat($dataElse, $attribute);
+        }
+
+        if (!empty($dataIf)) {
+            return $dataIf;
+        }
+
+        return $dataElse;
     }
 
     /**
@@ -467,11 +679,18 @@ class Product extends AbstractHelper
      */
     public function getPriceCollection($config, $product)
     {
+
         $config = $config['price_config'];
 
-        $price = floatval($product->getPriceInfo()->getPrice('regular_price')->getValue());
-        $finalPrice = floatval($product->getPriceInfo()->getPrice('final_price')->getValue());
-        $specialPrice = floatval($product->getPriceInfo()->getPrice('special_price')->getValue());
+        if ($product->getTypeId() == 'bundle') {
+            $price = $product->getPrice();
+            $finalPrice = $product->getFinalPrice();
+            $specialPrice = $product->getSpecialPrice();
+        } else {
+            $price = floatval($product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue());
+            $finalPrice = floatval($product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue());
+            $specialPrice = floatval($product->getPriceInfo()->getPrice('special_price')->getAmount()->getValue());
+        }
 
         $prices = [];
         $prices[$config['price']] = $this->formatPrice($price, $config);
@@ -506,10 +725,12 @@ class Product extends AbstractHelper
         }
 
         if (!empty($config['discount_perc']) && isset($prices[$config['sales_price']])) {
-            $discount = ($prices[$config['sales_price']] - $prices[$config['price']]) / $prices[$config['price']];
-            $discount = $discount * -100;
-            if ($discount > 0) {
-                $prices[$config['discount_perc']] = round($discount, 1) . '%';
+            if ($prices[$config['price']] > 0) {
+                $discount = ($prices[$config['sales_price']] - $prices[$config['price']]) / $prices[$config['price']];
+                $discount = $discount * -100;
+                if ($discount > 0) {
+                    $prices[$config['discount_perc']] = round($discount, 1) . '%';
+                }
             }
         }
 
@@ -517,14 +738,15 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $data
+     * @param $price
      * @param $config
      *
      * @return string
      */
-    public function formatPrice($data, $config)
+    public function formatPrice($price, $config)
     {
-        $price = number_format($data, 2, '.', '');
+        $decimal = isset($config['decimal_point']) ? $config['decimal_point'] : '.';
+        $price = number_format(floatval(str_replace(',', '.', $price)), 2, $decimal, '');
         if (!empty($config['use_currency']) && ($price >= 0)) {
             $price .= ' ' . $config['currency'];
         }
@@ -541,15 +763,37 @@ class Product extends AbstractHelper
     {
         foreach ($attributes as $key => $value) {
             if (!empty($value['source'])) {
-                $attribute = $this->eavConfig->getAttribute('catalog_product', $value['source']);
-                $frontendInput = $attribute->getFrontendInput();
-                $attributes[$key]['type'] = $frontendInput;
+                if (!empty($value['multi'])) {
+                    $multipleSources = explode(',', $value['multi']);
+                    $sourcesArray = [];
+                    foreach ($multipleSources as $source) {
+                        if (strlen($source)) {
+                            $type = $this->eavConfig->getAttribute('catalog_product', $source)->getFrontendInput();
+                            $sourcesArray[] = ['type' => $type, 'source' => $source];
+                        }
+                    }
+                    if (!empty($sourcesArray)) {
+                        $attributes[$key]['multi'] = $sourcesArray;
+                        if ($attributes[$key]['source'] == 'multi' || $attributes[$key]['source'] == 'conditional') {
+                            unset($attributes[$key]['source']);
+                        }
+                    } else {
+                        unset($attributes[$key]);
+                    }
+                }
+                if (!empty($value['source'])) {
+                    $type = $this->eavConfig->getAttribute('catalog_product', $value['source'])->getFrontendInput();
+                    $attributes[$key]['type'] = $type;
+                }
             }
-            if (in_array($key, $parentAttributes)) {
-                $attributes[$key]['parent'] = 1;
-            } else {
-                $parent = (!empty($value['parent']) ? $value['parent'] : 0);
-                $attributes[$key]['parent'] = $parent;
+
+            if (isset($attributes[$key])) {
+                if (in_array($key, $parentAttributes)) {
+                    $attributes[$key]['parent'] = 1;
+                } else {
+                    $parent = (!empty($value['parent']) ? $value['parent'] : 0);
+                    $attributes[$key]['parent'] = $parent;
+                }
             }
         }
 
@@ -557,17 +801,24 @@ class Product extends AbstractHelper
     }
 
     /**
+     * Return Parent ID from Simple.
+     *
      * @param $productId
      *
      * @return bool
      */
     public function getParentId($productId)
     {
-        $parentByChild = $this->catalogProductTypeConfigurable->getParentIdsByChild($productId);
-        if (isset($parentByChild[0])) {
-            $id = $parentByChild[0];
-            return $id;
+        $configIds = $this->catalogProductTypeConfigurable->getParentIdsByChild($productId);
+        if (isset($configIds[0])) {
+            return $configIds[0];
         }
+
+        $groupedIds = $this->catalogProductTypeGrouped->getParentIdsByChild($productId);
+        if (isset($groupedIds[0])) {
+            return $groupedIds[0];
+        }
+
         return false;
     }
 }

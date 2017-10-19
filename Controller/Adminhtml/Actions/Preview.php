@@ -14,7 +14,14 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 class Preview extends Action
 {
 
+    /**
+     * @var GenerateModel
+     */
     private $generate;
+
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
 
     /**

@@ -16,29 +16,58 @@ use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataColle
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magmodules\Sooqr\Logger\SooqrLogger;
 
 class General extends AbstractHelper
 {
 
     const MODULE_CODE = 'Magmodules_Sooqr';
-    const XML_PATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
-    const XML_PATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
-    const XML_PATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
-    const XML_PATH_API_KEY = 'magmodules_sooqr/implementation/api_key';
-    const XML_PATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
-    const XML_PATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
-    const XML_PATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
-    const XML_PATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
-    const XML_PATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
-    const XML_PATH_STAGING = 'magmodules_sooqr/implementation/advanced_staging';
-    const XML_PATH_TOKEN = 'magmodules_sooqr/general/token';
+    const XPATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
+    const XPATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
+    const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
+    const XPATH_API_KEY = 'magmodules_sooqr/implementation/api_key';
+    const XPATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
+    const XPATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
+    const XPATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
+    const XPATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
+    const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
+    const XPATH_STAGING = 'magmodules_sooqr/implementation/advanced_staging';
+    const XPATH_TOKEN = 'magmodules_sooqr/general/token';
 
+    /**
+     * @var ModuleListInterface
+     */
     private $moduleList;
+
+    /**
+     * @var ProductMetadataInterface
+     */
     private $metadata;
+
+    /**
+     * @var StoreManagerInterface
+     */
     private $storeManager;
+
+    /**
+     * @var ObjectManagerInterface
+     */
     private $objectManager;
+
+    /**
+     * @var ConfigDataCollectionFactory
+     */
     private $configDataCollectionFactory;
+
+    /**
+     * @var Config
+     */
     private $config;
+
+    /**
+     * @var SooqrLogger
+     */
+    private $logger;
 
     /**
      * General constructor.
@@ -50,6 +79,7 @@ class General extends AbstractHelper
      * @param ProductMetadataInterface    $metadata
      * @param ConfigDataCollectionFactory $configDataCollectionFactory
      * @param Config                      $config
+     * @param SooqrLogger                 $logger
      */
     public function __construct(
         Context $context,
@@ -58,7 +88,8 @@ class General extends AbstractHelper
         ModuleListInterface $moduleList,
         ProductMetadataInterface $metadata,
         ConfigDataCollectionFactory $configDataCollectionFactory,
-        Config $config
+        Config $config,
+        SooqrLogger $logger
     ) {
         $this->objectManager = $objectManager;
         $this->storeManager = $storeManager;
@@ -66,6 +97,7 @@ class General extends AbstractHelper
         $this->metadata = $metadata;
         $this->configDataCollectionFactory = $configDataCollectionFactory;
         $this->config = $config;
+        $this->logger = $logger;
         parent::__construct($context);
     }
 
@@ -84,7 +116,7 @@ class General extends AbstractHelper
             return false;
         }
 
-        return $this->getStoreValue(self::XML_PATH_FRONTEND_ENABLED, $storeId);
+        return $this->getStoreValue(self::XPATH_FRONTEND_ENABLED, $storeId);
     }
 
     /**
@@ -96,7 +128,7 @@ class General extends AbstractHelper
      */
     public function getEnabled($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_EXTENSION_ENABLED, $storeId);
+        return $this->getStoreValue(self::XPATH_EXTENSION_ENABLED, $storeId);
     }
 
     /**
@@ -124,7 +156,7 @@ class General extends AbstractHelper
      */
     public function getAccountId($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_ACCOUNT_ID, $storeId);
+        return $this->getStoreValue(self::XPATH_ACCOUNT_ID, $storeId);
     }
 
     /**
@@ -134,7 +166,7 @@ class General extends AbstractHelper
      */
     public function getApiKey($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_API_KEY, $storeId);
+        return $this->getStoreValue(self::XPATH_API_KEY, $storeId);
     }
 
     /**
@@ -144,7 +176,7 @@ class General extends AbstractHelper
      */
     public function getCronEnabled()
     {
-        return (boolean)$this->getStoreValue(self::XML_PATH_CRON_ENABLED);
+        return (boolean)$this->getStoreValue(self::XPATH_CRON_ENABLED);
     }
 
     /**
@@ -178,12 +210,21 @@ class General extends AbstractHelper
     public function getStoreValueArray($path, $storeId = null, $scope = null)
     {
         $value = $this->getStoreValue($path, $storeId, $scope);
+
+        $result = json_decode($value, true);
+        if (json_last_error() == JSON_ERROR_NONE) {
+            if (is_array($result)) {
+                return $result;
+            }
+            return [];
+        }
+
         $value = @unserialize($value);
         if (is_array($value)) {
             return $value;
         }
 
-        return false;
+        return [];
     }
 
     /**
@@ -193,7 +234,7 @@ class General extends AbstractHelper
      */
     public function getParent($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_PARENT, $storeId);
+        return $this->getStoreValue(self::XPATH_PARENT, $storeId);
     }
 
     /**
@@ -203,7 +244,7 @@ class General extends AbstractHelper
      */
     public function getVersion($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_VERSION, $storeId);
+        return $this->getStoreValue(self::XPATH_VERSION, $storeId);
     }
 
     /**
@@ -213,7 +254,7 @@ class General extends AbstractHelper
      */
     public function getCustomJs($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_CUSTOM_JS, $storeId);
+        return $this->getStoreValue(self::XPATH_CUSTOM_JS, $storeId);
     }
 
     /**
@@ -223,7 +264,7 @@ class General extends AbstractHelper
      */
     public function getStatistics($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_STATISTICS, $storeId);
+        return $this->getStoreValue(self::XPATH_STATISTICS, $storeId);
     }
 
     /**
@@ -233,7 +274,7 @@ class General extends AbstractHelper
      */
     public function getStaging($storeId = null)
     {
-        return $this->getStoreValue(self::XML_PATH_STAGING, $storeId);
+        return $this->getStoreValue(self::XPATH_STAGING, $storeId);
     }
 
     /**
@@ -279,7 +320,7 @@ class General extends AbstractHelper
      */
     public function getToken()
     {
-        return $this->getStoreValue(self::XML_PATH_TOKEN);
+        return $this->getStoreValue(self::XPATH_TOKEN);
     }
 
     /**
@@ -287,7 +328,7 @@ class General extends AbstractHelper
      *
      * @return array
      */
-    public function getEnabledArray($path = self::XML_PATH_EXTENSION_ENABLED)
+    public function getEnabledArray($path = self::XPATH_EXTENSION_ENABLED)
     {
         $storeIds = [];
         $stores = $this->storeManager->getStores();
@@ -342,5 +383,17 @@ class General extends AbstractHelper
     public function getUrl($storeId, $param)
     {
         return $this->storeManager->getStore($storeId)->getUrl($param);
+    }
+
+    /**
+     * @param $id
+     * @param $data
+     */
+    public function addTolog($id, $data)
+    {
+        $debug = true;
+        if ($debug) {
+            $this->logger->add($id, $data);
+        }
     }
 }

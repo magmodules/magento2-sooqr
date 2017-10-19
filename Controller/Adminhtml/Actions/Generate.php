@@ -15,8 +15,19 @@ use Psr\Log\LoggerInterface;
 class Generate extends Action
 {
 
+    /**
+     * @var GenerateModel
+     */
     private $generate;
+
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
+
+    /**
+     * @var GeneralHelper
+     */
     private $generalHelper;
 
     /**

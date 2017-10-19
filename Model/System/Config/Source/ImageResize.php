@@ -15,10 +15,28 @@ use Magento\Store\Model\ScopeInterface;
 class ImageResize implements ArrayInterface
 {
 
+    /**
+     * @var DirectoryList
+     */
     private $directoryList;
+
+    /**
+     * @var Http
+     */
     private $request;
+
+    /**
+     * @var ScopeConfigInterface
+     */
     private $scopeConfig;
 
+    /**
+     * ImageResize constructor.
+     *
+     * @param Http                 $request
+     * @param DirectoryList        $directoryList
+     * @param ScopeConfigInterface $scopeConfig
+     */
     public function __construct(
         Http $request,
         DirectoryList $directoryList,

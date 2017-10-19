@@ -21,6 +21,9 @@ class Cron extends Value
 
     const CRON_STRING_PATH = 'crontab/default/jobs/magmodules_sooqr/schedule/cron_expr';
 
+    /**
+     * @var ValueFactory
+     */
     protected $configValueFactory;
 
     /**

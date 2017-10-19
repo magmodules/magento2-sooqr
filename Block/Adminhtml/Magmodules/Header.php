@@ -19,10 +19,20 @@ class Header extends Field
     const MODULE_SUPPORT_LINK = 'https://support.sooqr.com/?base=';
     const MODULE_SINGUP_LINK = 'https://signup.sooqr.com/?base=';
 
-    private $generalHelper;
-    private $request;
-
+    /**
+     * @var string
+     */
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/header.phtml';
+
+    /**
+     * @var GeneralHelper
+     */
+    private $generalHelper;
+
+    /**
+     * @var Http
+     */
+    private $request;
 
     /**
      * Header constructor.
@@ -43,6 +53,7 @@ class Header extends Field
 
     /**
      * @param AbstractElement $element
+     *
      * @return string
      */
     public function render(AbstractElement $element)
@@ -66,6 +77,16 @@ class Header extends Field
     }
 
     /**
+     * Contact link for extension.
+     *
+     * @return string
+     */
+    public function getSingupLink()
+    {
+        return self::MODULE_SINGUP_LINK . $this->getBaseUrl();
+    }
+
+    /**
      * @return string
      */
     public function getBaseUrl()
@@ -76,16 +97,6 @@ class Header extends Field
             return $baseUrl['host'];
         }
         return '';
-    }
-
-    /**
-     * Contact link for extension.
-     *
-     * @return string
-     */
-    public function getSingupLink()
-    {
-        return self::MODULE_SINGUP_LINK . $this->getBaseUrl();
     }
 
     /**

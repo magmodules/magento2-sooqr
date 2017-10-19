@@ -12,12 +12,22 @@ use Psr\Log\LoggerInterface;
 
 class GenerateFeeds
 {
+
+    /**
+     * @var Generate
+     */
     private $generate;
+
+    /**
+     * @var LoggerInterface
+     */
     private $logger;
 
     /**
      * GenerateFeeds constructor.
-     * @param Generate $generate
+     *
+     * @param Generate        $generate
+     * @param GeneralHelper   $generalHelper
      * @param LoggerInterface $logger
      */
     public function __construct(
