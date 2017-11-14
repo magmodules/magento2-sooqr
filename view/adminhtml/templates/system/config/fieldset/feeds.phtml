@@ -12,41 +12,42 @@
             <span class="title">Feeds</span>
             All active feeds are shown in the overview below.<br>The .XML URL is the URL which can be provided into your
             Sooqr Account. Regarding some cache settings in the browser it's also possible to download the
-            Feed to make sure that you are viewing the latest version. There is a small note at the end of the XML 
-            file where you can find the time of generation and the number of products.<br><br><strong>Note:</strong> 
+            Feed to make sure that you are viewing the latest version. There is a small note at the end of the XML
+            file where you can find the time of generation and the number of products.<br><br><strong>Note:</strong>
             Make sure that you save the configuration after the settings are changed and before you generate the feed.
             </thead>
             <tbody>
-                <?php foreach ($feedData as $data) { ?>
-                    <tr>
-                        <td>
-                            <p><?php echo $data['name']; ?></p>
+            <?php foreach ($feedData as $data) { ?>
+                <tr>
+                    <td>
+                        <p><?php echo $data['name']; ?></p>
+                        <p>
+                            <small><?php echo $data['code']; ?></small>
+                        </p>
+                    </td>
+                    <td>
+                        <?php if (!empty($data['feed']) && $data['available']) { ?>
                             <p>
-                                <small><?php echo $data['code']; ?></small>
-                            </p>
-                        </td>
-                        <td>
-                            <?php if (!empty($data['feed']) && $data['available']) { ?>
-                                <p>
-                                    <a href="<?php echo $data['feed']; ?>" target="_blank">
-                                        <?php echo $data['feed']; ?>
-                                    </a>
-                                </p>
-                                <p>
-                                    <small><?php echo $data['result']; ?></small>
-                                </p>
-                            <?php } else { ?>
-                                <p>
+                                <a href="<?php echo $data['feed']; ?>" target="_blank">
                                     <?php echo $data['feed']; ?>
-                                </p>
-                                <p>
-                                    <small>
-                                        <?php echo __('Feed not available, please generate the feed first.') ?>
-                                    </small>
-                                </p>
-                            <?php } ?>
-                        </td>
-                        <td>
+                                </a>
+                            </p>
+                            <p>
+                                <small><?php echo $data['result']; ?></small>
+                            </p>
+                        <?php } else { ?>
+                            <p>
+                                <?php echo $data['feed']; ?>
+                            </p>
+                            <p>
+                                <small>
+                                    <?php echo __('Feed not available, please generate the feed first.') ?>
+                                </small>
+                            </p>
+                        <?php } ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($data['status'])) { ?>
                             <p>
                                 <a class="generate"
                                    href="<?php echo $block->getGenerateUrl($data['store_id']); ?>">Generate</a>
@@ -61,9 +62,17 @@
                                        href="<?php echo $block->getDownloadUrl($data['store_id']); ?>">Download</a>
                                 <?php } ?>
                             </p>
-                        </td>
-                    </tr>
-                <?php } ?>
+                        <?php } else { ?>
+                            <p class="enable">
+                                <?php echo __('Feed Generation Disabled.') ?>
+                                <small><br>
+                                    <?php echo __('Enabled the Feed under the Settings above.') ?>
+                                </small>
+                            </p>
+                        <?php } ?>
+                    </td>
+                </tr>
+            <?php } ?>
             </tbody>
         </table>
     </div>
