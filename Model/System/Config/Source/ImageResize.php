@@ -12,6 +12,11 @@ use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\ScopeInterface;
 
+/**
+ * Class ImageResize
+ *
+ * @package Magmodules\Sooqr\Model\System\Config\Source
+ */
 class ImageResize implements ArrayInterface
 {
 
@@ -19,12 +24,10 @@ class ImageResize implements ArrayInterface
      * @var DirectoryList
      */
     private $directoryList;
-
     /**
      * @var Http
      */
     private $request;
-
     /**
      * @var ScopeConfigInterface
      */

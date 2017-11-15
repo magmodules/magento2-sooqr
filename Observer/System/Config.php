@@ -4,13 +4,18 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magmodules\Sooqr\Observer;
+namespace Magmodules\Sooqr\Observer\System;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magmodules\Sooqr\Helper\Config as ConfigHelper;
 
-class Tasks implements ObserverInterface
+/**
+ * Class Config
+ *
+ * @package Magmodules\Sooqr\Observer\System
+ */
+class Config implements ObserverInterface
 {
 
     /**
@@ -19,7 +24,7 @@ class Tasks implements ObserverInterface
     private $configHelper;
 
     /**
-     * Tasks constructor.
+     * Config constructor.
      *
      * @param ConfigHelper $configHelper
      */

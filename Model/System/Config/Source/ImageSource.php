@@ -10,6 +10,11 @@ use Magento\Framework\Option\ArrayInterface;
 use Magento\Catalog\Model\Product\Attribute\Repository;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 
+/**
+ * Class ImageSource
+ *
+ * @package Magmodules\Sooqr\Model\System\Config\Source
+ */
 class ImageSource implements ArrayInterface
 {
 
@@ -45,7 +50,22 @@ class ImageSource implements ArrayInterface
      */
     public function toOptionArray()
     {
-        $imageSource[] = ['value' => '', 'label' => __('First Image (default)')];
+        if (!$this->options) {
+            $options[] = $this->getMediaImageArray();
+            $options[] = $this->getMultipleImages();
+            $this->options = $options;
+        }
+
+        return $this->options;
+    }
+
+    /**
+     * @return array
+     */
+    public function getMediaImageArray()
+    {
+        $imageSource = [];
+
         $searchCriteria = $this->searchCriteriaBuilder->addFilter('frontend_input', 'media_image')->create();
         /** @var \Magento\Eav\Model\Entity\Attribute\AbstractAttribute $attribute */
         foreach ($this->attributeRepository->getList($searchCriteria)->getItems() as $attribute) {
@@ -57,7 +77,7 @@ class ImageSource implements ArrayInterface
             }
         }
 
-        return $imageSource;
+        return ['label' => __('Single Source'), 'value' => $imageSource, 'optgroup-name' => __('single-source')];
     }
 
     /**
@@ -68,5 +88,14 @@ class ImageSource implements ArrayInterface
     public function getLabel($attribute)
     {
         return str_replace("'", '', $attribute->getFrontendLabel());
+    }
+
+    /**
+     * @return array
+     */
+    public function getMultipleImages()
+    {
+        $imageSource[] = ['value' => 'all', 'label' => __('All Images')];
+        return ['label' => __('Other Options'), 'value' => $imageSource, 'optgroup-name' => __('other-options')];
     }
 }

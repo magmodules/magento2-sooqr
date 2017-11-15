@@ -9,23 +9,26 @@ namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 use Magento\Framework\DataObject;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 
+/**
+ * Class Filters
+ *
+ * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field
+ */
 class Filters extends AbstractFieldArray
 {
-
-    /**
-     * @var array
-     */
-    private $columns = [];
 
     /**
      * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes
      */
     private $attributeRenderer;
-
     /**
      * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions
      */
     private $conditionRenderer;
+    /**
+     * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes
+     */
+    private $productTypeRenderer;
 
     /**
      * Render block.
@@ -43,7 +46,10 @@ class Filters extends AbstractFieldArray
         $this->addColumn('value', [
             'label' => __('Value'),
         ]);
-
+        $this->addColumn('product_type', [
+            'label' => __('Apply To'),
+            'renderer' => $this->getProductTypeRenderer()
+        ]);
         $this->_addAfter = false;
         $this->_addButtonLabel = __('Add');
     }
@@ -57,7 +63,7 @@ class Filters extends AbstractFieldArray
     {
         if (!$this->attributeRenderer) {
             $this->attributeRenderer = $this->getLayout()->createBlock(
-                '\Magmodules\GoogleShopping\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes',
+                '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes',
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
@@ -75,13 +81,31 @@ class Filters extends AbstractFieldArray
     {
         if (!$this->conditionRenderer) {
             $this->conditionRenderer = $this->getLayout()->createBlock(
-                '\Magmodules\GoogleShopping\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions',
+                '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions',
                 '',
                 ['data' => ['is_render_to_js_template' => true]]
             );
         }
 
         return $this->conditionRenderer;
+    }
+
+    /**
+     * Returns render of Product Types.
+     *
+     * @return \Magento\Framework\View\Element\BlockInterface
+     */
+    public function getProductTypeRenderer()
+    {
+        if (!$this->productTypeRenderer) {
+            $this->productTypeRenderer = $this->getLayout()->createBlock(
+                '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes',
+                '',
+                ['data' => ['is_render_to_js_template' => true]]
+            );
+        }
+
+        return $this->productTypeRenderer;
     }
 
     /**
@@ -100,7 +124,10 @@ class Filters extends AbstractFieldArray
         if ($condition) {
             $options['option_' . $this->getConditionRenderer()->calcOptionHash($condition)] = 'selected="selected"';
         }
-
+        $productType = $row->getProductType();
+        if ($condition) {
+            $options['option_' . $this->getProductTypeRenderer()->calcOptionHash($productType)] = 'selected="selected"';
+        }
         $row->setData('option_extra_attrs', $options);
     }
 }

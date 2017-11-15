@@ -6,38 +6,38 @@
 
 namespace Magmodules\Sooqr\Cron;
 
-use Magmodules\Sooqr\Model\Generate;
+use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Psr\Log\LoggerInterface;
 
+/**
+ * Class GenerateFeeds
+ *
+ * @package Magmodules\Sooqr\Cron
+ */
 class GenerateFeeds
 {
 
     /**
-     * @var Generate
+     * @var FeedModel
      */
-    private $generate;
-
+    private $feedModel;
     /**
-     * @var LoggerInterface
+     * @var GeneralHelper
      */
-    private $logger;
+    private $generalHelper;
 
     /**
      * GenerateFeeds constructor.
      *
-     * @param Generate        $generate
-     * @param GeneralHelper   $generalHelper
-     * @param LoggerInterface $logger
+     * @param FeedModel     $feedModel
+     * @param GeneralHelper $generalHelper
      */
     public function __construct(
-        Generate $generate,
-        GeneralHelper $generalHelper,
-        LoggerInterface $logger
+        FeedModel $feedModel,
+        GeneralHelper $generalHelper
     ) {
-        $this->generate = $generate;
+        $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
-        $this->logger = $logger;
     }
 
     /**
@@ -48,10 +48,10 @@ class GenerateFeeds
         try {
             $cronEnabled = $this->generalHelper->getCronEnabled();
             if ($cronEnabled) {
-                $this->generate->generateAll();
+                $this->feedModel->generateAll();
             }
         } catch (\Exception $e) {
-            $this->logger->critical($e);
+            $this->generalHelper->addTolog('Cron', $e->getMessage());
         }
     }
 }

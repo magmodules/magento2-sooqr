@@ -11,6 +11,11 @@ use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Config\Model\ResourceModel\Config;
 
+/**
+ * Class InstallData
+ *
+ * @package Magmodules\Sooqr\Setup
+ */
 class InstallData implements InstallDataInterface
 {
 

@@ -9,6 +9,11 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 use Magento\Directory\Model\ResourceModel\Country\CollectionFactory as CountryCollectionFactory;
 use Magento\Framework\Option\ArrayInterface;
 
+/**
+ * Class Country
+ *
+ * @package Magmodules\Sooqr\Model\System\Config\Source
+ */
 class Country implements ArrayInterface
 {
 

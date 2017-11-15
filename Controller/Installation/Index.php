@@ -11,6 +11,11 @@ use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magmodules\Sooqr\Helper\Feed;
 
+/**
+ * Class Index
+ *
+ * @package Magmodules\Sooqr\Controller\Installation
+ */
 class Index extends Action
 {
 
@@ -18,7 +23,6 @@ class Index extends Action
      * @var Feed
      */
     private $feedHelper;
-
     /**
      * @var JsonFactory
      */

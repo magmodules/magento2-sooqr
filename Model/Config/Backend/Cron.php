@@ -16,15 +16,19 @@ use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Exception\LocalizedException;
 
+/**
+ * Class Cron
+ *
+ * @package Magmodules\Sooqr\Model\Config\Backend
+ */
 class Cron extends Value
 {
 
     const CRON_STRING_PATH = 'crontab/default/jobs/magmodules_sooqr/schedule/cron_expr';
-
     /**
      * @var ValueFactory
      */
-    protected $configValueFactory;
+    private $configValueFactory;
 
     /**
      * Cron constructor.
@@ -55,7 +59,7 @@ class Cron extends Value
     }
 
     /**
-     * @return $this
+     * @return \Magento\Framework\App\Config\Value
      * @throws LocalizedException
      */
     public function afterSave()

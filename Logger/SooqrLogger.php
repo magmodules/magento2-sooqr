@@ -8,6 +8,11 @@ namespace Magmodules\Sooqr\Logger;
 
 use Monolog\Logger;
 
+/**
+ * Class SooqrLogger
+ *
+ * @package Magmodules\Sooqr\Logger
+ */
 class SooqrLogger extends Logger
 {
 

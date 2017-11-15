@@ -10,23 +10,28 @@ use Magento\Framework\Option\ArrayInterface;
 use Magento\Catalog\Model\Product\Attribute\Repository;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 
+/**
+ * Class Attributes
+ *
+ * @package Magmodules\Sooqr\Model\System\Config\Source
+ */
 class Attributes implements ArrayInterface
 {
 
     /**
+     * Options array
+     *
+     * @var array
+     */
+    public $options = null;
+    /**
      * @var Repository
      */
     private $attributeRepository;
-
     /**
      * @var SearchCriteriaBuilder
      */
     private $searchCriteriaBuilder;
-
-    /**
-     * @var array
-     */
-    public $options;
 
     /**
      * Attributes constructor.
@@ -63,6 +68,8 @@ class Attributes implements ArrayInterface
     {
         $attributes = [];
         $attributes[] = ['value' => 'attribute_set_id', 'label' => __('Attribute Set')];
+        $attributes[] = ['value' => 'type_id', 'label' => __('Product Type')];
+        $attributes[] = ['value' => 'entity_id', 'label' => __('Product Id')];
 
         $exclude = $this->getNonAvailableAttributes();
         $searchCriteria = $this->searchCriteriaBuilder->create();
@@ -86,7 +93,7 @@ class Attributes implements ArrayInterface
      */
     public function getNonAvailableAttributes()
     {
-        return ['categories', 'gallery'];
+        return ['categories', 'gallery', 'category_ids'];
     }
 
     /**

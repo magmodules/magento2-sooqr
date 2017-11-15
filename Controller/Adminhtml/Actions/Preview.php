@@ -8,17 +8,21 @@ namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magmodules\Sooqr\Model\Generate as GenerateModel;
+use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
+/**
+ * Class Preview
+ *
+ * @package Magmodules\Sooqr\Controller\Adminhtml\Actions
+ */
 class Preview extends Action
 {
 
     /**
-     * @var GenerateModel
+     * @var FeedModel
      */
-    private $generate;
-
+    private $feedModel;
     /**
      * @var GeneralHelper
      */
@@ -29,14 +33,14 @@ class Preview extends Action
      *
      * @param Context       $context
      * @param GeneralHelper $generalHelper
-     * @param GenerateModel $generateModel
+     * @param FeedModel $feedModel
      */
     public function __construct(
         Context $context,
         GeneralHelper $generalHelper,
-        GenerateModel $generateModel
+        FeedModel $feedModel
     ) {
-        $this->generate = $generateModel;
+        $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
@@ -47,19 +51,29 @@ class Preview extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
-        if (!$this->generalHelper->getEnabled($storeId)) {
+        if (!$this->generalHelper->getEnabled()) {
             $errorMsg = __('Please enable the extension before generating the feed.');
             $this->messageManager->addError($errorMsg);
             $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
         } else {
-            $page = $this->getRequest()->getParam('page', 1);
-            $productId = $this->getRequest()->getParam('pid', []);
-            if ($result = $this->generate->generateByStore($storeId, 'preview', $productId, $page)) {
-                $this->getResponse()->setHeader('Content-type', 'text/xml');
-                $this->getResponse()->setBody(file_get_contents($result['path']));
-            } else {
-                $errorMsg = __('Unkown error.');
-                $this->messageManager->addError($errorMsg);
+            try {
+                $page = $this->getRequest()->getParam('page', 1);
+                $productId = $this->getRequest()->getParam('pid', []);
+                $data = $this->getRequest()->getParam('data', 0);
+                if ($result = $this->feedModel->generateByStore($storeId, 'preview', $productId, $page, $data)) {
+                    $this->getResponse()->setHeader('Content-type', 'text/xml');
+                    $this->getResponse()->setBody(file_get_contents($result['path']));
+                } else {
+                    $errorMsg = __('Unkown error.');
+                    $this->messageManager->addError($errorMsg);
+                    $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
+                }
+            } catch (\Exception $e) {
+                $this->messageManager->addException(
+                    $e,
+                    __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
+                );
+                $this->generalHelper->addTolog('Generate', $e->getMessage());
                 $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
             }
         }

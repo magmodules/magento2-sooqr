@@ -8,6 +8,11 @@ namespace Magmodules\Sooqr\Model\Config\Backend\Serialized;
 
 use Magento\Config\Model\Config\Backend\Serialized\ArraySerialized;
 
+/**
+ * Class ExtraFields
+ *
+ * @package Magmodules\Sooqr\Model\Config\Backend\Serialized
+ */
 class ExtraFields extends ArraySerialized
 {
 

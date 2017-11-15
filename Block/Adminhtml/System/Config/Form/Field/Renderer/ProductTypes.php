@@ -8,35 +8,35 @@ namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer;
 
 use Magento\Framework\View\Element\Html\Select;
 use Magento\Framework\View\Element\Context;
-use Magmodules\Sooqr\Model\System\Config\Source\Conditions as ConditionsSource;
+use Magmodules\Sooqr\Model\System\Config\Source\ProductTypes as ProductTypesSource;
 
 /**
- * Class Conditions
+ * Class ProductTypes
  *
  * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer
  */
-class Conditions extends Select
+class ProductTypes extends Select
 {
 
     /**
-     * @var ConditionsSource
+     * @var ProductTypesSource
      */
-    private $conditions;
+    private $source;
 
     /**
-     * Conditions constructor.
+     * ProductTypes constructor.
      *
-     * @param Context          $context
-     * @param ConditionsSource $conditions
-     * @param array            $data
+     * @param Context            $context
+     * @param ProductTypesSource $source
+     * @param array              $data
      */
     public function __construct(
         Context $context,
-        ConditionsSource $conditions,
+        ProductTypesSource $source,
         array $data = []
     ) {
         parent::__construct($context, $data);
-        $this->conditions = $conditions;
+        $this->source = $source;
     }
 
     /**
@@ -47,8 +47,8 @@ class Conditions extends Select
     public function _toHtml()
     {
         if (!$this->getOptions()) {
-            foreach ($this->conditions->toOptionArray() as $condition) {
-                $this->addOption($condition['value'], $condition['label']);
+            foreach ($this->source->toOptionArray() as $type) {
+                $this->addOption($type['value'], $type['label']);
             }
         }
 

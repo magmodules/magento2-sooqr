@@ -24,6 +24,15 @@
                 <size_attribute>size</size_attribute>
                 <gender_attribute>gender</gender_attribute>
             </data>
+            <types>
+                <configurable>simple</configurable>
+                <configurable_link>1</configurable_link>
+                <configurable_image>2</configurable_image>
+                <configurable_parent_atts>description</configurable_parent_atts>
+                <configurable_nonvisible>1</configurable_nonvisible>
+                <bundle>parent</bundle>
+                <grouped>parent</grouped>
+            </types>
             <generate>
                 <enable>1</enable>
                 <filename>sooqr.xml</filename>

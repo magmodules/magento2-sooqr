@@ -9,6 +9,11 @@ namespace Magmodules\Sooqr\Logger;
 use Monolog\Logger;
 use Magento\Framework\Logger\Handler\Base;
 
+/**
+ * Class SooqrHandler
+ *
+ * @package Magmodules\Sooqr\Logger
+ */
 class SooqrHandler extends Base
 {
 
@@ -16,7 +21,6 @@ class SooqrHandler extends Base
      * @var int
      */
     protected $loggerType = Logger::DEBUG;
-
     /**
      * @var string
      */

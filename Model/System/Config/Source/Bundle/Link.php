@@ -4,22 +4,24 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magmodules\Sooqr\Model\System\Config\Source;
+namespace Magmodules\Sooqr\Model\System\Config\Source\Bundle;
 
 use Magento\Framework\Option\ArrayInterface;
 
 /**
- * Class ImageSize
+ * Class Link
  *
- * @package Magmodules\Sooqr\Model\System\Config\Source
+ * @package Magmodules\Sooqr\Model\System\Config\Source\Bundle
  */
-class ImageSize implements ArrayInterface
+class Link implements ArrayInterface
 {
 
     /**
+     * Options array
+     *
      * @var array
      */
-    public $options;
+    public $options = null;
 
     /**
      * @return array
@@ -28,9 +30,8 @@ class ImageSize implements ArrayInterface
     {
         if (!$this->options) {
             $this->options = [
-                ['value' => '', 'label' => __('No')],
-                ['value' => 'fixed', 'label' => __('Yes, fixed cached size')],
-                ['value' => 'custom', 'label' => __('Yes, custom value')],
+                ['value' => '0', 'label' => __('No')],
+                ['value' => '1', 'label' => __('Yes')],
             ];
         }
         return $this->options;

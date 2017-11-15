@@ -11,6 +11,11 @@ use Magento\Config\Block\System\Config\Form\Field;
 use Magento\Framework\Data\Form\Element\AbstractElement;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 
+/**
+ * Class Feeds
+ *
+ * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form
+ */
 class Feeds extends Field
 {
 
@@ -18,7 +23,6 @@ class Feeds extends Field
      * @var string
      */
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/feeds.phtml';
-
     /**
      * @var FeedHelper
      */

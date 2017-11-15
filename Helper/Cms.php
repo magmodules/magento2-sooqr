@@ -15,6 +15,11 @@ use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
+/**
+ * Class Cms
+ *
+ * @package Magmodules\Sooqr\Helper
+ */
 class Cms extends AbstractHelper
 {
 

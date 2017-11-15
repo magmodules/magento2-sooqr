@@ -4,16 +4,16 @@
  * See COPYING.txt for license details.
  */
 
-namespace Magmodules\Sooqr\Model\System\Config\Source;
+namespace Magmodules\Sooqr\Model\System\Config\Source\Grouped;
 
 use Magento\Framework\Option\ArrayInterface;
 
 /**
- * Class CategoryType
+ * Class Image
  *
- * @package Magmodules\Sooqr\Model\System\Config\Source
+ * @package Magmodules\Sooqr\Model\System\Config\Source\Grouped
  */
-class CategoryType implements ArrayInterface
+class Image implements ArrayInterface
 {
 
     /**
@@ -30,8 +30,9 @@ class CategoryType implements ArrayInterface
     {
         if (!$this->options) {
             $this->options = [
-                ['value' => 'include', 'label' => __('Include by Category')],
-                ['value' => 'exclude', 'label' => __('Exclude by Category')]
+                ['value' => '0', 'label' => __('No')],
+                ['value' => '1', 'label' => __('Yes')],
+                ['value' => '2', 'label' => __('Only if Empty (Recommended)')],
             ];
         }
         return $this->options;
