@@ -18,26 +18,18 @@
                 Make sure that you save the configuration after the settings are changed and before you generate the feed.
             </thead>
             <tbody>
-                <?php foreach ($feedData as $data) { ?>
-                    <tr>
-                        <td>
-                            <p><?php echo $data['name']; ?></p>
+            <?php foreach ($feedData as $data) { ?>
+                <tr>
+                    <td>
+                        <p><?php echo $data['name']; ?></p>
+                        <p>
+                            <small><?php echo $data['code']; ?></small>
+                        </p>
+                    </td>
+                    <td>
+                        <?php if (!empty($data['feed']) && $data['available']) { ?>
                             <p>
-                                <small><?php echo $data['code']; ?></small>
-                            </p>
-                        </td>
-                        <td>
-                            <?php if (!empty($data['feed']) && $data['available']) { ?>
-                                <p>
-                                    <a href="<?php echo $data['feed']; ?>" target="_blank">
-                                        <?php echo $data['feed']; ?>
-                                    </a>
-                                </p>
-                                <p>
-                                    <small><?php echo $data['result']; ?></small>
-                                </p>
-                            <?php } else { ?>
-                                <p>
+                                <a href="<?php echo $data['feed']; ?>" target="_blank">
                                     <?php echo $data['feed']; ?>
                                 </p>
                                 <p>
