@@ -9,6 +9,11 @@ namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 use Magento\Framework\DataObject;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
 
+/**
+ * Class ExtraFields
+ *
+ * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field
+ */
 class ExtraFields extends AbstractFieldArray
 {
 
@@ -23,7 +28,7 @@ class ExtraFields extends AbstractFieldArray
     public function _prepareToRender()
     {
         $this->addColumn('attribute', [
-            'label' => __('Attribute'),
+            'label'    => __('Attribute'),
             'renderer' => $this->getAttributeRenderer()
         ]);
         $this->_addAfter = false;
@@ -32,6 +37,7 @@ class ExtraFields extends AbstractFieldArray
 
     /**
      * Returns render of stores
+     *
      * @return \Magento\Framework\View\Element\BlockInterface
      */
     public function getAttributeRenderer()
@@ -49,6 +55,7 @@ class ExtraFields extends AbstractFieldArray
 
     /**
      * Prepare existing row data object
+     *
      * @param DataObject $row
      */
     public function _prepareArrayRow(DataObject $row)

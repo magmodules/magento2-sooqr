@@ -14,19 +14,19 @@ use Symfony\Component\Console\Input\InputOption;
 use Magento\Framework\App\State;
 use Magmodules\Sooqr\Helper\Config as ConfigHelper;
 
+/**
+ * Class Config
+ *
+ * @package Magmodules\Sooqr\Console\Command
+ */
 class Config extends Command
 {
 
-    /**
-     *
-     */
     const COMMAND_NAME = 'sooqr:config';
-
     /**
      * @var State
      */
     public $state;
-
     /**
      * @var ConfigHelper
      */
@@ -50,7 +50,7 @@ class Config extends Command
     /**
      * @param State $state
      */
-    protected function setAreaCode(State $state)
+    public function setAreaCode(State $state)
     {
         try {
             $state->getAreaCode();
@@ -62,7 +62,7 @@ class Config extends Command
     /**
      *  {@inheritdoc}
      */
-    protected function configure()
+    public function configure()
     {
         $this->setName(self::COMMAND_NAME);
         $this->setDescription('Config Commands');
@@ -77,7 +77,7 @@ class Config extends Command
     /**
      *  {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         $output->writeln('<info>Running Sooqr Config Command</info>');
         $run = $input->getOption('run');

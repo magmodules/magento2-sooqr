@@ -15,6 +15,11 @@ use Magento\Catalog\Model\CategoryFactory;
 use Magento\Catalog\Model\ResourceModel\Category\CollectionFactory as CategoryCollectionFactory;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
+/**
+ * Class Category
+ *
+ * @package Magmodules\Sooqr\Helper
+ */
 class Category extends AbstractHelper
 {
 
@@ -22,27 +27,22 @@ class Category extends AbstractHelper
      * @var General
      */
     private $generalHelper;
-
     /**
      * @var CategoryRepository
      */
     private $categoryRepository;
-
     /**
      * @var CategoryHelper
      */
     private $category;
-
     /**
      * @var StoreManagerInterface
      */
     private $storeManager;
-
     /**
      * @var CategoryFactory
      */
     private $categoryFactory;
-
     /**
      * @var CategoryCollectionFactory
      */

@@ -8,6 +8,11 @@ namespace Magmodules\Sooqr\Model\Config\Backend\Serialized;
 
 use Magento\Config\Model\Config\Backend\Serialized\ArraySerialized;
 
+/**
+ * Class Filters
+ *
+ * @package Magmodules\Sooqr\Model\Config\Backend\Serialized
+ */
 class Filters extends ArraySerialized
 {
 

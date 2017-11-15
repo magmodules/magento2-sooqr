@@ -14,31 +14,31 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Config\Model\ResourceModel\Config as ConfigModel;
 use Magmodules\Sooqr\Logger\SooqrLogger;
 
+/**
+ * Class Config
+ *
+ * @package Magmodules\Sooqr\Helper
+ */
 class Config extends AbstractHelper
 {
 
     const XPATH_CONVERT_RUN = 'magmodules_sooqr/tast/convert_run';
-
     /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
-
     /**
      * @var ResourceConnection
      */
     private $resource;
-
     /**
      * @var ProductMetadataInterface
      */
     private $productMetadata;
-
     /**
      * @var SooqrLogger
      */
     private $logger;
-
     /**
      * @var Config
      */

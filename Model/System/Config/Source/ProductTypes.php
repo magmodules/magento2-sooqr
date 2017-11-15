@@ -9,11 +9,11 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 use Magento\Framework\Option\ArrayInterface;
 
 /**
- * Class CategoryType
+ * Class ProductTypes
  *
  * @package Magmodules\Sooqr\Model\System\Config\Source
  */
-class CategoryType implements ArrayInterface
+class ProductTypes implements ArrayInterface
 {
 
     /**
@@ -30,8 +30,18 @@ class CategoryType implements ArrayInterface
     {
         if (!$this->options) {
             $this->options = [
-                ['value' => 'include', 'label' => __('Include by Category')],
-                ['value' => 'exclude', 'label' => __('Exclude by Category')]
+                [
+                    'value' => '',
+                    'label' => __('Simple & Parent Products')
+                ],
+                [
+                    'value' => 'simple',
+                    'label' => __('Only Simple Products')
+                ],
+                [
+                    'value' => 'parent',
+                    'label' => __('Only Parent Products')
+                ]
             ];
         }
         return $this->options;

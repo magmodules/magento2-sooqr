@@ -11,13 +11,18 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Config\Model\ResourceModel\Config;
+use Magento\Config\Model\ResourceModel\Config as ConfigData;
 use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magmodules\Sooqr\Logger\SooqrLogger;
 
+/**
+ * Class General
+ *
+ * @package Magmodules\Sooqr\Helper
+ */
 class General extends AbstractHelper
 {
 
@@ -25,6 +30,7 @@ class General extends AbstractHelper
     const XPATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
     const XPATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
     const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
+    const XPATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enable';
     const XPATH_API_KEY = 'magmodules_sooqr/implementation/api_key';
     const XPATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
     const XPATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
@@ -33,37 +39,30 @@ class General extends AbstractHelper
     const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
     const XPATH_STAGING = 'magmodules_sooqr/implementation/advanced_staging';
     const XPATH_TOKEN = 'magmodules_sooqr/general/token';
-
     /**
      * @var ModuleListInterface
      */
     private $moduleList;
-
     /**
      * @var ProductMetadataInterface
      */
     private $metadata;
-
     /**
      * @var StoreManagerInterface
      */
     private $storeManager;
-
     /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
-
     /**
      * @var ConfigDataCollectionFactory
      */
     private $configDataCollectionFactory;
-
     /**
-     * @var Config
+     * @var ConfigData
      */
     private $config;
-
     /**
      * @var SooqrLogger
      */
@@ -78,7 +77,7 @@ class General extends AbstractHelper
      * @param ModuleListInterface         $moduleList
      * @param ProductMetadataInterface    $metadata
      * @param ConfigDataCollectionFactory $configDataCollectionFactory
-     * @param Config                      $config
+     * @param ConfigData                  $config
      * @param SooqrLogger                 $logger
      */
     public function __construct(
@@ -88,7 +87,7 @@ class General extends AbstractHelper
         ModuleListInterface $moduleList,
         ProductMetadataInterface $metadata,
         ConfigDataCollectionFactory $configDataCollectionFactory,
-        Config $config,
+        ConfigData $config,
         SooqrLogger $logger
     ) {
         $this->objectManager = $objectManager;
@@ -108,7 +107,11 @@ class General extends AbstractHelper
      */
     public function getFrontendEnabled($storeId = null)
     {
-        if (!$this->getEnabled($storeId)) {
+        if (!$this->getEnabled()) {
+            return false;
+        }
+
+        if (!$this->getStoreValue(self::XPATH_FRONTEND_ENABLED, $storeId)) {
             return false;
         }
 
@@ -116,19 +119,17 @@ class General extends AbstractHelper
             return false;
         }
 
-        return $this->getStoreValue(self::XPATH_FRONTEND_ENABLED, $storeId);
+        return true;
     }
 
     /**
-     * General check if Extension is enabled..
+     * General check if Extension is enabled.
      *
-     * @param null $storeId
-     *
-     * @return mixed
+     * @return bool
      */
-    public function getEnabled($storeId = null)
+    public function getEnabled()
     {
-        return $this->getStoreValue(self::XPATH_EXTENSION_ENABLED, $storeId);
+        return (boolean)$this->getStoreValue(self::XPATH_EXTENSION_ENABLED);
     }
 
     /**
@@ -180,25 +181,6 @@ class General extends AbstractHelper
     }
 
     /**
-     * Get Uncached Value from core_config_data
-     *
-     * @param      $path
-     * @param null $storeId
-     *
-     * @return mixed
-     */
-    public function getUncachedStoreValue($path, $storeId)
-    {
-        $collection = $this->configDataCollectionFactory->create();
-        $collection->addFieldToSelect('value');
-        $collection->addFieldToFilter('path', $path);
-        $collection->addFieldToFilter('scope_id', $storeId);
-        $collection->addFieldToFilter('scope', 'stores');
-
-        return $collection->getFirstItem()->getValue();
-    }
-
-    /**
      * Get configuration data array.
      *
      * @param      $path
@@ -225,6 +207,33 @@ class General extends AbstractHelper
         }
 
         return [];
+    }
+
+    /**
+     * Get Uncached Value from core_config_data
+     *
+     * @param      $path
+     * @param null $storeId
+     *
+     * @return mixed
+     */
+    public function getUncachedStoreValue($path, $storeId)
+    {
+        $collection = $this->configDataCollectionFactory->create()
+            ->addFieldToSelect('value')
+            ->addFieldToFilter('path', $path);
+
+        if ($storeId > 0) {
+            $collection->addFieldToFilter('scope_id', $storeId);
+            $collection->addFieldToFilter('scope', 'stores');
+        } else {
+            $collection->addFieldToFilter('scope_id', 0);
+            $collection->addFieldToFilter('scope', 'default');
+        }
+
+        $collection->getSelect()->limit(1);
+
+        return $collection->getFirstItem()->getValue();
     }
 
     /**
@@ -328,15 +337,17 @@ class General extends AbstractHelper
      *
      * @return array
      */
-    public function getEnabledArray($path = self::XPATH_EXTENSION_ENABLED)
+    public function getEnabledArray($path)
     {
         $storeIds = [];
+        if (!$this->getEnabled()) {
+            return $storeIds;
+        }
+
         $stores = $this->storeManager->getStores();
         foreach ($stores as $store) {
-            if ($this->getStoreValue($path)) {
-                if ($this->getEnabled($store->getId())) {
-                    $storeIds[] = $store->getId();
-                }
+            if ($this->getStoreValue($path, $store->getId())) {
+                $storeIds[] = $store->getId();
             }
         }
 
@@ -383,6 +394,18 @@ class General extends AbstractHelper
     public function getUrl($storeId, $param)
     {
         return $this->storeManager->getStore($storeId)->getUrl($param);
+    }
+
+    /**
+     * General check if Generation is enabled.
+     *
+     * @param null $storeId
+     *
+     * @return bool
+     */
+    public function getGenerateEnabled($storeId = null)
+    {
+        return (boolean)$this->getStoreValue(self::XPATH_GENERATE_ENABLED, $storeId);
     }
 
     /**

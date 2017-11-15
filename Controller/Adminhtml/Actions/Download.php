@@ -13,6 +13,11 @@ use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
 
+/**
+ * Class Download
+ *
+ * @package Magmodules\Sooqr\Controller\Adminhtml\Actions
+ */
 class Download extends Action
 {
 
@@ -20,12 +25,10 @@ class Download extends Action
      * @var FeedHelper
      */
     private $feedHelper;
-
     /**
      * @var FileFactory
      */
     private $fileFactory;
-
     /**
      * @var RawFactory
      */

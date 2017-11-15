@@ -13,6 +13,11 @@ use Magento\Framework\Data\Form\FormKey;
 
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
+/**
+ * Class Head
+ *
+ * @package Magmodules\Sooqr\Block
+ */
 class Head extends Template
 {
 
@@ -20,27 +25,22 @@ class Head extends Template
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     private $scopeConfig;
-
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
-
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $storeManager;
-
     /**
      * @var int
      */
     private $storeId;
-
     /**
      * @var FormKey
      */
     private $formkey;
-
     /**
      * @var EncoderInterface
      */
@@ -72,11 +72,19 @@ class Head extends Template
     }
 
     /**
-     * @return bool|mixed
+     * @return bool
      */
     public function getFrontendEnabled()
     {
         return $this->generalHelper->getFrontendEnabled($this->storeId);
+    }
+
+    /**
+     * @return string
+     */
+    public function getUenc()
+    {
+        return $this->urlEncoder->encode($this->getCurrentUrl());
     }
 
     /**
@@ -85,12 +93,6 @@ class Head extends Template
     public function getCurrentUrl()
     {
         return $this->_urlBuilder->getUrl('*/*/*', ['_use_rewrite' => true, '_current' => true]);
-    }
-
-
-    public function getUenc()
-    {
-        return $this->urlEncoder->encode($this->getCurrentUrl());
     }
 
     /**

@@ -11,6 +11,11 @@ use Magento\Framework\View\Element\Template;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magento\Framework\Locale\Resolver;
 
+/**
+ * Class Init
+ *
+ * @package Magmodules\Sooqr\Block
+ */
 class Init extends Template
 {
 
@@ -18,22 +23,18 @@ class Init extends Template
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
     private $scopeConfig;
-
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
-
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     private $storeManager;
-
     /**
      * @var int
      */
     private $storeId;
-
     /**
      * @var Resolver
      */

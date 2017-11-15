@@ -8,18 +8,34 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 
 use Magento\Framework\Option\ArrayInterface;
 
+/**
+ * Class ProductCondition
+ *
+ * @package Magmodules\Sooqr\Model\System\Config\Source
+ */
 class ProductCondition implements ArrayInterface
 {
+
+    /**
+     * Options array
+     *
+     * @var array
+     */
+    public $options = null;
 
     /**
      * @return array
      */
     public function toOptionArray()
     {
-        return [
-            ['value' => 'new', 'label' => __('New')],
-            ['value' => 'refurbished', 'label' => __('Refurbished')],
-            ['value' => 'used', 'label' => __('Uses')],
-        ];
+        if (!$this->options) {
+            $this->options = [
+                ['value' => 'new', 'label' => __('New')],
+                ['value' => 'refurbished', 'label' => __('Refurbished')],
+                ['value' => 'used', 'label' => __('Used')],
+            ];
+        }
+
+        return $this->options;
     }
 }

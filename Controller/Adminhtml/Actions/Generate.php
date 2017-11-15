@@ -8,23 +8,21 @@ namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
-use Magmodules\Sooqr\Model\Generate as GenerateModel;
+use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Psr\Log\LoggerInterface;
 
+/**
+ * Class Generate
+ *
+ * @package Magmodules\Sooqr\Controller\Adminhtml\Actions
+ */
 class Generate extends Action
 {
 
     /**
-     * @var GenerateModel
+     * @var FeedModel
      */
-    private $generate;
-
-    /**
-     * @var LoggerInterface
-     */
-    private $logger;
-
+    private $feedModel;
     /**
      * @var GeneralHelper
      */
@@ -33,19 +31,16 @@ class Generate extends Action
     /**
      * Generate constructor.
      *
-     * @param Context         $context
-     * @param GenerateModel   $generateModel
-     * @param GeneralHelper   $generalHelper
-     * @param LoggerInterface $logger
+     * @param Context       $context
+     * @param FeedModel     $feedModel
+     * @param GeneralHelper $generalHelper
      */
     public function __construct(
         Context $context,
-        GenerateModel $generateModel,
-        GeneralHelper $generalHelper,
-        LoggerInterface $logger
+        FeedModel $feedModel,
+        GeneralHelper $generalHelper
     ) {
-        $this->generate = $generateModel;
-        $this->logger = $logger;
+        $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
         parent::__construct($context);
     }
@@ -56,22 +51,28 @@ class Generate extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
-        $type = $this->getRequest()->getParam('type', 'manual');
 
-        if (!$this->generalHelper->getEnabled($storeId)) {
+        if (!$this->generalHelper->getEnabled()) {
             $errorMsg = __('Please enable the extension before generating the feed.');
             $this->messageManager->addError($errorMsg);
         } else {
             try {
-                $result = $this->generate->generateByStore($storeId, $type);
+                $result = $this->feedModel->generateByStore($storeId);
                 $this->messageManager->addSuccess(
                     __('Successfully generated a feed with %1 product(s).', $result['qty'])
                 );
             } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $this->messageManager->addError($e->getMessage());
+                $this->messageManager->addException(
+                    $e,
+                    __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
+                );
+                $this->generalHelper->addTolog('Generate', $e->getMessage());
             } catch (\Exception $e) {
-                $this->messageManager->addError(__('We can\'t generate the feed right now.'));
-                $this->logger->critical($e);
+                $this->messageManager->addException(
+                    $e,
+                    __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
+                );
+                $this->generalHelper->addTolog('Generate', $e->getMessage());
             }
         }
         $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');

@@ -12,6 +12,11 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magento\Backend\Block\Template\Context;
 use Magento\Framework\App\Request\Http;
 
+/**
+ * Class Header
+ *
+ * @package Magmodules\Sooqr\Block\Adminhtml\Magmodules
+ */
 class Header extends Field
 {
 
@@ -23,12 +28,10 @@ class Header extends Field
      * @var string
      */
     protected $_template = 'Magmodules_Sooqr::system/config/fieldset/header.phtml';
-
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
-
     /**
      * @var Http
      */

@@ -21,15 +21,15 @@
             </group>
             <group id="general" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General</label>
-                <field id="version" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="version" translate="label" type="note" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Version</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Version</frontend_model>
                 </field>
-                <field id="token" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="token" translate="label" type="note" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Token</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Token</frontend_model>
                 </field>
-                <field id="enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
@@ -172,20 +172,160 @@
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\ExtraFields</frontend_model>
                     <backend_model>Magmodules\Sooqr\Model\Config\Backend\Serialized\ExtraFields</backend_model>
                 </field>
-                <field id="heading_config" translate="label comment" type="text" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Configurable &amp; Grouped products</label>
+            </group>
+            <group id="types" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Types</label>
+                <comment><![CDATA[Configure the three different product types to make sure that your using the right attribute values for the different product types. <a class="mm-link" href="https://www.magmodules.eu/help/googleshopping-magento2/about-the-google-shopping-product-types"><br>More Information.</a>]]></comment>
+                <field id="heading_configurable" translate="label comment" type="text" sortOrder="20" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Configurable Products</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>When your using configurable or grouped products the simple products will be shown in the feed by default. You can choose to pull the information from the parent products. Select the fall-back data for the configurable / grouped products in the multiple-select box below.</comment>
+                    <comment><![CDATA[For configurable products we recommend to only add the simple products inside the configurable as the configurable product by itself can't be bought.<br>Choose the attribute(s) that you want to use from the parent relation configurable product.]]></comment>
                 </field>
-                <field id="relations" translate="label" type="select" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enabled</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="configurable" translate="label comment" type="select" sortOrder="21" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Configurable/Simple Products</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Configurable\Option</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Linked Simple Products. In this way only the linked simple products that are part of a configurable product are exported. It's recommended to export the simples only so the unique product variants are in the Google Shopping Feed.]]></comment>
                 </field>
-                <field id="parent_atts" translate="label" type="multiselect" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Use Parent Product Data for Simple Products</label>
-                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\ParentAttributes</source_model>
+                <field id="configurable_link" translate="label comment" type="select" sortOrder="22" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent URL for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Configurable\Link</source_model>
                     <depends>
-                        <field id="relations">1</field>
+                        <field id="configurable" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes, with Auto-Link. In this way the URL will be automatically link to the correct simple product on the configurable product landing page.]]></comment>
+                </field>
+                <field id="configurable_image" translate="label" type="select" sortOrder="23" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent Image for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Configurable\Image</source_model>
+                    <depends>
+                        <field id="configurable" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. In this way the parent image will only be used when there isn't a image available on the simple product.]]></comment>
+                </field>
+                <field id="configurable_parent_atts" translate="label" type="multiselect" sortOrder="24" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Parent Data for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Configurable\ParentAttributes</source_model>
+                    <depends>
+                        <field id="configurable" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                </field>
+                <field id="configurable_nonvisible" translate="label comment" type="select" sortOrder="25" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Fallback only on Non Visible Simples</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <depends>
+                        <field id="configurable" separator=",">simple,both</field>
+                    </depends>
+                </field>
+                <field id="heading_bundle" translate="label comment" type="text" sortOrder="30" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Bundle Products</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment><![CDATA[For Bundle Products we recommend to only add the Bundle product by itself as that is the product that can be bought.<br>]]></comment>
+                </field>
+                <field id="bundle" translate="label comment" type="select" sortOrder="31" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Bundle Products</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\Option</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Bundle Product. In this way you only export the bundle product by itself to the Google Shopping Feed.]]></comment>
+                </field>
+                <field id="bundle_link" translate="label comment" type="select" sortOrder="32" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent URL for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\Link</source_model>
+                    <depends>
+                        <field id="bundle" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way the URL will link directly to the Bundle Product.]]></comment>
+                </field>
+                <field id="bundle_image" translate="label comment" type="select" sortOrder="33" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent Image for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\Image</source_model>
+                    <depends>
+                        <field id="bundle" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. In this way the parent image will only be used when there isn't a image available on the simple product.]]></comment>
+                </field>
+                <field id="bundle_parent_atts" translate="label comment" type="multiselect" sortOrder="34" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Parent Data for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\ParentAttributes</source_model>
+                    <depends>
+                        <field id="bundle" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                </field>
+                <field id="bundle_nonvisible" translate="label comment" type="select" sortOrder="35" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Fallback only on Non Visible Simples</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <depends>
+                        <field id="bundle" separator=",">simple,both</field>
+                    </depends>
+                </field>
+                <field id="heading_grouped" translate="label comment" type="text" sortOrder="40" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Grouped Products</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment><![CDATA[For Grouped Products we recommend to only add the Grouped product by itself as that is the product that can be bought.<br>]]></comment>
+                </field>
+                <field id="grouped" translate="label comment" type="select" sortOrder="41" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Grouped Products</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Option</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Grouped Product. In this way you only export the bundle product by itself to the Google Shopping Feed.]]></comment>
+                </field>
+                <field id="grouped_link" translate="label comment" type="select" sortOrder="42" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent URL for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Link</source_model>
+                    <depends>
+                        <field id="grouped" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way the URL will link directly to the Grouped Product.]]></comment>
+                </field>
+                <field id="grouped_image" translate="label comment" type="select" sortOrder="43" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Use Parent Image for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Image</source_model>
+                    <depends>
+                        <field id="grouped" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. In this way the parent image will only be used when there isn't a image available on the simple product.]]></comment>
+                </field>
+                <field id="grouped_parent_price" translate="label" type="select" sortOrder="44" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Parent Price</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Price</source_model>
+                    <depends>
+                        <field id="grouped" separator=",">parent,both</field>
+                    </depends>
+                </field>
+                <field id="grouped_parent_atts" translate="label comment" type="multiselect" sortOrder="45" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Parent Data for Simples</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\ParentAttributes</source_model>
+                    <depends>
+                        <field id="grouped" separator=",">simple,both</field>
+                    </depends>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                </field>
+                <field id="grouped_nonvisible" translate="label" type="select" sortOrder="46" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Use Fallback only on Non Visible Simples</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <depends>
+                        <field id="grouped" separator=",">simple,both</field>
                     </depends>
                 </field>
             </group>
@@ -244,7 +384,7 @@
                 <field id="heading_filters" translate="label comment" type="text" sortOrder="30" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Advanced Filters</label>
-                    <frontend_model>Magmodules\GoogleShopping\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
                     <comment>Configure the advanced filter using your attributes and different filter options.</comment>
                 </field>
                 <field id="filters" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1"

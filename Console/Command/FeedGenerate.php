@@ -12,27 +12,26 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Magento\Framework\App\State;
-use Magmodules\Sooqr\Model\Generate as GenerateModel;
+use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
+/**
+ * Class FeedGenerate
+ *
+ * @package Magmodules\Sooqr\Console\Command
+ */
 class FeedGenerate extends Command
 {
 
-    /**
-     *
-     */
     const COMMAND_NAME = 'sooqr:feed:generate';
-
     /**
      * @var State
      */
     public $state;
-
     /**
-     * @var GenerateModel
+     * @var FeedModel
      */
-    private $generateModel;
-
+    private $feedModel;
     /**
      * @var GeneralHelper
      */
@@ -42,16 +41,16 @@ class FeedGenerate extends Command
      * GenerateFeed constructor.
      *
      * @param State         $state
-     * @param GenerateModel $generateModel
+     * @param FeedModel $feedModel
      * @param GeneralHelper $generalHelper
      */
     public function __construct(
         State $state,
-        GenerateModel $generateModel,
+        FeedModel $feedModel,
         GeneralHelper $generalHelper
     ) {
         $this->setAreaCode($state);
-        $this->generateModel = $generateModel;
+        $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
         parent::__construct();
     }
@@ -59,7 +58,7 @@ class FeedGenerate extends Command
     /**
      * @param State $state
      */
-    protected function setAreaCode(State $state)
+    public function setAreaCode(State $state)
     {
         try {
             $state->getAreaCode();
@@ -71,7 +70,7 @@ class FeedGenerate extends Command
     /**
      *  {@inheritdoc}
      */
-    protected function configure()
+    public function configure()
     {
         $this->setName(self::COMMAND_NAME);
         $this->setDescription('Generate Sooqr XML Feed');
@@ -87,14 +86,14 @@ class FeedGenerate extends Command
     /**
      *  {@inheritdoc}
      */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output)
     {
         $storeId = $input->getOption('store-id');
         if (empty($storeId) || !is_numeric($storeId)) {
             $output->writeln('<info>Start Generating feed for all stores</info>');
             $storeIds = $this->generalHelper->getEnabledArray('magmodules_sooqr/generate/enable');
             foreach ($storeIds as $storeId) {
-                $result = $this->generateModel->generateByStore($storeId);
+                $result = $this->feedModel->generateByStore($storeId, 'cli');
                 $msg = sprintf(
                     'Store ID %s: Generated feed with %s product in %s',
                     $storeId,
@@ -105,7 +104,7 @@ class FeedGenerate extends Command
             }
         } else {
             $output->writeln('<info>Start Generating feed for Store ID ' . $storeId . '</info>');
-            $result = $this->generateModel->generateByStore($storeId);
+            $result = $this->feedModel->generateByStore($storeId, 'cli');
             $msg = sprintf(
                 'Store ID %s: Generated feed with %s product in %s',
                 $storeId,
