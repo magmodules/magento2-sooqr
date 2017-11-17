@@ -6,12 +6,10 @@
 
 namespace Magmodules\Sooqr\Console\Command;
 
-use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Magento\Framework\App\State;
 use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
@@ -25,10 +23,6 @@ class FeedGenerate extends Command
 
     const COMMAND_NAME = 'sooqr:feed:generate';
     /**
-     * @var State
-     */
-    public $state;
-    /**
      * @var FeedModel
      */
     private $feedModel;
@@ -38,33 +32,18 @@ class FeedGenerate extends Command
     private $generalHelper;
 
     /**
-     * GenerateFeed constructor.
+     * FeedGenerate constructor.
      *
-     * @param State         $state
-     * @param FeedModel $feedModel
+     * @param FeedModel     $feedModel
      * @param GeneralHelper $generalHelper
      */
     public function __construct(
-        State $state,
         FeedModel $feedModel,
         GeneralHelper $generalHelper
     ) {
-        $this->setAreaCode($state);
         $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
         parent::__construct();
-    }
-
-    /**
-     * @param State $state
-     */
-    public function setAreaCode(State $state)
-    {
-        try {
-            $state->getAreaCode();
-        } catch (Exception $exception) {
-            $state->setAreaCode('adminhtml');
-        }
     }
 
     /**
