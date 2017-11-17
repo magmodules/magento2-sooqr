@@ -104,6 +104,7 @@ class Category extends AbstractHelper
             ->setStoreId($storeId)
             ->addAttributeToSelect($attributes)
             ->addFieldToFilter('is_active', ['eq' => 1])
+            ->addFieldToFilter('path', ['like' => '%/' . $parent . '/%'])
             ->load();
 
         foreach ($collection as $category) {

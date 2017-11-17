@@ -6,12 +6,10 @@
 
 namespace Magmodules\Sooqr\Console\Command;
 
-use Exception;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Magento\Framework\App\State;
 use Magmodules\Sooqr\Helper\Config as ConfigHelper;
 
 /**
@@ -24,10 +22,6 @@ class Config extends Command
 
     const COMMAND_NAME = 'sooqr:config';
     /**
-     * @var State
-     */
-    public $state;
-    /**
      * @var ConfigHelper
      */
     private $configHelper;
@@ -35,28 +29,13 @@ class Config extends Command
     /**
      * Config constructor.
      *
-     * @param State        $state
      * @param ConfigHelper $configHelper
      */
     public function __construct(
-        State $state,
         ConfigHelper $configHelper
     ) {
-        $this->setAreaCode($state);
         $this->configHelper = $configHelper;
         parent::__construct();
-    }
-
-    /**
-     * @param State $state
-     */
-    public function setAreaCode(State $state)
-    {
-        try {
-            $state->getAreaCode();
-        } catch (Exception $exception) {
-            $state->setAreaCode('adminhtml');
-        }
     }
 
     /**

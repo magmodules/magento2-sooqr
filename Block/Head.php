@@ -74,9 +74,9 @@ class Head extends Template
     /**
      * @return bool
      */
-    public function getFrontendEnabled()
+    public function getHeadDataEnabled()
     {
-        return $this->generalHelper->getFrontendEnabled($this->storeId);
+        return $this->generalHelper->getHeadDataEnabled($this->storeId);
     }
 
     /**

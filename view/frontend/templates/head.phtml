@@ -1,13 +1,13 @@
 <?php
 /**
- * Copyright © 2016 Magento. All rights reserved.
+ * Copyright © 2017 Magento. All rights reserved.
  * See COPYING.txt for license details.
  */
 /**
  * @var $block \Magmodules\Sooqr\Block\Head
  */
 ?>
-<?php if ($block->getFrontendEnabled()) { ?>
+<?php if ($block->getHeadDataEnabled()) { ?>
     <script type="text/javascript">
         var sooqrUenc = '<?php echo $block->getUenc(); ?>';
         var sooqrFormKey = '<?php echo $block->getFormKey() ?>';

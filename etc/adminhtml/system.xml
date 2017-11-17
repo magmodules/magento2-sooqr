@@ -38,7 +38,7 @@
                 <label>Frontend Implementation</label>
                 <comment>Set the general settings to connect your store with the Sooqr API. You can find your Sooqr Account ID and Sooqr API Key in your Sooqr account.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable</label>
+                    <label>Enable Search</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="heading_api" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -109,35 +109,42 @@
                         <field id="enable">1</field>
                     </depends>
                 </field>
+                <field id="headdata" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Add Data to Head</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
             </group>
             <group id="data" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Data</label>
-                <comment>This section lists all the default attributes for the Sooqr Product Feed. Some attributes are required for all products and some are required for certain product types such as apparel, others are recommended. To get the best results with Sooqr lease make sure that you provide most of the attributes.</comment>
+                <comment>Connect the right attributes for the basic product values to the Sooqr feed.</comment>
                 <field id="heading_name" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Product Fields</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>Connect the right attributes for the name and description to export the values to the Sooqr feed. The description will be truncated to a maximum of 5000 characters and stripped from html.</comment>
                 </field>
                 <field id="name_attribute" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Name</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                    <comment>Select the attribute associate with the product name. Suggested field: Product Name</comment>
                 </field>
                 <field id="sku_attribute" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Sku</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                    <comment>Select the attribute associated with the SKU. Suggested field: SKU</comment>
                 </field>
                 <field id="description_attribute" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Description</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                    <comment>Select the attribute associated with the product description. Suggested field: Description</comment>
                 </field>
                 <field id="brand_attribute" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Brand</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Attributes</source_model>
+                    <comment>Select the attribute associated with the brand or manufacturer. Suggested field: Brand or manufacturer</comment>
                 </field>
                 <field id="heading_image" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Images</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>Connect the right attributes for the name and description to export the values to the Sooqr feed. The description will be truncated to a maximum of 5000 characters and stripped from html.</comment>
+                    <comment>It is recommended that you select all images if they are available, so that any additional images are also exported.</comment>
                 </field>
                 <field id="image_source" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Source</label>
@@ -165,7 +172,7 @@
                 <field id="heading_extra" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Extra Fields</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>You can add custom fields to your feed when needed. Please make sure that your using the latest custom fields standards to prevent error messages in the feed. The guidelines for the custom fields can be found right in our knowledgebase.</comment>
+                    <comment>You can add custom fields with your attributes to enrich your data in Sooqr. Click the Add button to add an attribute with a custom fieldname as reference.</comment>
                 </field>
                 <field id="extra_fields" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Extra Fields</label>
@@ -175,18 +182,18 @@
             </group>
             <group id="types" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Types</label>
-                <comment><![CDATA[Configure the three different product types to make sure that your using the right attribute values for the different product types. <a class="mm-link" href="https://www.magmodules.eu/help/googleshopping-magento2/about-the-google-shopping-product-types"><br>More Information.</a>]]></comment>
+                <comment><![CDATA[Configure the three different product types to make sure that you are using the right attribute values for the different product types.]]></comment>
                 <field id="heading_configurable" translate="label comment" type="text" sortOrder="20" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Configurable Products</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment><![CDATA[For configurable products we recommend to only add the simple products inside the configurable as the configurable product by itself can't be bought.<br>Choose the attribute(s) that you want to use from the parent relation configurable product.]]></comment>
+                    <comment><![CDATA[For configurable products, we recommend to only add the simple products to the configuration as a ‘configurable product’ by itself cannot be purchased. Choose the attribute(s) that you want to use from the parent relation configurable product.]]></comment>
                 </field>
                 <field id="configurable" translate="label comment" type="select" sortOrder="21" showInDefault="1" showInWebsite="1"
                        showInStore="1">
                     <label>Use Configurable/Simple Products</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Configurable\Option</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Only Linked Simple Products. In this way only the linked simple products that are part of a configurable product are exported. It's recommended to export the simples only so the unique product variants are in the Google Shopping Feed.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Linked Simple Products. Selecting this option will export linked simple products that are part of a configurable product. This option is recommended so that the unique product variants are exported to Sooqr.]]></comment>
                 </field>
                 <field id="configurable_link" translate="label comment" type="select" sortOrder="22" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -213,13 +220,13 @@
                     <depends>
                         <field id="configurable" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
                 </field>
                 <field id="configurable_nonvisible" translate="label comment" type="select" sortOrder="25" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="configurable" separator=",">simple,both</field>
                     </depends>
@@ -228,13 +235,13 @@
                        showInWebsite="1" showInStore="1">
                     <label>Bundle Products</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment><![CDATA[For Bundle Products we recommend to only add the Bundle product by itself as that is the product that can be bought.<br>]]></comment>
+                    <comment><![CDATA[For Bundle Products, we recommend to only add the Bundle product by itself as this is the item that can be purchased.<br>]]></comment>
                 </field>
                 <field id="bundle" translate="label comment" type="select" sortOrder="31" showInDefault="1" showInWebsite="1"
                        showInStore="1">
                     <label>Use Bundle Products</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\Option</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Only Bundle Product. In this way you only export the bundle product by itself to the Google Shopping Feed.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Bundle Product. Selecting this option will export the bundle product by itself to Sooqr.]]></comment>
                 </field>
                 <field id="bundle_link" translate="label comment" type="select" sortOrder="32" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -243,7 +250,7 @@
                     <depends>
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way the URL will link directly to the Bundle Product.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this option will export the URL that links directly to the Bundle Product.]]></comment>
                 </field>
                 <field id="bundle_image" translate="label comment" type="select" sortOrder="33" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -252,7 +259,7 @@
                     <depends>
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. In this way the parent image will only be used when there isn't a image available on the simple product.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only if empty. Selecting this option will export the parent image which will be used if there is no image available for a simple product]]></comment>
                 </field>
                 <field id="bundle_parent_atts" translate="label comment" type="multiselect" sortOrder="34" showInDefault="1"
                        showInWebsite="1" showInStore="1">
@@ -261,13 +268,13 @@
                     <depends>
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent bundle product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
                 </field>
                 <field id="bundle_nonvisible" translate="label comment" type="select" sortOrder="35" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
@@ -282,7 +289,7 @@
                        showInStore="1">
                     <label>Use Grouped Products</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Option</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Only Grouped Product. In this way you only export the bundle product by itself to the Google Shopping Feed.]]></comment>
+                    <comment><![CDATA[For Group Products, we recommend to only add the Grouped Product by itself as that is the product that can be purchased. <br>]]></comment>
                 </field>
                 <field id="grouped_link" translate="label comment" type="select" sortOrder="42" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -291,7 +298,7 @@
                     <depends>
                         <field id="grouped" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way the URL will link directly to the Grouped Product.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this option will export the URL that links directly to the Grouped Product.]]></comment>
                 </field>
                 <field id="grouped_image" translate="label comment" type="select" sortOrder="43" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -300,7 +307,7 @@
                     <depends>
                         <field id="grouped" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. In this way the parent image will only be used when there isn't a image available on the simple product.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. Selecting this option will export the parent image which will be used if there is no image available for a simple product.]]></comment>
                 </field>
                 <field id="grouped_parent_price" translate="label" type="select" sortOrder="44" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -317,13 +324,13 @@
                     <depends>
                         <field id="grouped" separator=",">simple,both</field>
                     </depends>
-                    <comment><![CDATA[Select the attributes that you want to use from the parent configurable product, it's not recommended to select the attributes that needs to be unique for the Simples as GTIN/Color.]]></comment>
+                    <comment><![CDATA[Select the attributes that you want to use from the parent grouped product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
                 </field>
                 <field id="grouped_nonvisible" translate="label" type="select" sortOrder="46" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="grouped" separator=",">simple,both</field>
                     </depends>
@@ -344,7 +351,7 @@
                 <field id="visbility" translate="label" type="multiselect" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Only add products with the following Visibility</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\ProductVisibility</source_model>
-                    <comment>Add products with the selected visibility.</comment>
+                    <comment>Include or exclude products based on the visibility.</comment>
                     <depends>
                         <field id="visbility_enable">1</field>
                     </depends>
@@ -352,7 +359,7 @@
                 <field id="heading_category" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Filter by Category</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>Include or exclude products based on the category.</comment>
+                    <comment>Include or Exclude products based on the category.</comment>
                 </field>
                 <field id="category_enable" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
@@ -371,6 +378,7 @@
                     <depends>
                         <field id="category_enable">1</field>
                     </depends>
+                    <comment><![CDATA[Include or Exclude Products based on the Category.<br><strong><br>Note for Include:</strong><br>Simple products within a bundled, configurable or grouped product are treated as own entities; these should also be present in the included categories.<br><br><strong>Note for Exclude: </strong><br>Exclude the products from these categories. Products that are available within different categories need to be excluded from all of the categories they are assigned to.]]></comment>
                 </field>
                 <field id="heading_stock" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Exclude Out of Stock</label>
@@ -412,7 +420,7 @@
             </group>
             <group id="generate" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Feed Generation Settings</label>
-                <comment>Each store view will have it's own Sooqr feed, you can easily enable or disable the Sooqr feed generation on store level or automatically generate the Sooqr feed. In case your not using the cron job functionality it's possible to generate the Sooqr feed manually.</comment>
+                <comment>Each store view will have its Sooqr feed. You can easily enable or disable the Sooqr feed generation on store level or automatically generate the Sooqr feed. In case you are not using the Cronjob functionality it's possible to generate the Sooqr feed manually.</comment>
                 <field id="heading_generation" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Feed Generation</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
@@ -447,6 +455,7 @@
                     <depends>
                         <field id="cron_frequency">custom</field>
                     </depends>
+                    <comment>Enter frequency in Crontab format. E.g. 0 5, 17 * * *  - this will generate the feed at 5AM and 5PM daily.</comment>
                 </field>
                 <field id="heading_advanced" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Advanced Settings</label>
