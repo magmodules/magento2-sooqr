@@ -252,25 +252,3 @@
     color: #666666;
     line-height: 2em;
 }
-
-.mm-block-sooqr-feed-table .enable {
-    color: #eb5203;
-    line-height: 2em;
-}
-
-.mm-block-sooqr-feed-table .enable small {
-    color: grey;
-}
-
-.mm-block-sooqr-feed-table .enable:before {
-    content: '\e623';
-    font-family: 'Admin Icons';
-    margin-right: 9px;
-    font-size: 12px;
-    float: left;
-}
-
-#magmodules_sooqr_general .admin__field-value {
-    display: inline-block;
-    padding-top: 0;
-}

@@ -152,7 +152,8 @@ class Feed
         $footer = $this->sourceHelper->getXmlFromArray($results, 'results');
 
         $this->feedHelper->writeFooter($footer);
-        $this->feedHelper->updateResult($storeId,
+        $this->feedHelper->updateResult(
+            $storeId,
             $processed,
             $results['processing_time'],
             $results['date_created'],

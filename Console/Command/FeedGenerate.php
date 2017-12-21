@@ -10,8 +10,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Magmodules\Sooqr\Model\Feed as FeedModel;
-use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magmodules\Sooqr\Model\Feed\Proxy as FeedModel;
+use Magmodules\Sooqr\Helper\General\Proxy as GeneralHelper;
+use Magento\Framework\App\State as AppState;
 
 /**
  * Class FeedGenerate
@@ -30,19 +31,26 @@ class FeedGenerate extends Command
      * @var GeneralHelper
      */
     private $generalHelper;
+    /**
+     * @var AppState
+     */
+    private $appState;
 
     /**
      * FeedGenerate constructor.
      *
      * @param FeedModel     $feedModel
      * @param GeneralHelper $generalHelper
+     * @param AppState      $appState
      */
     public function __construct(
         FeedModel $feedModel,
-        GeneralHelper $generalHelper
+        GeneralHelper $generalHelper,
+        AppState $appState
     ) {
         $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
+        $this->appState = $appState;
         parent::__construct();
     }
 
@@ -68,6 +76,8 @@ class FeedGenerate extends Command
     public function execute(InputInterface $input, OutputInterface $output)
     {
         $storeId = $input->getOption('store-id');
+        $this->appState->setAreaCode('frontend');
+
         if (empty($storeId) || !is_numeric($storeId)) {
             $output->writeln('<info>Start Generating feed for all stores</info>');
             $storeIds = $this->generalHelper->getEnabledArray('magmodules_sooqr/generate/enable');

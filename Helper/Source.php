@@ -45,6 +45,7 @@ class Source extends AbstractHelper
     const XPATH_STOCK = 'magmodules_sooqr/filter/stock';
     const XPATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
     const XPATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
+    const XPATH_TAX = 'magmodules_sooqr/data/tax';
     const XPATH_ADVANCED = 'magmodules_sooqr/generate/advanced';
     const XPATH_PAGING = 'magmodules_sooqr/generate/paging';
     const XPATH_DEBUG_MEMORY = 'magmodules_sooqr/generate/debug_memory';
@@ -127,16 +128,17 @@ class Source extends AbstractHelper
         $config['type'] = $type;
         $config['store_id'] = $storeId;
         $config['website_id'] = $this->storeManager->getStore()->getWebsiteId();
+        $config['timestamp'] = $this->generalHelper->getLocaleDate($storeId);
+        $config['date_time'] = $this->generalHelper->getDateTime();
         $config['filters'] = $this->getProductFilters($type);
-        $config['currency'] = $this->storeManager->getStore()->getCurrentCurrency()->getCode();
         $config['attributes'] = $this->getAttributes($type, $config['filters']);
-        $config['price_config'] = $this->getPriceConfig();
         $config['price_config'] = $this->getPriceConfig();
         $config['base_url'] = $this->storeManager->getStore()->getBaseUrl();
         $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
-        $config['default_category'] = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY);
         $config['debug_memory'] = $this->generalHelper->getStoreValue(self::XPATH_DEBUG_MEMORY);
+        $config['default_category'] = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY);
         $config['inventory'] = $this->getInventoryData();
+        $config['currency'] = $config['price_config']['currency'];
         $config['categories'] = $this->categoryHelper->getCollection(
             $storeId,
             'sooqr_cat',
@@ -392,7 +394,7 @@ class Source extends AbstractHelper
             $filters['limit'] = self::LIMIT_PREVIEW;
         } else {
             $advanced = (int)$this->generalHelper->getStoreValue(self::XPATH_ADVANCED);
-            $paging = $this->generalHelper->getStoreValue(self::XPATH_PAGING);
+            $paging = preg_replace('/\D/', '', $this->generalHelper->getStoreValue(self::XPATH_PAGING));
             if ($advanced && ($paging > 0)) {
                 $filters['limit'] = $paging;
             }
@@ -569,12 +571,13 @@ class Source extends AbstractHelper
     {
         $extraFields = [];
         if ($attributes = $this->generalHelper->getStoreValueArray(self::XPATH_EXTRA_FIELDS)) {
+            $i = 0;
             foreach ($attributes as $attribute) {
-                $label = strtolower(str_replace(' ', '_', $attribute['attribute']));
-                $extraFields[$label] = [
+                $extraFields['extra_' . $i] = [
                     'label'  => 'sqr:' . strtolower($attribute['attribute']),
                     'source' => $attribute['attribute']
                 ];
+                $i++;
             }
         }
 
@@ -594,6 +597,10 @@ class Source extends AbstractHelper
         $priceFields['currency'] = $store->getCurrentCurrency()->getCode();
         $priceFields['exchange_rate'] = $store->getBaseCurrency()->getRate($priceFields['currency']);
         $priceFields['grouped_price_type'] = $this->generalHelper->getStoreValue(self::XPATH_GROUPED_PARENT_PRICE);
+
+        if ($this->generalHelper->getStoreValue(self::XPATH_TAX)) {
+            $priceFields['incl_vat'] = true;
+        }
 
         return $priceFields;
     }

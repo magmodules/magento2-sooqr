@@ -9,10 +9,10 @@ namespace Magmodules\Sooqr\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\Stdlib\DateTime\DateTime;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Config\Model\ResourceModel\Config as ConfigData;
-use Magento\Config\Model\ResourceModel\Config\Data\Collection as ConfigDataCollection;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -53,9 +53,9 @@ class General extends AbstractHelper
      */
     private $storeManager;
     /**
-     * @var ObjectManagerInterface
+     * @var Config
      */
-    private $objectManager;
+    private $config;
     /**
      * @var ConfigDataCollectionFactory
      */
@@ -63,7 +63,11 @@ class General extends AbstractHelper
     /**
      * @var ConfigData
      */
-    private $config;
+    private $coreDate;
+    /**
+     * @var TimezoneInterface
+     */
+    private $localeDate;
     /**
      * @var SooqrLogger
      */
@@ -73,30 +77,33 @@ class General extends AbstractHelper
      * General constructor.
      *
      * @param Context                     $context
-     * @param ObjectManagerInterface      $objectManager
      * @param StoreManagerInterface       $storeManager
      * @param ModuleListInterface         $moduleList
      * @param ProductMetadataInterface    $metadata
      * @param ConfigDataCollectionFactory $configDataCollectionFactory
      * @param ConfigData                  $config
-     * @param SooqrLogger                 $logger
+     * @param DateTime                    $coreDate
+     * @param TimezoneInterface           $localeDate
+     * @param SooqrLogger        $logger
      */
     public function __construct(
         Context $context,
-        ObjectManagerInterface $objectManager,
         StoreManagerInterface $storeManager,
         ModuleListInterface $moduleList,
         ProductMetadataInterface $metadata,
         ConfigDataCollectionFactory $configDataCollectionFactory,
         ConfigData $config,
+        DateTime $coreDate,
+        TimezoneInterface $localeDate,
         SooqrLogger $logger
     ) {
-        $this->objectManager = $objectManager;
         $this->storeManager = $storeManager;
         $this->moduleList = $moduleList;
         $this->metadata = $metadata;
         $this->configDataCollectionFactory = $configDataCollectionFactory;
         $this->config = $config;
+        $this->coreDate = $coreDate;
+        $this->localeDate = $localeDate;
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -252,7 +259,7 @@ class General extends AbstractHelper
 
         $collection->getSelect()->limit(1);
 
-        return $collection->getFirstItem()->getValue();
+        return $collection->getFirstItem()->getData('value');
     }
 
     /**
@@ -437,5 +444,23 @@ class General extends AbstractHelper
         if ($debug) {
             $this->logger->add($id, $data);
         }
+    }
+
+    /**
+     * @return string
+     */
+    public function getDateTime()
+    {
+        return $this->coreDate->date("Y-m-d H:i:s");
+    }
+
+    /**
+     * @param $storeId
+     *
+     * @return mixed
+     */
+    public function getLocaleDate($storeId)
+    {
+        return $this->localeDate->scopeDate($storeId);
     }
 }

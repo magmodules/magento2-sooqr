@@ -54,21 +54,15 @@ class Generate extends Action
 
         if (!$this->generalHelper->getEnabled()) {
             $errorMsg = __('Please enable the extension before generating the feed.');
-            $this->messageManager->addError($errorMsg);
+            $this->messageManager->addErrorMessage($errorMsg);
         } else {
             try {
                 $result = $this->feedModel->generateByStore($storeId);
-                $this->messageManager->addSuccess(
+                $this->messageManager->addSuccessMessage(
                     __('Successfully generated a feed with %1 product(s).', $result['qty'])
                 );
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $this->messageManager->addException(
-                    $e,
-                    __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
-                );
-                $this->generalHelper->addTolog('Generate', $e->getMessage());
             } catch (\Exception $e) {
-                $this->messageManager->addException(
+                $this->messageManager->addExceptionMessage(
                     $e,
                     __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
                 );

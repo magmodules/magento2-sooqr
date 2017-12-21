@@ -23,7 +23,6 @@ class Header extends Field
     const MODULE_CODE = 'magento2-sooqr';
     const MODULE_SUPPORT_LINK = 'https://support.sooqr.com/?base=';
     const MODULE_SINGUP_LINK = 'https://signup.sooqr.com/?base=';
-
     /**
      * @var string
      */
