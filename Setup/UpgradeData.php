@@ -13,6 +13,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\App\Config\ValueInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magmodules\Sooqr\Helper\Source as SourceHelper;
 
 /**
  * Class UpgradeData
@@ -103,17 +104,22 @@ class UpgradeData implements UpgradeDataInterface
      */
     public function convertSerializedDataToJson(ModuleDataSetupInterface $setup)
     {
+        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         $fieldDataConverter = $this->objectManager
             ->create(\Magento\Framework\DB\FieldDataConverterFactory::class)
             ->create(\Magento\Framework\DB\DataConverter\SerializedToJson::class);
 
+        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         $queryModifier = $this->objectManager
             ->create(\Magento\Framework\DB\Select\QueryModifierFactory::class)
             ->create(
                 'in',
                 [
                     'values' => [
-                        'path' => ['magmodules_sooqr/data/extra_fields']
+                        'path' => [
+                            SourceHelper::XPATH_EXTRA_FIELDS,
+                            SourceHelper::XPATH_FILTERS_DATA
+                        ]
                     ]
                 ]
             );

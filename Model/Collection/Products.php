@@ -94,6 +94,7 @@ class Products
      * @param $productIds
      *
      * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @throws \Magento\Framework\Exception\LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function getCollection($config, $page, $productIds)
@@ -212,6 +213,8 @@ class Products
      * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
      * @param string                                                  $type
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function addFilters($filters, $collection, $type = 'simple')
     {
@@ -230,12 +233,13 @@ class Products
             $attribute = $filter['attribute'];
             $condition = $filter['condition'];
             $value = $filter['value'];
-            $productType = $filter['product_type'];
+            $productFilterType = $filter['product_type'];
+            $filterExpr = [];
 
-            if ($type == 'simple' && $productType == 'parent') {
+            if ($type == 'simple' && $productFilterType == 'parent') {
                 continue;
             }
-            if ($type == 'parent' && $productType == 'simple') {
+            if ($type == 'parent' && $productFilterType == 'simple') {
                 continue;
             }
 
@@ -287,48 +291,51 @@ class Products
                     if (strpos($value, ',') !== false) {
                         $value = explode(',', $value);
                     }
-
-                    $collection->addAttributeToFilter(
-                        [
-                            [
-                                'attribute' => $attribute,
-                                $condition  => $value
-                            ],
-                            ['attribute' => $attribute, 'null' => true]
-                        ]
-                    );
+                    $filterExpr[] = ['attribute' => $attribute, $condition => $value];
+                    $filterExpr[] = ['attribute' => $attribute, 'null' => true];
                     break;
                 case 'in':
                     if (strpos($value, ',') !== false) {
                         $value = explode(',', $value);
                     }
-                    $collection->addAttributeToFilter($attribute, [$condition => $value]);
+                    $filterExpr[] = ['attribute' => $attribute, $condition => $value];
                     break;
                 case 'neq':
-                    $collection->addAttributeToFilter(
-                        [
-                            ['attribute' => $attribute, $condition => $value],
-                            ['attribute' => $attribute, 'null' => true]
-                        ]
-                    );
+                    $filterExpr[] = ['attribute' => $attribute, $condition => $value];
+                    $filterExpr[] = ['attribute' => $attribute, 'null' => true];
                     break;
                 case 'empty':
-                    $collection->addAttributeToFilter($attribute, ['null' => true]);
+                    $filterExpr[] = ['attribute' => $attribute, 'null' => true];
                     break;
                 case 'not-empty':
-                    $collection->addAttributeToFilter($attribute, ['notnull' => true]);
+                    $filterExpr[] = ['attribute' => $attribute, 'notnull' => true];
                     break;
                 case 'gt':
                 case 'gteq':
                 case 'lt':
                 case 'lteq':
                     if (is_numeric($value)) {
-                        $collection->addAttributeToFilter($attribute, [$condition => $value]);
+                        $filterExpr[] = ['attribute' => $attribute, $condition => $value];
                     }
                     break;
                 default:
-                    $collection->addAttributeToFilter($attribute, [$condition => $value]);
+                    $filterExpr[] = ['attribute' => $attribute, $condition => $value];
                     break;
+            }
+
+            if (!empty($filterExpr)) {
+                if ($productFilterType == 'parent') {
+                    $filterExpr[] = ['attribute' => 'type_id', 'eq' => 'simple'];
+                    /** @noinspection PhpParamsInspection */
+                    $collection->addAttributeToFilter($filterExpr, '', 'left');
+                } elseif ($productFilterType == 'simple') {
+                    $filterExpr[] = ['attribute' => 'type_id', 'neq' => 'simple'];
+                    /** @noinspection PhpParamsInspection */
+                    $collection->addAttributeToFilter($filterExpr, '', 'left');
+                } else {
+                    /** @noinspection PhpParamsInspection */
+                    $collection->addAttributeToFilter($filterExpr);
+                }
             }
         }
     }
@@ -337,7 +344,8 @@ class Products
      * @param $parentRelations
      * @param $config
      *
-     * @return array|\Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getParents($parentRelations, $config)
     {
@@ -386,10 +394,9 @@ class Products
             }
 
             $this->addFilters($filters, $collection, 'parent');
+            $collection->getSelect()->group('e.entity_id');
             return $collection->load();
         }
-
-        return [];
     }
 
     /**

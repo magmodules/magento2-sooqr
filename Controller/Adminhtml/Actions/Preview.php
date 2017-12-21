@@ -53,7 +53,7 @@ class Preview extends Action
         $storeId = $this->getRequest()->getParam('store_id');
         if (!$this->generalHelper->getEnabled()) {
             $errorMsg = __('Please enable the extension before generating the feed.');
-            $this->messageManager->addError($errorMsg);
+            $this->messageManager->addErrorMessage($errorMsg);
             $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
         } else {
             try {
@@ -65,11 +65,11 @@ class Preview extends Action
                     $this->getResponse()->setBody(file_get_contents($result['path']));
                 } else {
                     $errorMsg = __('Unkown error.');
-                    $this->messageManager->addError($errorMsg);
+                    $this->messageManager->addErrorMessage($errorMsg);
                     $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
                 }
             } catch (\Exception $e) {
-                $this->messageManager->addException(
+                $this->messageManager->addExceptionMessage(
                     $e,
                     __('We can\'t generate the feed right now, please check error log in /var/log/sooqr.log')
                 );

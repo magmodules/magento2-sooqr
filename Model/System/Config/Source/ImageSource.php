@@ -51,9 +51,7 @@ class ImageSource implements ArrayInterface
     public function toOptionArray()
     {
         if (!$this->options) {
-            $options[] = $this->getMediaImageArray();
-            $options[] = $this->getMultipleImages();
-            $this->options = $options;
+            $this->options = $this->getMediaImageArray();
         }
 
         return $this->options;
@@ -77,7 +75,7 @@ class ImageSource implements ArrayInterface
             }
         }
 
-        return ['label' => __('Single Source'), 'value' => $imageSource, 'optgroup-name' => __('single-source')];
+        return $imageSource;
     }
 
     /**
@@ -88,14 +86,5 @@ class ImageSource implements ArrayInterface
     public function getLabel($attribute)
     {
         return str_replace("'", '', $attribute->getFrontendLabel());
-    }
-
-    /**
-     * @return array
-     */
-    public function getMultipleImages()
-    {
-        $imageSource[] = ['value' => 'all', 'label' => __('All Images')];
-        return ['label' => __('Other Options'), 'value' => $imageSource, 'optgroup-name' => __('other-options')];
     }
 }

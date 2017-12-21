@@ -83,7 +83,7 @@ class Feed extends AbstractHelper
     ) {
         $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
-        $this->directory = $filesystem->getDirectoryWrite(DirectoryList::ROOT);
+        $this->directory = $filesystem;
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         $this->timezone = $timezone;
         $this->datetime = $datetime;
@@ -106,7 +106,7 @@ class Feed extends AbstractHelper
                 'name'      => $store->getName(),
                 'is_active' => $store->getIsActive(),
                 'status'    => $this->generalHelper->getGenerateEnabled($storeId),
-                'feed'      => $this->getFeedUrl($storeId),
+                'feed'      => (!empty($location['url']) ? $location['url'] : ''),
                 'full_path' => (!empty($location['full_path']) ? $location['full_path'] : ''),
                 'result'    => $this->generalHelper->getUncachedStoreValue(self::XPATH_FEED_RESULT, $storeId),
                 'available' => (!empty($location['full_path']) ? file_exists($location['full_path']) : false)
@@ -156,21 +156,6 @@ class Feed extends AbstractHelper
 
     /**
      * @param $storeId
-     *
-     * @return mixed
-     * @deprecated
-     */
-    public function getFeedUrl($storeId)
-    {
-        if ($location = $this->getFeedLocation($storeId)) {
-            return $location['url'];
-        }
-
-        return false;
-    }
-
-    /**
-     * @param $storeId
      * @param $processed
      * @param $time
      * @param $date
@@ -202,6 +187,8 @@ class Feed extends AbstractHelper
 
     /**
      * @param $row
+     *
+     * @throws LocalizedException
      */
     public function writeRow($row)
     {
@@ -226,8 +213,8 @@ class Feed extends AbstractHelper
             | [\xE0-\xEF](?![\x80-\xBF]{2})
             | [\xF0-\xF4](?![\x80-\xBF]{3})
             | (?<=[\x0-\x7F\xF5-\xFF])[\x80-\xBF]
-            | (?<![\xC2-\xDF]|[\xE0-\xEF]|[\xE0-\xEF][\x80-\xBF]
-            |[\xF0-\xF4]|[\xF0-\xF4][\x80-\xBF]|[\xF0-\xF4][\x80-\xBF]{2})[\x80-\xBF]
+            | (?<![\xC2-\xDF]|[\xE0-\xEF]|[\xE0-\xEF][\x80-\xBF]|
+            [\xF0-\xF4]|[\xF0-\xF4][\x80-\xBF]|[\xF0-\xF4][\x80-\xBF]{2})[\x80-\xBF]
             | (?<=[\xE0-\xEF])[\x80-\xBF](?![\x80-\xBF])
             | (?<=[\xF0-\xF4])[\x80-\xBF](?![\x80-\xBF]{2})
             | (?<=[\xF0-\xF4][\x80-\xBF])[\x80-\xBF](?![\x80-\xBF])
@@ -267,12 +254,13 @@ class Feed extends AbstractHelper
 
     /**
      * @param $config
-     * @param $headerConfig
+     *
+     * @throws LocalizedException
      */
     public function createFeed($config, $headerConfig)
     {
         $path = $config['feed_locations']['path'];
-        $this->stream = $this->directory->openFile($path);
+        $this->stream = $this->directory->getDirectoryWrite(DirectoryList::ROOT)->openFile($path);
 
         $header = '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
         $header .= '<rss xmlns:sqr="http://base.sooqr.com/ns/1.0" version="2.0" encoding="utf-8">' . PHP_EOL;
@@ -284,6 +272,8 @@ class Feed extends AbstractHelper
 
     /**
      * @param $summary
+     *
+     * @throws LocalizedException
      */
     public function writeFooter($summary)
     {

@@ -11,8 +11,10 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Config\Model\ResourceModel\Config as ConfigModel;
 use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Helper\Source as SourceHelper;
 
 /**
  * Class Config
@@ -22,7 +24,7 @@ use Magmodules\Sooqr\Logger\SooqrLogger;
 class Config extends AbstractHelper
 {
 
-    const XPATH_CONVERT_RUN = 'magmodules_sooqr/tast/convert_run';
+    const XPATH_CONVERT_RUN = 'magmodules_sooqr/task/convert_run';
     /**
      * @var ObjectManagerInterface
      */
@@ -43,22 +45,28 @@ class Config extends AbstractHelper
      * @var Config
      */
     private $config;
+    /**
+     * @var ReinitableConfigInterface
+     */
+    private $reinitConfig;
 
     /**
      * Tasks constructor.
      *
-     * @param Context                  $context
-     * @param ObjectManagerInterface   $objectManager
-     * @param ResourceConnection       $resource
-     * @param ProductMetadataInterface $productMetadata
+     * @param Context                   $context
+     * @param ObjectManagerInterface    $objectManager
+     * @param ResourceConnection        $resource
+     * @param ProductMetadataInterface  $productMetadata
+     * @param ReinitableConfigInterface $reinitConfig
      * @param ConfigModel               $config
-     * @param SooqrLogger     $logger
+     * @param SooqrLogger               $logger
      */
     public function __construct(
         Context $context,
         ObjectManagerInterface $objectManager,
         ResourceConnection $resource,
         ProductMetadataInterface $productMetadata,
+        ReinitableConfigInterface $reinitConfig,
         ConfigModel $config,
         SooqrLogger $logger
     ) {
@@ -66,6 +74,7 @@ class Config extends AbstractHelper
         $this->resource = $resource;
         $this->productMetadata = $productMetadata;
         $this->config = $config;
+        $this->reinitConfig = $reinitConfig;
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -93,37 +102,38 @@ class Config extends AbstractHelper
      */
     public function convertSerializedDataToJson()
     {
-        $magentoVersion = $this->productMetadata->getVersion();
-        if (version_compare($magentoVersion, '2.2.0', '>=')) {
-            $connection = $this->resource
-                ->getConnection(\Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION);
+        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
+        $connection = $this->resource
+            ->getConnection(\Magento\Framework\App\ResourceConnection::DEFAULT_CONNECTION);
 
-            $fieldDataConverter = $this->objectManager
-                ->create(\Magento\Framework\DB\FieldDataConverterFactory::class)
-                ->create(\Magento\Framework\DB\DataConverter\SerializedToJson::class);
+        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
+        $fieldDataConverter = $this->objectManager
+            ->create(\Magento\Framework\DB\FieldDataConverterFactory::class)
+            ->create(\Magento\Framework\DB\DataConverter\SerializedToJson::class);
 
-            $queryModifier = $this->objectManager
-                ->create(\Magento\Framework\DB\Select\QueryModifierFactory::class)
-                ->create(
-                    'in',
-                    [
-                        'values' => [
-                            'path' => ['magmodules_sooqr/data/extra_fields']
+        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
+        $queryModifier = $this->objectManager
+            ->create(\Magento\Framework\DB\Select\QueryModifierFactory::class)
+            ->create(
+                'in',
+                [
+                    'values' => [
+                        'path' => [
+                            SourceHelper::XPATH_EXTRA_FIELDS,
+                            SourceHelper::XPATH_FILTERS_DATA
                         ]
                     ]
-                );
-
-            $fieldDataConverter->convert(
-                $connection,
-                $connection->getTableName('core_config_data'),
-                'config_id',
-                'value',
-                $queryModifier
+                ]
             );
 
-            return 'Fields upated!';
-        } else {
-            return 'Incompatible Magento Version';
-        }
+        $fieldDataConverter->convert(
+            $connection,
+            $connection->getTableName('core_config_data'),
+            'config_id',
+            'value',
+            $queryModifier
+        );
+
+        $this->reinitConfig->reinit();
     }
 }
