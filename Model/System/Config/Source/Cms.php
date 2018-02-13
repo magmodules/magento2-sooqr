@@ -9,11 +9,11 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 use Magento\Framework\Option\ArrayInterface;
 
 /**
- * Class Frontend
+ * Class Cms
  *
  * @package Magmodules\Sooqr\Model\System\Config\Source
  */
-class Frontend implements ArrayInterface
+class Cms implements ArrayInterface
 {
 
     /**
@@ -28,7 +28,9 @@ class Frontend implements ArrayInterface
     {
         if (!$this->options) {
             $this->options = [
-                ['value'=>'4', 'label'=> __('Version 4 (Responsive)')],
+                ['value' => '', 'label' => __('No')],
+                ['value' => '1', 'label' => __('Yes, all')],
+                ['value' => '2', 'label' => __('Yes, selection')],
             ];
         }
         return $this->options;

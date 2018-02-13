@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2017 Magmodules.eu. All rights reserved.
+ * Copyright © 2018 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -421,10 +421,19 @@
             </group>
             <group id="cms" translate="label comment" type="text" sortOrder="7" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>CMS Pages</label>
-                <comment>Export your CMS pages into the feed to use them in the Sooqr Search engine.</comment>
+                <comment>Export your CMS pages into the feed to use them in the Sooqr Search Output.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Cms</source_model>
+                </field>
+                <field id="cms_selection" translate="label" type="multiselect" sortOrder="2" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Selection</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\CmsPages</source_model>
+                    <depends>
+                        <field id="enable">2</field>
+                    </depends>
+                    <comment><![CDATA[Select the CMS Pages that you want to export using the multi-select above.]]></comment>
                 </field>
             </group>
             <group id="generate" translate="label comment" type="text" sortOrder="8" showInDefault="1" showInWebsite="1" showInStore="1">
