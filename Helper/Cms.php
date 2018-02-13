@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2017 Magmodules.eu. All rights reserved.
+ * Copyright © 2018 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -8,12 +8,9 @@ namespace Magmodules\Sooqr\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Cms\Api\PageRepositoryInterface;
-use Magento\Cms\Api\Data\PageInterface;
 use Magento\Cms\Helper\Page as PageHelper;
-use Magento\Framework\Api\FilterBuilder;
-use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 
 /**
  * Class Cms
@@ -24,32 +21,16 @@ class Cms extends AbstractHelper
 {
 
     const XPATH_CMS_PAGES = 'magmodules_sooqr/cms/enable';
+    const XPATH_CMS_SELECTION = 'magmodules_sooqr/cms/cms_selection';
 
     /**
      * @var General
      */
     private $generalHelper;
-
     /**
-     * @var PageRepositoryInterface
+     * @var PageCollectionFactory
      */
-    private $pageRepository;
-
-    /**
-     * @var PageInterface
-     */
-    private $page;
-
-    /**
-     * @var SearchCriteriaBuilder
-     */
-    private $searchCriteriaBuilder;
-
-    /**
-     * @var FilterBuilder
-     */
-    private $filterBuilder;
-
+    private $pageCollectionFactory;
     /**
      * @var PageHelper
      */
@@ -58,29 +39,20 @@ class Cms extends AbstractHelper
     /**
      * Cms constructor.
      *
-     * @param Context                 $context
-     * @param General                 $generalHelper
-     * @param PageRepositoryInterface $pageRepositoryInterface
-     * @param PageInterface           $pageInterface
-     * @param PageHelper              $cmsPage
-     * @param SearchCriteriaBuilder   $searchCriteriaBuilder
-     * @param FilterBuilder           $filterBuilder
+     * @param Context               $context
+     * @param General               $generalHelper
+     * @param PageHelper            $cmsPage
+     * @param PageCollectionFactory $pageCollectionFactory
      */
     public function __construct(
         Context $context,
         GeneralHelper $generalHelper,
-        PageRepositoryInterface $pageRepositoryInterface,
-        PageInterface $pageInterface,
         PageHelper $cmsPage,
-        SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder
+        PageCollectionFactory $pageCollectionFactory
     ) {
         $this->generalHelper = $generalHelper;
-        $this->pageRepository = $pageRepositoryInterface;
-        $this->page = $pageInterface;
         $this->cmsPage = $cmsPage;
-        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->filterBuilder = $filterBuilder;
+        $this->pageCollectionFactory = $pageCollectionFactory;
         parent::__construct($context);
     }
 
@@ -90,37 +62,38 @@ class Cms extends AbstractHelper
     public function getCmsPages()
     {
         $cmspages = [];
+        $selection = null;
+        $enabled = $this->generalHelper->getStoreValue(self::XPATH_CMS_PAGES);
 
-        if (!$this->generalHelper->getStoreValue(self::XPATH_CMS_PAGES)) {
+        if (!$enabled) {
             return $cmspages;
         }
 
-        $this->searchCriteriaBuilder->addFilters(
-            [
-                $this->filterBuilder
-                    ->setField('identifier')
-                    ->setValue('no-route')
-                    ->setConditionType('neq')
-                    ->create()
-            ]
-        );
-        $items = $this->pageRepository->getList($this->searchCriteriaBuilder->create())->getItems();
+        $pages = $this->pageCollectionFactory->create();
 
-        foreach ($items as $item) {
-            if (isset($item['is_active']) && $item['is_active'] != 1) {
+        if ($enabled == 2) {
+            $selection = explode(',', $this->generalHelper->getStoreValue(self::XPATH_CMS_SELECTION));
+        }
+
+        foreach ($pages as $page) {
+            if (isset($page['is_active']) && $page['is_active'] != 1) {
                 continue;
             }
 
-            if (isset($item['active']) && $item['active'] != 1) {
+            if (isset($page['active']) && $page['active'] != 1) {
                 continue;
             }
 
-            $url = $this->cmsPage->getPageUrl($item['identifier']);
+            if (!empty($selection) && (!in_array($page['page_id'], $selection))) {
+                continue;
+            }
+
+            $url = $this->cmsPage->getPageUrl($page['identifier']);
             $cmspages[] = [
                 'sqr:content_type' => 'cms',
-                'sqr:id'           => $item['identifier'],
-                'sqr:title'        => $item['title'],
-                'sqr:description'  => $this->cleanData($item['content']),
+                'sqr:id'           => $page['identifier'],
+                'sqr:title'        => $page['title'],
+                'sqr:description'  => $this->cleanData($page['content']),
                 'sqr:link'         => strtok($url, '?'),
             ];
         }

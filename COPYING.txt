@@ -1,4 +1,4 @@
-Copyright (c) 2017, Magmodules (magmodules.eu).
+Copyright (c) 2018, Magmodules (magmodules.eu).
 All rights reserved.
 
 This document contains the terms and (license) conditions of the extensions/software of Magmodules V.O.F., registrated at the Kamer van Koophandel with the number: 59730404, trading as Magmodules. These terms and conditions apply on all legal relationships(paid extensions/software, free extensions/software and services) between Magmodules and client, acting in the course of a business.
