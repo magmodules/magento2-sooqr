@@ -342,7 +342,7 @@ class Product extends AbstractHelper
                 $value = $this->getStockValue($type, $product, $config['inventory']);
                 break;
             case 'availability':
-                $value = $this->getAvailability($attribute, $product);
+                $value = $this->getAvailability($product);
                 break;
             default:
                 $value = $this->getValue($attribute, $product);
@@ -587,18 +587,27 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $attribute
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      *
      * @return int|string
      */
-    public function getAvailability($attribute, $product)
+    public function getAvailability($product)
     {
-        if ($product->getTypeId() == 'bundle') {
-            return (int)$product->getIsSalable();
+        if ($product->getTypeId() == 'grouped') {
+            $subProducts = $product->getTypeInstance()->getAssociatedProducts($product);
+            foreach ($subProducts as $product) {
+                if ($product->getIsInStock()) {
+                    return 1;
+                }
+            }
+            return 0;
         }
 
-        return $this->getValue($attribute, $product);
+        if ($product->getIsSalable() && isset($product['is_in_stock'])) {
+            return $product['is_in_stock'];
+        }
+
+        return $product->getIsSalable();
     }
 
     /**
@@ -685,14 +694,14 @@ class Product extends AbstractHelper
             }
             if (in_array('replacetags', $actions)) {
                 $value = str_replace(["\r", "\n"], "", $value);
-                $value = str_replace($breaks, " ", '\\' . '\n', $value);
+                $value = str_replace($breaks, '\n', $value);
                 $value = str_replace('  ', ' ', $value);
                 $value = strip_tags($value);
             }
             if (in_array('replacetagsn', $actions)) {
                 $value = str_replace(["\r", "\n"], "", $value);
                 $value = str_replace("<li>", "- ", $value);
-                $value = str_replace($breaks, " ", '\\' . '\n', $value);
+                $value = str_replace($breaks, '\\' . '\n', $value);
                 $value = str_replace('  ', ' ', $value);
                 $value = strip_tags($value);
             }
@@ -716,7 +725,7 @@ class Product extends AbstractHelper
         $data = null;
         $value = $product->getData($attribute['source']);
         if ($attribute['source'] == 'is_in_stock') {
-            $value = $this->getAvailability($attribute, $product);
+            $value = $this->getAvailability($product);
         }
 
         foreach ($conditions as $condition) {
@@ -812,6 +821,9 @@ class Product extends AbstractHelper
      */
     public function getPriceCollection($config, $product)
     {
+        $prices = [];
+        $priceConfig = $config['price_config'];
+
         switch ($product->getTypeId()) {
             case 'grouped':
                 $groupedPriceType = null;
@@ -821,108 +833,119 @@ class Product extends AbstractHelper
 
                 $groupedPrices = $this->getGroupedPrices($product, $config);
                 $price = $groupedPrices['min_price'];
-                $finalPrice = $price;
-                $product['min_price'] = $groupedPrices['min_price'];
-                $product['max_price'] = $groupedPrices['max_price'];
-                $product['total_price'] = $groupedPrices['total_price'];
+                $finalPrice = $groupedPrices['min_rule_price'];
+
+                $product['min_price'] = $groupedPrices['min_rule_price'];
+                $product['max_price'] = $groupedPrices['max_rule_price'];
+                $product['total_price'] = $groupedPrices['total_rule_price'];
 
                 if ($groupedPriceType == 'max') {
                     $price = $groupedPrices['max_price'];
+                    $finalPrice = $groupedPrices['max_rule_price'];
                 }
 
                 if ($groupedPriceType == 'total') {
                     $price = $groupedPrices['total_price'];
+                    $finalPrice = $groupedPrices['total_rule_price'];
+                }
+
+                if (floatval($finalPrice) == 0) {
+                    $finalPrice = $price;
+                }
+
+                break;
+            case 'configurable':
+                $finalPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
+                $price = $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
+
+                $product['min_price'] = $product->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getBaseAmount();
+                $product['max_price'] = $product->getPriceInfo()->getPrice('final_price')->getMaximalPrice()->getBaseAmount();
+
+                if (floatval($finalPrice) == 0) {
+                    $finalPrice = $product->getFinalPrice();
+                    $price = $product->getFinalPrice();
+                }
+                if (floatval($price) == 0) {
+                    $price = $product->getPrice();
                 }
 
                 break;
             case 'bundle':
-                $finalPrice = $product->getFinalPrice();
-                if ($finalPrice == '0.0000') {
+                if (floatval($product->getFinalPrice()) == 0) {
                     $product['min_price'] = $product->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getBaseAmount();
                     $product['max_price'] = $product->getPriceInfo()->getPrice('final_price')->getMaximalPrice()->getBaseAmount();
                     $price = $product->getPriceInfo()->getPrice('regular_price')->getMinimalPrice()->getBaseAmount();
                     $finalPrice = $product->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getBaseAmount();
                 } else {
+                    $finalPrice = $this->processPrice($product->getFinalPrice(), $product, $config);
                     $price = isset($product['price']) ? $product['price'] : null;
                     if (empty($price) && !empty($product['min_price'])) {
-                        $price = $product['min_price'];
+                        $price = $this->processPrice($product['min_price'], $product, $config);
                         $finalPrice = $price;
                     }
                     if (!empty($product['special_price'])) {
                         $finalPrice = round(($price * $product['special_price'] / 100), 2);
+                        $finalPrice = $this->processPrice($finalPrice, $product, $config);
                     }
                 }
                 break;
             default:
-                $price = $product->getPrice();
-                $finalPrice = $product->getFinalPrice();
-                $specialPrice = $product->getSpecialPrice();
-                $rulePrice = $this->ruleFactory->create()->getRulePrice(
-                    $config['timestamp'],
-                    $config['website_id'],
-                    '',
-                    $product->getId()
-                );
-
-                if ($rulePrice !== null && $rulePrice !== false) {
-                    $finalPrice = min($finalPrice, $rulePrice);
-                }
+                $price = $this->processPrice($product->getPrice(), $product, $config);
+                $finalPrice = $this->processPrice($product->getFinalPrice(), $product, $config);
+                $specialPrice = $this->processPrice($product->getSpecialPrice(), $product, $config);
+                break;
         }
 
-        $prices = [];
-        $config = $config['price_config'];
-        $prices[$config['price']] = $this->processPrice($product, $price, $config);
+        $prices[$priceConfig['price']] = $price;
 
-        if (isset($finalPrice) && !empty($config['final_price'])) {
-            $prices[$config['final_price']] = $this->processPrice($product, $finalPrice, $config);
+        if ($rulePrice = $this->getRulePrice($product, $config)) {
+            $finalPrice = min($finalPrice, $rulePrice);
         }
 
-        if (isset($finalPrice) && ($price > $finalPrice) && !empty($config['sales_price'])) {
-            $prices[$config['sales_price']] = $this->processPrice($product, $finalPrice, $config);
+        if (!empty($priceConfig['final_price'])) {
+            $prices[$priceConfig['final_price']] = $finalPrice;
         }
 
-        if (isset($specialPrice) && ($specialPrice == $finalPrice) && !empty($config['sales_date_range'])) {
+        if (!empty($priceConfig['sales_price']) && ($price > $finalPrice)) {
+            $prices[$priceConfig['sales_price']] = $finalPrice;
+        }
+
+        if (isset($specialPrice) && ($specialPrice == $finalPrice) && !empty($priceConfig['sales_date_range'])) {
             if ($product->getSpecialFromDate() && $product->getSpecialToDate()) {
                 $from = date('Y-m-d', strtotime($product->getSpecialFromDate()));
                 $to = date('Y-m-d', strtotime($product->getSpecialToDate()));
-                $prices[$config['sales_date_range']] = $from . '/' . $to;
+                $prices[$priceConfig['sales_date_range']] = $from . '/' . $to;
             }
         }
 
-        if ($price <= 0) {
-            if (!empty($product['min_price'])) {
-                $prices[$config['price']] = $this->processPrice($product, $product['min_price'], $config);
-            }
-        }
-
-        if (!empty($product['min_price']) && !empty($config['min_price'])) {
+        if (!empty($priceConfig['min_price']) && !empty($product['min_price'])) {
             if (($finalPrice > 0) && $finalPrice < $product['min_price']) {
-                $prices[$config['min_price']] = $this->processPrice($product, $finalPrice, $config);
+                $prices[$priceConfig['min_price']] = $finalPrice;
             } else {
-                $prices[$config['min_price']] = $this->processPrice($product, $product['min_price'], $config);
+                $prices[$priceConfig['min_price']] = $product['min_price'];
             }
         }
 
-        if (!empty($product['max_price']) && !empty($config['max_price'])) {
-            $prices[$config['max_price']] = $this->processPrice($product, $product['max_price'], $config);
+        if (!empty($priceConfig['max_price']) && !empty($product['max_price'])) {
+            $prices[$priceConfig['max_price']] = $product['max_price'];
         }
 
-        if (!empty($product['total_price']) && !empty($config['total_price'])) {
-            $prices[$config['total_price']] = $this->processPrice($product, $product['total_price'], $config);
+        if (!empty($product['total_price']) && !empty($priceConfig['total_price'])) {
+            $prices[$priceConfig['total_price']] = $product['total_price'];
         }
 
-        if (!empty($config['discount_perc']) && isset($prices[$config['sales_price']])) {
-            if ($prices[$config['price']] > 0) {
-                $discount = ($prices[$config['sales_price']] - $prices[$config['price']]) / $prices[$config['price']];
+        if (!empty($priceConfig['discount_perc']) && isset($prices[$priceConfig['sales_price']])) {
+            if ($prices[$priceConfig['price']] > 0) {
+                $discount = ($prices[$priceConfig['sales_price']] - $prices[$priceConfig['price']]) / $prices[$priceConfig['price']];
                 $discount = $discount * -100;
                 if ($discount > 0) {
-                    $prices[$config['discount_perc']] = round($discount, 1) . '%';
+                    $prices[$priceConfig['discount_perc']] = round($discount, 1) . '%';
                 }
             }
         }
 
-        if ($product->getTypeId() == 'grouped' && isset($prices[$config['final_price']])) {
-            $prices[$config['final_price']] = $prices[$config['price']];
+        foreach ($prices as &$priceValue) {
+            $priceValue = $this->formatPrice($priceValue, $priceConfig);
         }
 
         return $prices;
@@ -942,34 +965,75 @@ class Product extends AbstractHelper
         $maxPrice = null;
         $totalPrice = null;
 
+        $minRulePrice = null;
+        $maxRulePrice = null;
+        $totalRulePrice = null;
+
         foreach ($subProducts as $subProduct) {
             $subProduct->setWebsiteId($config['website_id']);
             if ($subProduct->isSalable()) {
                 $price = $this->commonPriceModel->getCatalogPrice($subProduct);
                 if ($price < $minPrice || $minPrice === null) {
-                    $minPrice = $this->commonPriceModel->getCatalogPrice($subProduct);
-                    $product->setTaxClassId($subProduct->getTaxClassId());
+                    $minPrice = $price;
                 }
                 if ($price > $maxPrice || $maxPrice === null) {
-                    $maxPrice = $this->commonPriceModel->getCatalogPrice($subProduct);
-                    $product->setTaxClassId($subProduct->getTaxClassId());
+                    $maxPrice = $price;
                 }
                 $totalPrice += $price;
+
+                $rulePrice = $this->getRulePrice($subProduct, $config);
+                if ($rulePrice < $minRulePrice || $minRulePrice === null) {
+                    $minRulePrice = $rulePrice;
+                }
+                if ($rulePrice > $maxRulePrice || $maxRulePrice === null) {
+                    $maxRulePrice = $rulePrice;
+                }
+                $totalRulePrice += $rulePrice;
             }
         }
 
-        return ['min_price' => $minPrice, 'max_price' => $maxPrice, 'total_price' => $totalPrice];
+        return [
+            'min_price'        => $this->processPrice($minPrice, $product, $config),
+            'max_price'        => $this->processPrice($maxPrice, $product, $config),
+            'total_price'      => $this->processPrice($totalPrice, $product, $config),
+            'min_rule_price'   => $minRulePrice,
+            'max_rule_price'   => $maxRulePrice,
+            'total_rule_price' => $totalRulePrice
+        ];
+
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * @param $product
+     * @param $config
+     *
+     * @return float|string
+     */
+    public function getRulePrice($product, $config)
+    {
+        $rulePrice = $this->ruleFactory->create()->getRulePrice(
+            $config['timestamp'],
+            $config['website_id'],
+            '',
+            $product->getId()
+        );
+
+        if ($rulePrice !== null && $rulePrice !== false && floatval($rulePrice) != 0) {
+            return $this->processPrice($rulePrice, $product, $config);
+        }
+    }
+
+    /**
      * @param                                $price
+     * @param \Magento\Catalog\Model\Product $product
      * @param                                $config
      *
      * @return float|string
      */
-    public function processPrice($product, $price, $config)
+    public function processPrice($price, $product, $config)
     {
+        $config = $config['price_config'];
+
         if (!empty($config['exchange_rate'])) {
             $price = $price * $config['exchange_rate'];
         }
@@ -978,7 +1042,7 @@ class Product extends AbstractHelper
             $price = $this->catalogHelper->getTaxPrice($product, $price, $config['incl_vat']);
         }
 
-        return $this->formatPrice($price, $config);
+        return $price;
     }
 
     /**

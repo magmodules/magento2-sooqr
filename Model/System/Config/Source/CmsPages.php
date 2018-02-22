@@ -9,6 +9,7 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 use Magento\Framework\Option\ArrayInterface;
 use Magento\Framework\App\Request\Http;
 use Magento\Store\Model\App\Emulation;
+use Magento\Framework\App\Area;
 use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 
 /**
