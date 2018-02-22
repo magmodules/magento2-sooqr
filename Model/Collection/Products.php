@@ -364,7 +364,8 @@ class Products
                 ->addAttributeToFilter('entity_id', ['in' => array_values($parentRelations)])
                 ->addAttributeToSelect($attributes)
                 ->addMinimalPrice()
-                ->addUrlRewrite();
+                ->addUrlRewrite()
+                ->addFinalPrice();
 
             if (!empty($filters['category_ids'])) {
                 if (!empty($filters['category_type'])) {

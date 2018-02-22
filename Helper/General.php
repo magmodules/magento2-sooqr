@@ -173,6 +173,10 @@ class General extends AbstractHelper
             $scope = ScopeInterface::SCOPE_STORE;
         }
 
+        if (empty($storeId)) {
+            $storeId = $this->storeManager->getStore()->getId();
+        }
+
         return $this->scopeConfig->getValue($path, $scope, $storeId);
     }
 
