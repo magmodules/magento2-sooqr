@@ -120,7 +120,7 @@ class Init extends Template
      */
     public function getSooqrScriptUri()
     {
-        if ($statging = $this->generalHelper->getStaging($this->storeId)) {
+        if ($staging = $this->generalHelper->getStaging($this->storeId)) {
             return 'static.staging.sooqr.com/sooqr.js';
         }
         return 'static.sooqr.com/sooqr.js';

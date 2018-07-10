@@ -17,6 +17,7 @@
             </implementation>
             <data>
                 <name_attribute>name</name_attribute>
+                <sku_attribute>sku</sku_attribute>
                 <description_attribute>description</description_attribute>
                 <gtin_attribute>sku</gtin_attribute>
                 <brand_attribute>manufacturer</brand_attribute>
