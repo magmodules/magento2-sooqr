@@ -7,7 +7,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
-        <job name="sooqr" instance="Magmodules\Sooqr\Cron\GenerateFeeds" method="execute">
+        <job name="magmodules_sooqr" instance="Magmodules\Sooqr\Cron\GenerateFeeds" method="execute">
             <schedule>0 0 * * *</schedule>
             <config_path>crontab/default/jobs/magmodules_sooqr/schedule/cron_expr</config_path>
         </job>

@@ -89,10 +89,11 @@ class Config extends AbstractHelper
         if (empty($convert) && version_compare($magentoVersion, '2.2.0', '>=')) {
             try {
                 $this->convertSerializedDataToJson();
-                $this->config->saveConfig(self::XPATH_CONVERT_RUN, 1, 'default', 0);
             } catch (\Exception $e) {
                 $this->logger->critical($e);
             }
+
+            $this->config->saveConfig(self::XPATH_CONVERT_RUN, 1, 'default', 0);
         }
     }
 

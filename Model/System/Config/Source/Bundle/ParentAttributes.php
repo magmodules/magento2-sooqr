@@ -70,6 +70,11 @@ class ParentAttributes implements ArrayInterface
             foreach ($source as $key => $attribute) {
                 if (empty($attribute['parent_selection_disabled']) && !in_array($key, $excludes)) {
                     $label = str_replace('_', ' ', $key);
+                    if (substr($label, 0, 6) === "extra ") {
+                        if (isset($attribute['label'])) {
+                            $label .= ' - ' . $attribute['label'];
+                        }
+                    }
                     $this->options[] = [
                         'value' => $key,
                         'label' => ucwords($label),
