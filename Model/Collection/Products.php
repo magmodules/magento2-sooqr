@@ -197,6 +197,7 @@ class Products
             'entity_id',
             'image',
             'price',
+            'price_type',
             'special_price',
             'special_from_date',
             'special_to_date',
