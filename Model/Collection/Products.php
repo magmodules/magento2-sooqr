@@ -255,11 +255,12 @@ class Products
             }
 
             $attributeModel = $this->eavConfig->getAttribute('catalog_product', $attribute);
-            if (!$frontendInput = $attributeModel->getFrontendInput()) {
+            if (!$attributeModel->getAttributeCode()) {
                 continue;
             }
 
-            if ($frontendInput == 'select' || $frontendInput == 'multiselect') {
+            $frontendInput = $attributeModel->getFrontendInput();
+            if (($frontendInput == 'select' || $frontendInput == 'multiselect') && $frontendInput != 'boolean') {
                 $options = $attributeModel->getSource()->getAllOptions();
                 if (strpos($value, ',') !== false) {
                     $values = [];
