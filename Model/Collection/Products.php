@@ -230,6 +230,16 @@ class Products
 
         $collection->addAttributeToFilter('status', 1);
 
+        $attributeModel = $this->eavConfig->getAttribute('catalog_product', 'sooqr_exclude');
+        if ($attributeModel->getId()) {
+            $filters['advanced'][] = [
+                'attribute'    => 'sooqr_exclude',
+                'condition'    => 'neq',
+                'value'        => 1,
+                'product_type' => 'exclude'
+            ];
+        }
+
         foreach ($filters['advanced'] as $filter) {
             $attribute = $filter['attribute'];
             $condition = $filter['condition'];
@@ -331,6 +341,9 @@ class Products
                     $collection->addAttributeToFilter($filterExpr, '', 'left');
                 } elseif ($productFilterType == 'simple') {
                     $filterExpr[] = ['attribute' => 'type_id', 'neq' => 'simple'];
+                    /** @noinspection PhpParamsInspection */
+                    $collection->addAttributeToFilter($filterExpr, '', 'left');
+                } elseif ($productFilterType == 'exclude') {
                     /** @noinspection PhpParamsInspection */
                     $collection->addAttributeToFilter($filterExpr, '', 'left');
                 } else {
