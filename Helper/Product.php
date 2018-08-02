@@ -233,19 +233,7 @@ class Product extends AbstractHelper
                 $label = 'Field_' . $label;
             }
 
-            if (!empty($dataRow[$label])) {
-                if ($value != null) {
-                    if (is_array($dataRow[$label])) {
-                        $dataRow[$label][] = $value;
-                    } else {
-                        $data = [$dataRow[$label], $value];
-                        unset($dataRow[$label]);
-                        $dataRow[$label] = $data;
-                    }
-                }
-            } else {
-                $dataRow[$label] = $value;
-            }
+            $dataRow[$label] = $value;
         }
 
         return $dataRow;
