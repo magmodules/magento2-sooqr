@@ -197,6 +197,7 @@ class Products
             'entity_id',
             'image',
             'price',
+            'price_type',
             'special_price',
             'special_from_date',
             'special_to_date',
@@ -229,6 +230,16 @@ class Products
 
         $collection->addAttributeToFilter('status', 1);
 
+        $attributeModel = $this->eavConfig->getAttribute('catalog_product', 'sooqr_exclude');
+        if ($attributeModel->getId()) {
+            $filters['advanced'][] = [
+                'attribute'    => 'sooqr_exclude',
+                'condition'    => 'neq',
+                'value'        => 1,
+                'product_type' => 'exclude'
+            ];
+        }
+
         foreach ($filters['advanced'] as $filter) {
             $attribute = $filter['attribute'];
             $condition = $filter['condition'];
@@ -244,11 +255,12 @@ class Products
             }
 
             $attributeModel = $this->eavConfig->getAttribute('catalog_product', $attribute);
-            if (!$frontendInput = $attributeModel->getFrontendInput()) {
+            if (!$attributeModel->getAttributeCode()) {
                 continue;
             }
 
-            if ($frontendInput == 'select' || $frontendInput == 'multiselect') {
+            $frontendInput = $attributeModel->getFrontendInput();
+            if (($frontendInput == 'select' || $frontendInput == 'multiselect') && $frontendInput != 'boolean') {
                 $options = $attributeModel->getSource()->getAllOptions();
                 if (strpos($value, ',') !== false) {
                     $values = [];
@@ -330,6 +342,9 @@ class Products
                     $collection->addAttributeToFilter($filterExpr, '', 'left');
                 } elseif ($productFilterType == 'simple') {
                     $filterExpr[] = ['attribute' => 'type_id', 'neq' => 'simple'];
+                    /** @noinspection PhpParamsInspection */
+                    $collection->addAttributeToFilter($filterExpr, '', 'left');
+                } elseif ($productFilterType == 'exclude') {
                     /** @noinspection PhpParamsInspection */
                     $collection->addAttributeToFilter($filterExpr, '', 'left');
                 } else {

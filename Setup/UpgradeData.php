@@ -6,6 +6,8 @@
 
 namespace Magmodules\Sooqr\Setup;
 
+use Magento\Catalog\Model\Product;
+use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Framework\Setup\ModuleContextInterface;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\UpgradeDataInterface;
@@ -13,6 +15,7 @@ use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Magento\Framework\App\Config\ValueInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 
 /**
@@ -23,6 +26,10 @@ use Magmodules\Sooqr\Helper\Source as SourceHelper;
 class UpgradeData implements UpgradeDataInterface
 {
 
+    /**
+     * @var EavSetupFactory
+     */
+    private $eavSetupFactory;
     /**
      * @var ProductMetadataInterface
      */
@@ -43,17 +50,20 @@ class UpgradeData implements UpgradeDataInterface
     /**
      * UpgradeData constructor.
      *
+     * @param EavSetupFactory          $eavSetupFactory
      * @param ProductMetadataInterface $productMetadata
      * @param ObjectManagerInterface   $objectManager
      * @param ValueInterface           $configReader
      * @param WriterInterface          $configWriter
      */
     public function __construct(
+        EavSetupFactory $eavSetupFactory,
         ProductMetadataInterface $productMetadata,
         ObjectManagerInterface $objectManager,
         ValueInterface $configReader,
         WriterInterface $configWriter
     ) {
+        $this->eavSetupFactory = $eavSetupFactory;
         $this->productMetadata = $productMetadata;
         $this->objectManager = $objectManager;
         $this->configReader = $configReader;
@@ -74,6 +84,10 @@ class UpgradeData implements UpgradeDataInterface
             if (version_compare($magentoVersion, '2.2.0', '>=')) {
                 $this->convertSerializedDataToJson($setup);
             }
+        }
+
+        if (version_compare($context->getVersion(), '1.0.10', '<')) {
+            $this->addProductAtribute($setup);
         }
     }
 
@@ -131,5 +145,55 @@ class UpgradeData implements UpgradeDataInterface
             'value',
             $queryModifier
         );
+    }
+
+    /**
+     * @param ModuleDataSetupInterface $setup
+     */
+    public function addProductAtribute(ModuleDataSetupInterface $setup)
+    {
+        $groupName = 'Sooqr Search';
+
+        /** @var \Magento\Eav\Setup\EavSetup $eavSetup */
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+        $attributeSetIds = $eavSetup->getAllAttributeSetIds(Product::ENTITY);
+
+        foreach ($attributeSetIds as $attributeSetId) {
+            $eavSetup->addAttributeGroup(Product::ENTITY, $attributeSetId, $groupName, 1000);
+        }
+
+        $eavSetup->addAttribute(
+            Product::ENTITY,
+            'sooqr_exclude',
+            [
+                'group'                   => $groupName,
+                'type'                    => 'int',
+                'label'                   => 'Exclude for Sooqr Search',
+                'input'                   => 'boolean',
+                'source'                  => 'Magento\Eav\Model\Entity\Attribute\Source\Boolean',
+                'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'default'                 => '0',
+                'user_defined'            => true,
+                'required'                => false,
+                'searchable'              => false,
+                'filterable'              => false,
+                'comparable'              => false,
+                'visible_on_front'        => false,
+                'used_in_product_listing' => false,
+                'unique'                  => false,
+                'apply_to'                => 'simple,configurable,virtual,bundle,downloadable'
+            ]
+        );
+
+        $attribute = $eavSetup->getAttribute(Product::ENTITY, 'sooqr_exclude');
+        foreach ($attributeSetIds as $attributeSetId) {
+            $eavSetup->addAttributeToGroup(
+                Product::ENTITY,
+                $attributeSetId,
+                $groupName,
+                $attribute['attribute_id'],
+                110
+            );
+        }
     }
 }
