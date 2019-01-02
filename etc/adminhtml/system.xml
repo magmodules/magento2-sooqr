@@ -44,7 +44,7 @@
                 <field id="heading_api" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Details</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>You can find your Sooqr Account ID in your Sooqr account, you can find the link in the information box at the top of this page. Your Sooqr Account ID should look like SQ-12345-1.</comment>
+                    <comment>You can find your Sooqr Account ID in your Sooqr account, you can find the link in the information box at the top of this page. Your Sooqr Account ID should look like SQ-123456-1.</comment>
                     <depends>
                         <field id="enable">1</field>
                     </depends>
@@ -156,7 +156,7 @@
                 <field id="image_size_fixed" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Image Size</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\ImageResize</source_model>
-                    <comment>List of available sizes in cache directory.</comment>
+                    <comment>Image resize options are only available on store level which can be selected from the scope dropdown on the left top of this page. Please note that the Sooqr Feed needs to be regenerated if a Image Cache Flush is executed.</comment>
                     <depends>
                         <field id="image_resize">fixed</field>
                     </depends>
@@ -235,7 +235,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="configurable" separator=",">simple,both</field>
                     </depends>
@@ -283,7 +283,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
@@ -298,7 +298,7 @@
                        showInStore="1">
                     <label>Use Grouped Products</label>
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Grouped\Option</source_model>
-                    <comment><![CDATA[For Group Products, we recommend to only add the Grouped Product by itself as that is the product that can be purchased. <br>]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Only Grouped Product. Selecting this option will export the grouped product by itself to Sooqr.]]></comment>
                 </field>
                 <field id="grouped_link" translate="label comment" type="select" sortOrder="42" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -339,7 +339,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Use Fallback only on Non Visible Simples</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
+                    <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
                     <depends>
                         <field id="grouped" separator=",">simple,both</field>
                     </depends>
@@ -402,7 +402,7 @@
                        showInWebsite="1" showInStore="1">
                     <label>Advanced Filters</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>Configure the advanced filter using your attributes and different filter options.</comment>
+                    <comment>Configure the advanced filter using your attributes and different filter options to exclude products.</comment>
                 </field>
                 <field id="filters" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1"
                        showInStore="1">
@@ -478,7 +478,6 @@
                 <field id="heading_advanced" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Advanced Settings</label>
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                    <comment>A cronjob is a daemon which continues running and gets activated at a certain interval (time period). Please ensure that your default Magento Cron is working. If not, contact your hosting company for help.</comment>
                 </field>
                 <field id="advanced" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable</label>
