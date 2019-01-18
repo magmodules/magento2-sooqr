@@ -6,7 +6,7 @@ The official extension to connect Sooqr with your Magento® 2 store and improve 
 
 #### Magento® Marketplace
 
-This extension will also be available on the Magento® Marketplace once approved.
+This extension is also be available on the [Magento® Marketplace](https://marketplace.magento.com/magmodules-magento2-sooqr.html)
 
 #### Install via Composer
 
