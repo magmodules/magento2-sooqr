@@ -185,6 +185,9 @@ class Product extends AbstractHelper
                     $productData,
                     $simple
                 );
+                if ($type == 'image_link' && is_array($value)) {
+                    $value = isset($value[0]) ? $value[0] : null;
+                }
             }
 
             if (!empty($attribute['multi']) && empty($attribute['conditional']) && empty($attribute['condition'])) {
