@@ -156,7 +156,6 @@ class Products
         }
 
         $this->addFilters($filters, $collection);
-        $collection->getSelect()->group('e.entity_id');
 
         return $collection;
     }
@@ -410,7 +409,6 @@ class Products
             }
 
             $this->addFilters($filters, $collection, 'parent');
-            $collection->getSelect()->group('e.entity_id');
             return $collection->load();
         }
     }
@@ -426,7 +424,6 @@ class Products
     {
         $selectCountSql = $productCollection->getSelectCountSql();
         $connection = $this->resource->getConnection(ResourceConnection::DEFAULT_CONNECTION);
-        $count = $connection->fetchAll($selectCountSql);
-        return count($count);
+        return $connection->fetchOne($selectCountSql);
     }
 }
