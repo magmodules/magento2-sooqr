@@ -8,9 +8,10 @@ namespace Magmodules\Sooqr\Model\System\Config\Source;
 
 use Magento\Framework\Option\ArrayInterface;
 use Magento\Framework\App\Request\Http;
-use Magento\Store\Model\App\Emulation;
-use Magento\Framework\App\Area;
-use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Cms\Api\PageRepositoryInterface;
+use Magento\Cms\Api\Data\PageInterface;
 
 /**
  * Class Country
@@ -24,60 +25,77 @@ class CmsPages implements ArrayInterface
      * @var array
      */
     public $options = [];
-    /**
-     * @var PageCollectionFactory
-     */
-    private $pageCollectionFactory;
+
     /**
      * @var Http
      */
     private $request;
     /**
-     * @var Emulation
+     * @var PageRepositoryInterface
      */
-    private $appEmulation;
+    private $pageRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+    /**
+     * @var FilterBuilder
+     */
+    private $filterBuilder;
 
     /**
      * CmsPages constructor.
      *
-     * @param PageCollectionFactory $pageCollectionFactory
-     * @param Http                  $request
-     * @param Emulation             $appEmulation
+     * @param Http                    $request
+     * @param PageRepositoryInterface $pageRepository
+     * @param SearchCriteriaBuilder   $searchCriteriaBuilder
+     * @param FilterBuilder           $filterBuilder
      */
     public function __construct(
-        PageCollectionFactory $pageCollectionFactory,
         Http $request,
-        Emulation $appEmulation
+        PageRepositoryInterface $pageRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        FilterBuilder $filterBuilder
     ) {
-        $this->pageCollectionFactory = $pageCollectionFactory;
         $this->request = $request;
-        $this->appEmulation = $appEmulation;
+        $this->pageRepository = $pageRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
+
     }
 
     /**
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function toOptionArray()
     {
         if (!$this->options) {
-            $storeId = $this->request->getParam('store');
-
-            if ($storeId > 0) {
-                $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
-                $pages = $this->pageCollectionFactory->create();
-                $this->appEmulation->stopEnvironmentEmulation();
-            } else {
-                $pages = $this->pageCollectionFactory->create();
-            }
-
-            foreach ($pages as $page) {
+            $searchCriteria = $this->getSearchCriteria();
+            $result = $this->pageRepository->getList($searchCriteria);
+            foreach ($result->getItems() as $page) {
                 $this->options[] = [
-                    'value' => $page->getPageId(),
+                    'value' => $page->getId(),
                     'label' => $page->getTitle() . ' (' . $page->getIdentifier() . ')'
                 ];
             }
         }
 
         return $this->options;
+    }
+
+    /**
+     * @return \Magento\Framework\Api\SearchCriteria
+     */
+    private function getSearchCriteria()
+    {
+        $searchCriteria = $this->searchCriteriaBuilder;
+
+        $storeId = $this->request->getParam('store');
+        if ($storeId > 0) {
+            $searchCriteria->addFilter('store_id', [$storeId, 0], 'in');
+        }
+
+        return $searchCriteria->create();
     }
 }

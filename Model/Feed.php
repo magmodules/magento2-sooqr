@@ -140,7 +140,7 @@ class Feed
             $page++;
         } while ($page <= $pages);
 
-        if ($cmsPages = $this->cmsHelper->getCmsPages()) {
+        if ($cmsPages = $this->cmsHelper->getCmsPages($storeId)) {
             foreach ($cmsPages as $item) {
                 $row = $this->sourceHelper->getXmlFromArray($item, 'item');
                 $this->feedHelper->writeRow($row);
