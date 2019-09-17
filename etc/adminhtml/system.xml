@@ -178,6 +178,16 @@
                     <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\ExtraFields</frontend_model>
                     <backend_model>Magmodules\Sooqr\Model\Config\Backend\Serialized\ExtraFields</backend_model>
                 </field>
+                <field id="heading_reviews" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Product Reviews</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <comment>Export the product rating score in the feed to use it in Sooqr Search. Please keep in mind that activating this option can cause a higher load on the feed generation.</comment>
+                </field>
+                <field id="reviews" translate="label" type="select" sortOrder="31" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Add Product Review Score</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
                 <field id="heading_tax" translate="label comment" type="text" sortOrder="40" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Tax</label>

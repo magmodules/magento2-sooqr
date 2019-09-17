@@ -9,6 +9,7 @@ namespace Magmodules\Sooqr\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Visibility;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
@@ -31,6 +32,7 @@ class Source extends AbstractHelper
     const XPATH_DESCRIPTION_SOURCE = 'magmodules_sooqr/data/description_attribute';
     const XPATH_BRAND_SOURCE = 'magmodules_sooqr/data/brand_attribute';
     const XPATH_EXTRA_FIELDS = 'magmodules_sooqr/data/extra_fields';
+    const XPATH_REVIEWS = 'magmodules_sooqr/data/reviews';
     const XPATH_IMAGE_SOURCE = 'magmodules_sooqr/data/image_source';
     const XPATH_IMAGE_RESIZE = 'magmodules_sooqr/data/image_resize';
     const XPATH_IMAGE_SIZE_FIXED = 'magmodules_sooqr/data/image_size_fixed';
@@ -145,6 +147,7 @@ class Source extends AbstractHelper
         $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
         $config['debug_memory'] = $this->generalHelper->getStoreValue(self::XPATH_DEBUG_MEMORY);
         $config['default_category'] = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY);
+        $config['reviews'] = $this->generalHelper->getStoreValue(self::XPATH_REVIEWS);
         $config['inventory'] = $this->getInventoryData();
         $config['currency'] = $config['price_config']['currency'];
         $config['categories'] = $this->categoryHelper->getCollection(
@@ -640,6 +643,11 @@ class Source extends AbstractHelper
         if ($categoryData = $this->getCategoryData($product, $config['categories'])) {
             $dataRow = array_merge($dataRow, $categoryData);
         }
+
+        if ($reviewData = $this->getReviewData($product)) {
+            $dataRow = array_merge($dataRow, $reviewData);
+        }
+
         $xml = $this->getXmlFromArray($dataRow, 'item');
 
         return $xml;
@@ -678,6 +686,22 @@ class Source extends AbstractHelper
         }
 
         return $data;
+    }
+
+    /**
+     * @param ProductInterface $product
+     *
+     * @return array
+     */
+    private function getReviewData($product)
+    {
+        $reviewData = [];
+        if ($ratingSummary = $product->getRatingSummary()) {
+            $reviewData['sqr:rating'] = $ratingSummary->getRatingSummary();
+
+        }
+
+        return $reviewData;
     }
 
     /**
