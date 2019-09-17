@@ -9,12 +9,12 @@ namespace Magmodules\Sooqr\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\UrlInterface;
 use Magento\Catalog\Model\Product\Visibility;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Category as CategoryHelper;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
+use Magmodules\Sooqr\Service\Product\InventorySource;
 
 /**
  * Class Source
@@ -88,6 +88,10 @@ class Source extends AbstractHelper
      * @var StoreManagerInterface
      */
     private $storeManager;
+    /**
+     * @var InventorySource
+     */
+    private $inventorySource;
 
     /**
      * Source constructor.
@@ -98,6 +102,7 @@ class Source extends AbstractHelper
      * @param Category              $categoryHelper
      * @param Product               $productHelper
      * @param Feed                  $feedHelper
+     * @param InventorySource       $inventorySource
      */
     public function __construct(
         Context $context,
@@ -105,13 +110,15 @@ class Source extends AbstractHelper
         GeneralHelper $generalHelper,
         CategoryHelper $categoryHelper,
         ProductHelper $productHelper,
-        FeedHelper $feedHelper
+        FeedHelper $feedHelper,
+        InventorySource $inventorySource
     ) {
         $this->generalHelper = $generalHelper;
         $this->productHelper = $productHelper;
         $this->categoryHelper = $categoryHelper;
         $this->feedHelper = $feedHelper;
         $this->storeManager = $storeManager;
+        $this->inventorySource = $inventorySource;
         parent::__construct($context);
     }
 
@@ -120,6 +127,7 @@ class Source extends AbstractHelper
      * @param $type
      *
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getConfig($storeId, $type)
     {
@@ -607,11 +615,15 @@ class Source extends AbstractHelper
 
     /**
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getInventoryData()
     {
         $invAtt = [];
         $invAtt['attributes'][] = 'is_in_stock';
+
+        $websiteCode = $this->storeManager->getWebsite()->getCode();
+        $invAtt['stock_id'] = $this->inventorySource->execute($websiteCode);
 
         return $invAtt;
     }
