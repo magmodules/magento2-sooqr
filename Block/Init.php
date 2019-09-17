@@ -19,6 +19,8 @@ use Magento\Framework\Locale\Resolver;
 class Init extends Template
 {
 
+    const SOOQR_SCRIPT_URL = 'static.sooqr.com/sooqr.js';
+
     /**
      * @var \Magento\Framework\App\Config\ScopeConfigInterface
      */
@@ -120,10 +122,7 @@ class Init extends Template
      */
     public function getSooqrScriptUri()
     {
-        if ($staging = $this->generalHelper->getStaging($this->storeId)) {
-            return 'static.staging.sooqr.com/sooqr.js';
-        }
-        return 'static.sooqr.com/sooqr.js';
+        return self::SOOQR_SCRIPT_URL;
     }
 
     /**

@@ -307,16 +307,6 @@ class General extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
-     *
-     * @return mixed
-     */
-    public function getStaging($storeId = null)
-    {
-        return $this->getStoreValue(self::XPATH_STAGING, $storeId);
-    }
-
-    /**
      * Set configuration data function
      *
      * @param      $value
