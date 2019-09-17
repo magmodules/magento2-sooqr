@@ -6,6 +6,7 @@
 
 namespace Magmodules\Sooqr\Model\Collection;
 
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as ProductAttributeCollectionFactory;
 use Magento\Eav\Model\Config as EavConfig;
@@ -14,6 +15,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\CatalogInventory\Helper\Stock as StockHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magento\Review\Model\ReviewFactory;
 
 /**
  * Class Products
@@ -52,6 +54,10 @@ class Products
      */
     private $productHelper;
     /**
+     * @var ReviewFactory
+     */
+    private $reviewFactory;
+    /**
      * @var ResourceConnection
      */
     private $resource;
@@ -65,6 +71,7 @@ class Products
      * @param StockHelper                       $stockHelper
      * @param GeneralHelper                     $generalHelper
      * @param ProductHelper                     $productHelper
+     * @param ReviewFactory                     $reviewFactory
      * @param StateFactory                      $productFlatState
      * @param ResourceConnection                $resource
      */
@@ -75,6 +82,7 @@ class Products
         StockHelper $stockHelper,
         GeneralHelper $generalHelper,
         ProductHelper $productHelper,
+        ReviewFactory $reviewFactory,
         StateFactory $productFlatState,
         ResourceConnection $resource
     ) {
@@ -85,6 +93,7 @@ class Products
         $this->productHelper = $productHelper;
         $this->generalHelper = $generalHelper;
         $this->stockHelper = $stockHelper;
+        $this->reviewFactory = $reviewFactory;
         $this->resource = $resource;
     }
 
@@ -109,9 +118,9 @@ class Products
             $productFlatState = $this->productFlatState->create(['isAvailable' => true]);
         }
 
-        $collection = $this->productCollectionFactory
-            ->create(['catalogProductFlatState' => $productFlatState])
-            ->addAttributeToSelect($attributes)
+        /** @var Collection $collection */
+        $collection = $this->productCollectionFactory->create(['catalogProductFlatState' => $productFlatState]);
+        $collection->addAttributeToSelect($attributes)
             ->addMinimalPrice()
             ->addUrlRewrite()
             ->addFinalPrice();
@@ -156,6 +165,7 @@ class Products
         }
 
         $this->addFilters($filters, $collection);
+        $this->appendReviews($config, $collection);
 
         return $collection;
     }
@@ -411,6 +421,19 @@ class Products
             $this->addFilters($filters, $collection, 'parent');
             return $collection->load();
         }
+    }
+
+    /**
+     * @param $config
+     * @param $collection
+     */
+    public function appendReviews($config, $collection)
+    {
+        if (!$config['reviews']) {
+            return;
+        }
+
+        $this->reviewFactory->create()->appendSummary($collection);
     }
 
     /**
