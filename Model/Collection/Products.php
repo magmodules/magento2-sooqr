@@ -121,6 +121,7 @@ class Products
         /** @var Collection $collection */
         $collection = $this->productCollectionFactory->create(['catalogProductFlatState' => $productFlatState]);
         $collection->addAttributeToSelect($attributes)
+            ->addStoreFilter($config['store_id'])
             ->addMinimalPrice()
             ->addUrlRewrite()
             ->addFinalPrice();
