@@ -15,6 +15,7 @@ use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Category as CategoryHelper;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
+use Magmodules\Sooqr\Setup\SetupData;
 use Magmodules\Sooqr\Service\Product\InventorySource;
 
 /**
@@ -153,7 +154,8 @@ class Source extends AbstractHelper
         $config['categories'] = $this->categoryHelper->getCollection(
             $storeId,
             'sooqr_cat',
-            $config['default_category']
+            $config['default_category'],
+            SetupData::CATEGORY_EXCLUDE_ATT
         );
 
         return $config;
