@@ -22,6 +22,7 @@ use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable as
 use Magento\GroupedProduct\Model\ResourceModel\Product\Link as GroupedResource;
 use Magento\Bundle\Model\ResourceModel\Selection as BundleResource;
 use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Service\Product\InventoryData;
 
 /**
  * Class Product
@@ -80,6 +81,10 @@ class Product extends AbstractHelper
      */
     private $commonPriceModel;
     /**
+     * @var InventoryData
+     */
+    private $inventoryData;
+    /**
      * @var SooqrLogger
      */
     private $logger;
@@ -116,6 +121,7 @@ class Product extends AbstractHelper
         BundleResource $catalogProductTypeBundle,
         ConfigurableResource $catalogProductTypeConfigurable,
         CatalogPrice $commonPriceModel,
+        InventoryData $inventoryData,
         SooqrLogger $logger
     ) {
         $this->galleryReadHandler = $galleryReadHandler;
@@ -130,6 +136,7 @@ class Product extends AbstractHelper
         $this->catalogProductTypeGrouped = $catalogProductTypeGrouped;
         $this->catalogProductTypeBundle = $catalogProductTypeBundle;
         $this->commonPriceModel = $commonPriceModel;
+        $this->inventoryData = $inventoryData;
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -145,6 +152,8 @@ class Product extends AbstractHelper
     public function getDataRow($product, $parent, $config)
     {
         $dataRow = [];
+
+        $product = $this->inventoryData->addDataToProduct($product, $config);
 
         if (!$this->validateProduct($product, $parent, $config)) {
             return $dataRow;
@@ -338,7 +347,7 @@ class Product extends AbstractHelper
                 $value = $this->getStockValue($type, $product, $config['inventory']);
                 break;
             case 'availability':
-                $value = $this->getAvailability($attribute, $product);
+                $value = $this->getAvailability($product);
                 break;
             default:
                 $value = $this->getValue($attribute, $product);
@@ -654,18 +663,17 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $attribute
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      *
-     * @return int|string
+     * @return int
      */
-    public function getAvailability($attribute, $product)
+    public function getAvailability($product)
     {
-        if ($product->getTypeId() == 'bundle') {
-            return (int)$product->getIsSalable();
+        if ($product->getIsSalable() && $product->getIsInStock()) {
+            return 1;
         }
 
-        return $this->getValue($attribute, $product);
+        return 0;
     }
 
     /**
@@ -783,7 +791,7 @@ class Product extends AbstractHelper
         $data = null;
         $value = $product->getData($attribute['source']);
         if ($attribute['source'] == 'is_in_stock') {
-            $value = $this->getAvailability($attribute, $product);
+            $value = $this->getAvailability($product);
         }
 
         foreach ($conditions as $condition) {
