@@ -48,7 +48,6 @@ class Source extends AbstractHelper
     const XPATH_STOCK = 'magmodules_sooqr/filter/stock';
     const XPATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
     const XPATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
-    const XPATH_TAX = 'magmodules_sooqr/data/tax';
     const XPATH_ADVANCED = 'magmodules_sooqr/generate/advanced';
     const XPATH_PAGING = 'magmodules_sooqr/generate/paging';
     const XPATH_DEBUG_MEMORY = 'magmodules_sooqr/generate/debug_memory';
@@ -607,13 +606,11 @@ class Source extends AbstractHelper
         $priceFields = [];
         $priceFields['price'] = 'sqr:normal_price';
         $priceFields['final_price'] = 'sqr:price';
+        $priceFields['price_ex'] = 'sqr:normal_price_ex';
+        $priceFields['final_price_ex'] = 'sqr:price_ex';
         $priceFields['currency'] = $store->getCurrentCurrency()->getCode();
         $priceFields['exchange_rate'] = $store->getBaseCurrency()->getRate($priceFields['currency']);
         $priceFields['grouped_price_type'] = $this->generalHelper->getStoreValue(self::XPATH_GROUPED_PARENT_PRICE);
-
-        if ($this->generalHelper->getStoreValue(self::XPATH_TAX)) {
-            $priceFields['incl_vat'] = true;
-        }
 
         return $priceFields;
     }

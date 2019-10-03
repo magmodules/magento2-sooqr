@@ -188,16 +188,6 @@
                     <label>Add Product Review Score</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="heading_tax" translate="label comment" type="text" sortOrder="40" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Tax</label>
-                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
-                </field>
-                <field id="tax" translate="label" type="select" sortOrder="41" showInDefault="1"
-                       showInWebsite="1" showInStore="1">
-                    <label>Tax calculation</label>
-                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Tax</source_model>
-                </field>
             </group>
             <group id="types" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Types</label>
