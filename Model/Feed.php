@@ -25,30 +25,41 @@ class Feed
 
     const XPATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
     const XPATH_GENERATE = 'magmodules_sooqr/generate/enable';
+
     /**
      * @var ProductModel
      */
     private $productModel;
+
     /**
      * @var SourceHelper
      */
     private $sourceHelper;
+
     /**
      * @var ProductHelper
      */
     private $productHelper;
+
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
+
     /**
      * @var FeedHelper
      */
     private $feedHelper;
+
     /**
      * @var CmsHelper
      */
     private $cmsHelper;
+
+    /**
+     * @var Emulation
+     */
+    private $appEmulation;
 
     /**
      * Generate constructor.
@@ -86,7 +97,15 @@ class Feed
     {
         $storeIds = $this->generalHelper->getEnabledArray(self::XPATH_GENERATE);
         foreach ($storeIds as $storeId) {
-            $this->generateByStore($storeId, 'cron');
+            $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
+
+            try {
+                $this->generateByStore($storeId, 'cron');
+            } catch (\Exception $e) {
+                $this->generalHelper->addTolog('Generate', $e->getMessage());
+            }
+
+            $this->appEmulation->stopEnvironmentEmulation();
         }
     }
 
@@ -98,6 +117,9 @@ class Feed
      * @param bool   $data
      *
      * @return array
+     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magmodules\Sooqr\Exceptions\Validation
      */
     public function generateByStore($storeId, $type = 'manual', $productIds = [], $page = 1, $data = false)
     {
@@ -105,8 +127,6 @@ class Feed
         $pages = 1;
 
         $timeStart = microtime(true);
-        $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
-
         $config = $this->sourceHelper->getConfig($storeId, $type);
         $header = $this->feedHelper->getFeedHeader();
         $header = $this->sourceHelper->getXmlFromArray($header, 'config');
@@ -140,7 +160,7 @@ class Feed
             $page++;
         } while ($page <= $pages);
 
-        if ($cmsPages = $this->cmsHelper->getCmsPages()) {
+        if ($cmsPages = $this->cmsHelper->getCmsPages($storeId)) {
             foreach ($cmsPages as $item) {
                 $row = $this->sourceHelper->getXmlFromArray($item, 'item');
                 $this->feedHelper->writeRow($row);
@@ -152,6 +172,7 @@ class Feed
         $footer = $this->sourceHelper->getXmlFromArray($results, 'results');
 
         $this->feedHelper->writeFooter($footer);
+        $this->feedHelper->validateAndMove($config, $type);
         $this->feedHelper->updateResult(
             $storeId,
             $processed,
@@ -160,8 +181,6 @@ class Feed
             $type,
             $page
         );
-
-        $this->appEmulation->stopEnvironmentEmulation();
 
         return [
             'status' => 'success',
@@ -180,6 +199,7 @@ class Feed
      * @param bool                                                     $data
      *
      * @return int
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getFeedData($products, $parents, $config, $parentRelations, $data = false)
     {

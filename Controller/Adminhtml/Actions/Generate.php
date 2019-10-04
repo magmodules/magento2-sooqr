@@ -8,8 +8,11 @@ namespace Magmodules\Sooqr\Controller\Adminhtml\Actions;
 
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
+use Magento\Framework\App\Area;
+use Magento\Store\Model\App\Emulation;
 use Magmodules\Sooqr\Model\Feed as FeedModel;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magmodules\Sooqr\Exceptions\Validation as ValidationException;
 
 /**
  * Class Generate
@@ -23,10 +26,16 @@ class Generate extends Action
      * @var FeedModel
      */
     private $feedModel;
+
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
+
+    /**
+     * @var Emulation
+     */
+    private $appEmulation;
 
     /**
      * Generate constructor.
@@ -34,14 +43,17 @@ class Generate extends Action
      * @param Context       $context
      * @param FeedModel     $feedModel
      * @param GeneralHelper $generalHelper
+     * @param Emulation     $appEmulation
      */
     public function __construct(
         Context $context,
         FeedModel $feedModel,
-        GeneralHelper $generalHelper
+        GeneralHelper $generalHelper,
+        Emulation $appEmulation
     ) {
         $this->feedModel = $feedModel;
         $this->generalHelper = $generalHelper;
+        $this->appEmulation = $appEmulation;
         parent::__construct($context);
     }
 
@@ -51,6 +63,7 @@ class Generate extends Action
     public function execute()
     {
         $storeId = $this->getRequest()->getParam('store_id');
+        $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
 
         if (!$this->generalHelper->getEnabled()) {
             $errorMsg = __('Please enable the extension before generating the feed.');
@@ -61,6 +74,9 @@ class Generate extends Action
                 $this->messageManager->addSuccessMessage(
                     __('Successfully generated a feed with %1 product(s).', $result['qty'])
                 );
+            } catch (ValidationException $e) {
+                $this->messageManager->addErrorMessage($e->getMessage());
+                $this->generalHelper->addTolog('Generate', $e->getMessage());
             } catch (\Exception $e) {
                 $this->messageManager->addExceptionMessage(
                     $e,
@@ -69,6 +85,8 @@ class Generate extends Action
                 $this->generalHelper->addTolog('Generate', $e->getMessage());
             }
         }
+
+        $this->appEmulation->stopEnvironmentEmulation();
         $this->_redirect('adminhtml/system_config/edit/section/magmodules_sooqr');
     }
 

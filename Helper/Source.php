@@ -9,12 +9,14 @@ namespace Magmodules\Sooqr\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
-use Magento\Framework\UrlInterface;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Visibility;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\Category as CategoryHelper;
 use Magmodules\Sooqr\Helper\Feed as FeedHelper;
+use Magmodules\Sooqr\Setup\SetupData;
+use Magmodules\Sooqr\Service\Product\InventorySource;
 
 /**
  * Class Source
@@ -31,6 +33,7 @@ class Source extends AbstractHelper
     const XPATH_DESCRIPTION_SOURCE = 'magmodules_sooqr/data/description_attribute';
     const XPATH_BRAND_SOURCE = 'magmodules_sooqr/data/brand_attribute';
     const XPATH_EXTRA_FIELDS = 'magmodules_sooqr/data/extra_fields';
+    const XPATH_REVIEWS = 'magmodules_sooqr/data/reviews';
     const XPATH_IMAGE_SOURCE = 'magmodules_sooqr/data/image_source';
     const XPATH_IMAGE_RESIZE = 'magmodules_sooqr/data/image_resize';
     const XPATH_IMAGE_SIZE_FIXED = 'magmodules_sooqr/data/image_size_fixed';
@@ -45,7 +48,6 @@ class Source extends AbstractHelper
     const XPATH_STOCK = 'magmodules_sooqr/filter/stock';
     const XPATH_RELATIONS_ENABLED = 'magmodules_sooqr/data/relations';
     const XPATH_PARENT_ATTS = 'magmodules_sooqr/data/parent_atts';
-    const XPATH_TAX = 'magmodules_sooqr/data/tax';
     const XPATH_ADVANCED = 'magmodules_sooqr/generate/advanced';
     const XPATH_PAGING = 'magmodules_sooqr/generate/paging';
     const XPATH_DEBUG_MEMORY = 'magmodules_sooqr/generate/debug_memory';
@@ -88,6 +90,10 @@ class Source extends AbstractHelper
      * @var StoreManagerInterface
      */
     private $storeManager;
+    /**
+     * @var InventorySource
+     */
+    private $inventorySource;
 
     /**
      * Source constructor.
@@ -98,6 +104,7 @@ class Source extends AbstractHelper
      * @param Category              $categoryHelper
      * @param Product               $productHelper
      * @param Feed                  $feedHelper
+     * @param InventorySource       $inventorySource
      */
     public function __construct(
         Context $context,
@@ -105,13 +112,15 @@ class Source extends AbstractHelper
         GeneralHelper $generalHelper,
         CategoryHelper $categoryHelper,
         ProductHelper $productHelper,
-        FeedHelper $feedHelper
+        FeedHelper $feedHelper,
+        InventorySource $inventorySource
     ) {
         $this->generalHelper = $generalHelper;
         $this->productHelper = $productHelper;
         $this->categoryHelper = $categoryHelper;
         $this->feedHelper = $feedHelper;
         $this->storeManager = $storeManager;
+        $this->inventorySource = $inventorySource;
         parent::__construct($context);
     }
 
@@ -120,6 +129,7 @@ class Source extends AbstractHelper
      * @param $type
      *
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getConfig($storeId, $type)
     {
@@ -137,12 +147,14 @@ class Source extends AbstractHelper
         $config['feed_locations'] = $this->feedHelper->getFeedLocation($storeId, $type);
         $config['debug_memory'] = $this->generalHelper->getStoreValue(self::XPATH_DEBUG_MEMORY);
         $config['default_category'] = $this->generalHelper->getStoreValue(self::XPATH_CATEGORY);
+        $config['reviews'] = $this->generalHelper->getStoreValue(self::XPATH_REVIEWS);
         $config['inventory'] = $this->getInventoryData();
         $config['currency'] = $config['price_config']['currency'];
         $config['categories'] = $this->categoryHelper->getCollection(
             $storeId,
             'sooqr_cat',
-            $config['default_category']
+            $config['default_category'],
+            SetupData::CATEGORY_EXCLUDE_ATT
         );
 
         return $config;
@@ -594,24 +606,26 @@ class Source extends AbstractHelper
         $priceFields = [];
         $priceFields['price'] = 'sqr:normal_price';
         $priceFields['final_price'] = 'sqr:price';
+        $priceFields['price_ex'] = 'sqr:normal_price_ex';
+        $priceFields['final_price_ex'] = 'sqr:price_ex';
         $priceFields['currency'] = $store->getCurrentCurrency()->getCode();
         $priceFields['exchange_rate'] = $store->getBaseCurrency()->getRate($priceFields['currency']);
         $priceFields['grouped_price_type'] = $this->generalHelper->getStoreValue(self::XPATH_GROUPED_PARENT_PRICE);
-
-        if ($this->generalHelper->getStoreValue(self::XPATH_TAX)) {
-            $priceFields['incl_vat'] = true;
-        }
 
         return $priceFields;
     }
 
     /**
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getInventoryData()
     {
         $invAtt = [];
         $invAtt['attributes'][] = 'is_in_stock';
+
+        $websiteCode = $this->storeManager->getWebsite()->getCode();
+        $invAtt['stock_id'] = $this->inventorySource->execute($websiteCode);
 
         return $invAtt;
     }
@@ -628,6 +642,11 @@ class Source extends AbstractHelper
         if ($categoryData = $this->getCategoryData($product, $config['categories'])) {
             $dataRow = array_merge($dataRow, $categoryData);
         }
+
+        if ($reviewData = $this->getReviewData($product)) {
+            $dataRow = array_merge($dataRow, $reviewData);
+        }
+
         $xml = $this->getXmlFromArray($dataRow, 'item');
 
         return $xml;
@@ -666,6 +685,21 @@ class Source extends AbstractHelper
         }
 
         return $data;
+    }
+
+    /**
+     * @param ProductInterface $product
+     *
+     * @return array
+     */
+    private function getReviewData($product)
+    {
+        $reviewData = [];
+        if ($ratingSummary = $product->getRatingSummary()) {
+            $reviewData['sqr:rating'] = $ratingSummary->getRatingSummary();
+        }
+
+        return $reviewData;
     }
 
     /**

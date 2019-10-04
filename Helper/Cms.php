@@ -8,9 +8,12 @@ namespace Magmodules\Sooqr\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\Api\FilterBuilder;
+use Magento\Cms\Api\PageRepositoryInterface;
 use Magento\Cms\Helper\Page as PageHelper;
+use Magento\Cms\Api\Data\PageInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Magento\Cms\Model\ResourceModel\Page\CollectionFactory as PageCollectionFactory;
 
 /**
  * Class Cms
@@ -28,9 +31,17 @@ class Cms extends AbstractHelper
      */
     private $generalHelper;
     /**
-     * @var PageCollectionFactory
+     * @var PageRepositoryInterface
      */
-    private $pageCollectionFactory;
+    private $pageRepository;
+    /**
+     * @var SearchCriteriaBuilder
+     */
+    private $searchCriteriaBuilder;
+    /**
+     * @var FilterBuilder
+     */
+    private $filterBuilder;
     /**
      * @var PageHelper
      */
@@ -39,27 +50,36 @@ class Cms extends AbstractHelper
     /**
      * Cms constructor.
      *
-     * @param Context               $context
-     * @param General               $generalHelper
-     * @param PageHelper            $cmsPage
-     * @param PageCollectionFactory $pageCollectionFactory
+     * @param Context                 $context
+     * @param General                 $generalHelper
+     * @param PageHelper              $cmsPage
+     * @param PageRepositoryInterface $pageRepository
+     * @param SearchCriteriaBuilder   $searchCriteriaBuilder
+     * @param FilterBuilder           $filterBuilder
      */
     public function __construct(
         Context $context,
         GeneralHelper $generalHelper,
         PageHelper $cmsPage,
-        PageCollectionFactory $pageCollectionFactory
+        PageRepositoryInterface $pageRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
+        FilterBuilder $filterBuilder
     ) {
         $this->generalHelper = $generalHelper;
         $this->cmsPage = $cmsPage;
-        $this->pageCollectionFactory = $pageCollectionFactory;
+        $this->pageRepository = $pageRepository;
+        $this->searchCriteriaBuilder = $searchCriteriaBuilder;
+        $this->filterBuilder = $filterBuilder;
         parent::__construct($context);
     }
 
     /**
+     * @param $storeId
+     *
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getCmsPages()
+    public function getCmsPages($storeId)
     {
         $cmspages = [];
         $selection = null;
@@ -69,25 +89,11 @@ class Cms extends AbstractHelper
             return $cmspages;
         }
 
-        $pages = $this->pageCollectionFactory->create();
+        $selection = $enabled == 2 ? $this->generalHelper->getStoreValue(self::XPATH_CMS_SELECTION) : null;
+        $searchCriteria = $this->getSearchCriteria($storeId, $selection);
+        $result = $this->pageRepository->getList($searchCriteria);
 
-        if ($enabled == 2) {
-            $selection = explode(',', $this->generalHelper->getStoreValue(self::XPATH_CMS_SELECTION));
-        }
-
-        foreach ($pages as $page) {
-            if (isset($page['is_active']) && $page['is_active'] != 1) {
-                continue;
-            }
-
-            if (isset($page['active']) && $page['active'] != 1) {
-                continue;
-            }
-
-            if (!empty($selection) && (!in_array($page['page_id'], $selection))) {
-                continue;
-            }
-
+        foreach ($result->getItems() as $page) {
             $url = $this->cmsPage->getPageUrl($page['identifier']);
             $cmspages[] = [
                 'sqr:content_type' => 'cms',
@@ -99,6 +105,25 @@ class Cms extends AbstractHelper
         }
 
         return $cmspages;
+    }
+
+    /**
+     * @param int    $storeId
+     * @param string $selection
+     *
+     * @return \Magento\Framework\Api\SearchCriteria
+     */
+    private function getSearchCriteria($storeId, $selection)
+    {
+        $searchCriteria = $this->searchCriteriaBuilder;
+        $searchCriteria->addFilter(PageInterface::IS_ACTIVE, 1);
+        $searchCriteria->addFilter('store_id', [$storeId, 0], 'in');
+
+        if ($selection !== null) {
+            $searchCriteria->addFilter(PageInterface::PAGE_ID, $selection, 'in');
+        }
+
+        return $searchCriteria->create();
     }
 
     /**

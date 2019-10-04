@@ -11,17 +11,16 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Api\AttributeSetRepositoryInterface;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
-use Magento\Catalog\Model\Product\CatalogPrice;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\Product\Media\Config as CatalogProductMediaConfig;
 use Magento\Catalog\Helper\Image as ProductImageHelper;
-use Magento\Catalog\Helper\Data as CatalogHelper;
-use Magento\CatalogRule\Model\ResourceModel\RuleFactory as RuleFactory;
 use Magento\Framework\Filter\FilterManager;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable as ConfigurableResource;
 use Magento\GroupedProduct\Model\ResourceModel\Product\Link as GroupedResource;
 use Magento\Bundle\Model\ResourceModel\Selection as BundleResource;
-use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
+use Magmodules\Sooqr\Service\Product\InventoryData;
+use Magmodules\Sooqr\Service\Product\PriceData;
 
 /**
  * Class Product
@@ -56,10 +55,6 @@ class Product extends AbstractHelper
      */
     private $attributeSet;
     /**
-     * @var CatalogHelper
-     */
-    private $catalogHelper;
-    /**
      * @var ProductImageHelper
      */
     private $productImageHelper;
@@ -68,19 +63,19 @@ class Product extends AbstractHelper
      */
     private $galleryReadHandler;
     /**
-     * @var RuleFactory
-     */
-    private $ruleFactory;
-    /**
      * @var CatalogProductMediaConfig
      */
     private $catalogProductMediaConfig;
     /**
-     * @var CatalogPrice
+     * @var InventoryData
      */
-    private $commonPriceModel;
+    private $inventoryData;
     /**
-     * @var SooqrLogger
+     * @var PriceData
+     */
+    private $priceData;
+    /**
+     * @var GeneralLoggerInterface
      */
     private $logger;
 
@@ -90,46 +85,43 @@ class Product extends AbstractHelper
      * @param Context                         $context
      * @param GalleryReadHandler              $galleryReadHandler
      * @param CatalogProductMediaConfig       $catalogProductMediaConfig
-     * @param CatalogHelper                   $catalogHelper
      * @param ProductImageHelper              $productImageHelper
-     * @param RuleFactory                     $ruleFactory
      * @param EavConfig                       $eavConfig
      * @param FilterManager                   $filter
      * @param AttributeSetRepositoryInterface $attributeSet
      * @param GroupedResource                 $catalogProductTypeGrouped
      * @param BundleResource                  $catalogProductTypeBundle
      * @param ConfigurableResource            $catalogProductTypeConfigurable
-     * @param CatalogPrice                    $commonPriceModel
-     * @param SooqrLogger                     $logger
+     * @param InventoryData                   $inventoryData
+     * @param PriceData                       $priceData
+     * @param GeneralLoggerInterface          $logger
      */
     public function __construct(
         Context $context,
         GalleryReadHandler $galleryReadHandler,
         CatalogProductMediaConfig $catalogProductMediaConfig,
-        CatalogHelper $catalogHelper,
         ProductImageHelper $productImageHelper,
-        RuleFactory $ruleFactory,
         EavConfig $eavConfig,
         FilterManager $filter,
         AttributeSetRepositoryInterface $attributeSet,
         GroupedResource $catalogProductTypeGrouped,
         BundleResource $catalogProductTypeBundle,
         ConfigurableResource $catalogProductTypeConfigurable,
-        CatalogPrice $commonPriceModel,
-        SooqrLogger $logger
+        InventoryData $inventoryData,
+        PriceData $priceData,
+        GeneralLoggerInterface $logger
     ) {
         $this->galleryReadHandler = $galleryReadHandler;
         $this->catalogProductMediaConfig = $catalogProductMediaConfig;
-        $this->catalogHelper = $catalogHelper;
         $this->productImageHelper = $productImageHelper;
-        $this->ruleFactory = $ruleFactory;
         $this->eavConfig = $eavConfig;
         $this->filter = $filter;
         $this->attributeSet = $attributeSet;
         $this->catalogProductTypeConfigurable = $catalogProductTypeConfigurable;
         $this->catalogProductTypeGrouped = $catalogProductTypeGrouped;
         $this->catalogProductTypeBundle = $catalogProductTypeBundle;
-        $this->commonPriceModel = $commonPriceModel;
+        $this->inventoryData = $inventoryData;
+        $this->priceData = $priceData;
         $this->logger = $logger;
         parent::__construct($context);
     }
@@ -145,6 +137,8 @@ class Product extends AbstractHelper
     public function getDataRow($product, $parent, $config)
     {
         $dataRow = [];
+
+        $product = $this->inventoryData->addDataToProduct($product, $config);
 
         if (!$this->validateProduct($product, $parent, $config)) {
             return $dataRow;
@@ -338,7 +332,7 @@ class Product extends AbstractHelper
                 $value = $this->getStockValue($type, $product, $config['inventory']);
                 break;
             case 'availability':
-                $value = $this->getAvailability($attribute, $product);
+                $value = $this->getAvailability($product);
                 break;
             default:
                 $value = $this->getValue($attribute, $product);
@@ -654,18 +648,17 @@ class Product extends AbstractHelper
     }
 
     /**
-     * @param $attribute
-     * @param $product
+     * @param \Magento\Catalog\Model\Product $product
      *
-     * @return int|string
+     * @return int
      */
-    public function getAvailability($attribute, $product)
+    public function getAvailability($product)
     {
-        if ($product->getTypeId() == 'bundle') {
-            return (int)$product->getIsSalable();
+        if ($product->getIsSalable() && $product->getIsInStock()) {
+            return 1;
         }
 
-        return $this->getValue($attribute, $product);
+        return 0;
     }
 
     /**
@@ -783,7 +776,7 @@ class Product extends AbstractHelper
         $data = null;
         $value = $product->getData($attribute['source']);
         if ($attribute['source'] == 'is_in_stock') {
-            $value = $this->getAvailability($attribute, $product);
+            $value = $this->getAvailability($product);
         }
 
         foreach ($conditions as $condition) {
@@ -875,219 +868,18 @@ class Product extends AbstractHelper
      * @param \Magento\Catalog\Model\Product $product
      *
      * @return array
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function getPriceCollection($config, $product)
     {
-        $prices = [];
-        $priceConfig = $config['price_config'];
-
-        switch ($product->getTypeId()) {
-            case 'grouped':
-                $groupedPriceType = null;
-                if (!empty($config['price_config']['grouped_price_type'])) {
-                    $groupedPriceType = $config['price_config']['grouped_price_type'];
-                }
-
-                $groupedPrices = $this->getGroupedPrices($product, $config);
-                $price = $groupedPrices['min_price'];
-                $finalPrice = $groupedPrices['min_rule_price'];
-
-                $product['min_price'] = $groupedPrices['min_rule_price'];
-                $product['max_price'] = $groupedPrices['max_rule_price'];
-                $product['total_price'] = $groupedPrices['total_rule_price'];
-
-                if ($groupedPriceType == 'max') {
-                    $price = $groupedPrices['max_price'];
-                    $finalPrice = $groupedPrices['max_rule_price'];
-                }
-
-                if ($groupedPriceType == 'total') {
-                    $price = $groupedPrices['total_price'];
-                    $finalPrice = $groupedPrices['total_rule_price'];
-                }
-
-                if (floatval($finalPrice) == 0) {
-                    $finalPrice = $price;
-                }
-
-                break;
-            default:
-                if (floatval($product->getFinalPrice()) == 0) {
-                    $finalPrice = $product->getPriceInfo()->getPrice('final_price')->getAmount()->getValue();
-                    $price = $product->getPriceInfo()->getPrice('regular_price')->getAmount()->getValue();
-                    $product['min_price'] = $product->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getBaseAmount();
-                    $product['max_price'] = $product->getPriceInfo()->getPrice('final_price')->getMaximalPrice()->getBaseAmount();
-                } else {
-                    $price = $this->processPrice($product->getPrice(), $product, $config);
-                    $finalPrice = $this->processPrice($product->getFinalPrice(), $product, $config);
-                    $specialPrice = $this->processPrice($product->getSpecialPrice(), $product, $config);
-                }
-                break;
-        }
-
-        $prices[$priceConfig['price']] = $price;
-
-        if ($rulePrice = $this->getRulePrice($product, $config)) {
-            $finalPrice = min($finalPrice, $rulePrice);
-        }
-
-        if (!empty($priceConfig['final_price'])) {
-            $prices[$priceConfig['final_price']] = $finalPrice;
-        }
-
-        if (!empty($priceConfig['sales_price']) && ($price > $finalPrice)) {
-            $prices[$priceConfig['sales_price']] = $finalPrice;
-        }
-
-        if (!empty($priceConfig['min_price']) && !empty($product['min_price'])) {
-            if (($finalPrice > 0) && $finalPrice < $product['min_price']) {
-                $prices[$priceConfig['min_price']] = $finalPrice;
-            } else {
-                $prices[$priceConfig['min_price']] = $product['min_price'];
-            }
-        }
-
-        if (!empty($priceConfig['max_price']) && !empty($product['max_price'])) {
-            $prices[$priceConfig['max_price']] = $product['max_price'];
-        }
-
-        if (!empty($product['total_price']) && !empty($priceConfig['total_price'])) {
-            $prices[$priceConfig['total_price']] = $product['total_price'];
-        }
-
-        foreach ($prices as $key => &$priceValue) {
-            $priceValue = $this->formatPrice($priceValue, $priceConfig);
-        }
-
-        if (!empty($priceConfig['discount_perc']) && isset($prices[$priceConfig['sales_price']])) {
-            if ($prices[$priceConfig['price']] > 0) {
-                $discount = ($prices[$priceConfig['sales_price']] - $prices[$priceConfig['price']]) / $prices[$priceConfig['price']];
-                $discount = $discount * -100;
-                if ($discount > 0) {
-                    $prices[$priceConfig['discount_perc']] = round($discount, 1) . '%';
-                }
-            }
-        }
-
-        if (isset($specialPrice) && ($specialPrice == $finalPrice) && !empty($priceConfig['sales_date_range'])) {
-            if ($product->getSpecialFromDate() && $product->getSpecialToDate()) {
-                $from = date('Y-m-d', strtotime($product->getSpecialFromDate()));
-                $to = date('Y-m-d', strtotime($product->getSpecialToDate()));
-                $prices[$priceConfig['sales_date_range']] = $from . '/' . $to;
-            }
-        }
-
-        return $prices;
-    }
-
-    /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                $config
-     *
-     * @return array|null
-     */
-    public function getGroupedPrices($product, $config)
-    {
-        $subProducts = $product->getTypeInstance()->getAssociatedProducts($product);
-
-        $minPrice = null;
-        $maxPrice = null;
-        $totalPrice = null;
-
-        $minRulePrice = null;
-        $maxRulePrice = null;
-        $totalRulePrice = null;
-
-        foreach ($subProducts as $subProduct) {
-            $subProduct->setWebsiteId($config['website_id']);
-            if ($subProduct->isSalable()) {
-                $price = $this->commonPriceModel->getCatalogPrice($subProduct);
-                if ($price < $minPrice || $minPrice === null) {
-                    $minPrice = $price;
-                }
-                if ($price > $maxPrice || $maxPrice === null) {
-                    $maxPrice = $price;
-                }
-                $totalPrice += $price;
-
-                $rulePrice = $this->getRulePrice($subProduct, $config);
-                if ($rulePrice < $minRulePrice || $minRulePrice === null) {
-                    $minRulePrice = $rulePrice;
-                }
-                if ($rulePrice > $maxRulePrice || $maxRulePrice === null) {
-                    $maxRulePrice = $rulePrice;
-                }
-                $totalRulePrice += $rulePrice;
-            }
-        }
+        $priceFields = $config['price_config'];
+        $priceData = $this->priceData->getData($product, $config);
 
         return [
-            'min_price'        => $this->processPrice($minPrice, $product, $config),
-            'max_price'        => $this->processPrice($maxPrice, $product, $config),
-            'total_price'      => $this->processPrice($totalPrice, $product, $config),
-            'min_rule_price'   => $minRulePrice,
-            'max_rule_price'   => $maxRulePrice,
-            'total_rule_price' => $totalRulePrice
+            $priceFields['price']          => $priceData['price'],
+            $priceFields['price_ex']       => $priceData['price_ex'],
+            $priceFields['final_price']    => $priceData['final_price'],
+            $priceFields['final_price_ex'] => $priceData['final_price_ex'],
         ];
-    }
-
-    /**
-     * @param $product
-     * @param $config
-     *
-     * @return float|string
-     */
-    public function getRulePrice($product, $config)
-    {
-        $rulePrice = $this->ruleFactory->create()->getRulePrice(
-            $config['timestamp'],
-            $config['website_id'],
-            '',
-            $product->getId()
-        );
-
-        if ($rulePrice !== null && $rulePrice !== false && floatval($rulePrice) != 0) {
-            return $this->processPrice($rulePrice, $product, $config);
-        }
-    }
-
-    /**
-     * @param                                $price
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                $config
-     *
-     * @return float|string
-     */
-    public function processPrice($price, $product, $config)
-    {
-        $config = $config['price_config'];
-
-        if (!empty($config['exchange_rate'])) {
-            $price = $price * $config['exchange_rate'];
-        }
-
-        if (isset($config['incl_vat'])) {
-            $price = $this->catalogHelper->getTaxPrice($product, $price, $config['incl_vat']);
-        }
-
-        return $price;
-    }
-
-    /**
-     * @param $price
-     * @param $config
-     *
-     * @return string
-     */
-    public function formatPrice($price, $config)
-    {
-        $decimal = isset($config['decimal_point']) ? $config['decimal_point'] : '.';
-        $price = number_format(floatval(str_replace(',', '.', $price)), 2, $decimal, '');
-        if (!empty($config['use_currency']) && ($price >= 0)) {
-            $price .= ' ' . $config['currency'];
-        }
-        return $price;
     }
 
     /**

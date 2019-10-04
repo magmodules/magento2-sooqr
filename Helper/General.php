@@ -16,7 +16,8 @@ use Magento\Config\Model\ResourceModel\Config as ConfigData;
 use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
-use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
+use Magmodules\Sooqr\Logger\ValidationLoggerInterface;
 
 /**
  * Class General
@@ -69,9 +70,13 @@ class General extends AbstractHelper
      */
     private $localeDate;
     /**
-     * @var SooqrLogger
+     * @var GeneralLoggerInterface
      */
-    private $logger;
+    private $generalLogger;
+    /**
+     * @var ValidationLoggerInterface
+     */
+    private $validationLogger;
 
     /**
      * General constructor.
@@ -84,7 +89,8 @@ class General extends AbstractHelper
      * @param ConfigData                  $config
      * @param DateTime                    $coreDate
      * @param TimezoneInterface           $localeDate
-     * @param SooqrLogger        $logger
+     * @param GeneralLoggerInterface      $generalLogger
+     * @param ValidationLoggerInterface   $validationLogger
      */
     public function __construct(
         Context $context,
@@ -95,7 +101,8 @@ class General extends AbstractHelper
         ConfigData $config,
         DateTime $coreDate,
         TimezoneInterface $localeDate,
-        SooqrLogger $logger
+        GeneralLoggerInterface $generalLogger,
+        ValidationLoggerInterface $validationLogger
     ) {
         $this->storeManager = $storeManager;
         $this->moduleList = $moduleList;
@@ -104,7 +111,8 @@ class General extends AbstractHelper
         $this->config = $config;
         $this->coreDate = $coreDate;
         $this->localeDate = $localeDate;
-        $this->logger = $logger;
+        $this->generalLogger = $generalLogger;
+        $this->validationLogger = $validationLogger;
         parent::__construct($context);
     }
 
@@ -307,16 +315,6 @@ class General extends AbstractHelper
     }
 
     /**
-     * @param null $storeId
-     *
-     * @return mixed
-     */
-    public function getStaging($storeId = null)
-    {
-        return $this->getStoreValue(self::XPATH_STAGING, $storeId);
-    }
-
-    /**
      * Set configuration data function
      *
      * @param      $value
@@ -439,14 +437,22 @@ class General extends AbstractHelper
     }
 
     /**
-     * @param $id
-     * @param $data
+     * @param        $id
+     * @param        $data
+     * @param string $type
      */
-    public function addTolog($id, $data)
+    public function addTolog($id, $data, $type = 'module')
     {
         $debug = true;
-        if ($debug) {
-            $this->logger->add($id, $data);
+
+        if ($type == 'module') {
+            if ($debug) {
+                $this->generalLogger->add($id, $data);
+            }
+        }
+
+        if ($type == 'validation') {
+            $this->validationLogger->add($id, $data);
         }
     }
 

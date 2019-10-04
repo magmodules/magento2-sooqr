@@ -13,7 +13,7 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\App\Config\ReinitableConfigInterface;
 use Magento\Config\Model\ResourceModel\Config as ConfigModel;
-use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
 use Magmodules\Sooqr\Helper\Source as SourceHelper;
 
 /**
@@ -25,33 +25,39 @@ class Config extends AbstractHelper
 {
 
     const XPATH_CONVERT_RUN = 'magmodules_sooqr/task/convert_run';
+
     /**
      * @var ObjectManagerInterface
      */
     private $objectManager;
+
     /**
      * @var ResourceConnection
      */
     private $resource;
+
     /**
      * @var ProductMetadataInterface
      */
     private $productMetadata;
+
     /**
-     * @var SooqrLogger
+     * @var GeneralLoggerInterface
      */
     private $logger;
+
     /**
      * @var Config
      */
     private $config;
+
     /**
      * @var ReinitableConfigInterface
      */
     private $reinitConfig;
 
     /**
-     * Tasks constructor.
+     * Config constructor.
      *
      * @param Context                   $context
      * @param ObjectManagerInterface    $objectManager
@@ -59,7 +65,7 @@ class Config extends AbstractHelper
      * @param ProductMetadataInterface  $productMetadata
      * @param ReinitableConfigInterface $reinitConfig
      * @param ConfigModel               $config
-     * @param SooqrLogger               $logger
+     * @param GeneralLoggerInterface    $logger
      */
     public function __construct(
         Context $context,
@@ -68,7 +74,7 @@ class Config extends AbstractHelper
         ProductMetadataInterface $productMetadata,
         ReinitableConfigInterface $reinitConfig,
         ConfigModel $config,
-        SooqrLogger $logger
+        GeneralLoggerInterface $logger
     ) {
         $this->objectManager = $objectManager;
         $this->resource = $resource;
@@ -90,7 +96,7 @@ class Config extends AbstractHelper
             try {
                 $this->convertSerializedDataToJson();
             } catch (\Exception $e) {
-                $this->logger->critical($e);
+                $this->logger->add('convertSerializedDataToJson', $e->getMessage());
             }
 
             $this->config->saveConfig(self::XPATH_CONVERT_RUN, 1, 'default', 0);

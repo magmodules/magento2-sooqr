@@ -6,14 +6,18 @@
 
 namespace Magmodules\Sooqr\Model\Collection;
 
+use Magento\Eav\Model\Config as EavConfig;
+use Magento\Framework\App\ResourceConnection;
+use Magento\Catalog\Model\ResourceModel\Product\Collection as ProductCollection;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductCollectionFactory;
 use Magento\Catalog\Model\ResourceModel\Product\Attribute\CollectionFactory as ProductAttributeCollectionFactory;
-use Magento\Eav\Model\Config as EavConfig;
+use Magento\Catalog\Model\Indexer\Product\Flat\State as FlatState;
 use Magento\Catalog\Model\Indexer\Product\Flat\StateFactory;
-use Magento\Framework\App\ResourceConnection;
 use Magento\CatalogInventory\Helper\Stock as StockHelper;
 use Magmodules\Sooqr\Helper\Product as ProductHelper;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magento\Review\Model\ReviewFactory;
+use Magento\Framework\Exception\LocalizedException;
 
 /**
  * Class Products
@@ -27,30 +31,42 @@ class Products
      * @var ProductCollectionFactory
      */
     private $productCollectionFactory;
+
     /**
      * @var ProductAttributeCollectionFactory
      */
     private $productAttributeCollectionFactory;
+
     /**
      * @var EavConfig
      */
     private $eavConfig;
+
     /**
      * @var StateFactory
      */
     private $productFlatState;
+
     /**
      * @var StockHelper
      */
     private $stockHelper;
+
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
+
     /**
      * @var ProductHelper
      */
     private $productHelper;
+
+    /**
+     * @var ReviewFactory
+     */
+    private $reviewFactory;
+
     /**
      * @var ResourceConnection
      */
@@ -65,6 +81,7 @@ class Products
      * @param StockHelper                       $stockHelper
      * @param GeneralHelper                     $generalHelper
      * @param ProductHelper                     $productHelper
+     * @param ReviewFactory                     $reviewFactory
      * @param StateFactory                      $productFlatState
      * @param ResourceConnection                $resource
      */
@@ -75,6 +92,7 @@ class Products
         StockHelper $stockHelper,
         GeneralHelper $generalHelper,
         ProductHelper $productHelper,
+        ReviewFactory $reviewFactory,
         StateFactory $productFlatState,
         ResourceConnection $resource
     ) {
@@ -85,6 +103,7 @@ class Products
         $this->productHelper = $productHelper;
         $this->generalHelper = $generalHelper;
         $this->stockHelper = $stockHelper;
+        $this->reviewFactory = $reviewFactory;
         $this->resource = $resource;
     }
 
@@ -93,28 +112,23 @@ class Products
      * @param $page
      * @param $productIds
      *
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return ProductCollection
+     * @throws LocalizedException
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      */
     public function getCollection($config, $page, $productIds)
     {
-        $flat = $config['flat'];
+
         $filters = $config['filters'];
         $attributes = $this->getAttributes($config['attributes']);
+        $productFlatState = $this->getProductFlatState($config);
 
-        if (!$flat) {
-            $productFlatState = $this->productFlatState->create(['isAvailable' => false]);
-        } else {
-            $productFlatState = $this->productFlatState->create(['isAvailable' => true]);
-        }
-
-        $collection = $this->productCollectionFactory
-            ->create(['catalogProductFlatState' => $productFlatState])
-            ->addAttributeToSelect($attributes)
-            ->addMinimalPrice()
+        /** @var ProductCollection $collection */
+        $collection = $this->productCollectionFactory->create(['catalogProductFlatState' => $productFlatState]);
+        $collection->addAttributeToSelect($attributes)
+            ->addStoreFilter($config['store_id'])
             ->addUrlRewrite()
-            ->addFinalPrice();
+            ->setOrder('entity_id', 'ASC');
 
         if (!empty($filters['visibility'])) {
             $collection->addAttributeToFilter('visibility', ['in' => $filters['visibility']]);
@@ -138,24 +152,10 @@ class Products
             }
         }
 
-        $collection->joinTable(
-            'cataloginventory_stock_item',
-            'product_id=entity_id',
-            $config['inventory']['attributes']
-        );
-
-        if (!empty($filters['stock'])) {
-            $this->stockHelper->addInStockFilterToCollection($collection);
-            if (version_compare($this->generalHelper->getMagentoVersion(), "2.2.0", ">=")) {
-                $collection->setFlag('has_stock_status_filter', true);
-            }
-        } else {
-            if (version_compare($this->generalHelper->getMagentoVersion(), "2.2.0", ">=")) {
-                $collection->setFlag('has_stock_status_filter', false);
-            }
-        }
-
+        $this->joinCatalogInventoryLeft($collection, $config);
         $this->addFilters($filters, $collection);
+        $this->joinPriceIndexLeft($collection, $config['website_id']);
+        $this->appendReviews($config, $collection);
 
         return $collection;
     }
@@ -165,7 +165,7 @@ class Products
      *
      * @return array
      */
-    public function getAttributes($selectedAttrs)
+    private function getAttributes($selectedAttrs)
     {
         $attributes = $this->getProductAttributes();
         foreach ($selectedAttrs as $selectedAtt) {
@@ -190,7 +190,7 @@ class Products
     /**
      * @return array
      */
-    public function getProductAttributes()
+    private function getProductAttributes()
     {
         return [
             'entity_id',
@@ -209,12 +209,44 @@ class Products
     }
 
     /**
+     * @param $config
+     *
+     * @return FlatState
+     */
+    private function getProductFlatState($config)
+    {
+        if ($config['flat']) {
+            return $this->productFlatState->create(['isAvailable' => true]);
+        }
+
+        return $this->productFlatState->create(['isAvailable' => false]);
+    }
+
+    /**
+     * @param ProductCollection $collection
+     * @param array             $config
+     */
+    private function joinCatalogInventoryLeft($collection, $config)
+    {
+        $joinCond = join(
+            ' AND ',
+            ['cataloginventory.product_id = e.entity_id', 'cataloginventory.website_id = 0']
+        );
+        $tableName = ['cataloginventory' => $collection->getTable('cataloginventory_stock_item')];
+        $collection->getSelect()->joinLeft(
+            $tableName,
+            $joinCond,
+            array_combine($config['inventory']['attributes'], $config['inventory']['attributes'])
+        );
+    }
+
+    /**
      * @param                                                         $filters
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $collection
+     * @param ProductCollection                                       $collection
      * @param string                                                  $type
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      *
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function addFilters($filters, $collection, $type = 'simple')
     {
@@ -352,34 +384,67 @@ class Products
                 }
             }
         }
+
+        if (!empty($filters['stock'])) {
+            $this->stockHelper->addInStockFilterToCollection($collection);
+            $collection->setFlag('has_stock_status_filter', true);
+        } else {
+            $collection->setFlag('has_stock_status_filter', false);
+        }
     }
 
     /**
-     * @param $parentRelations
-     * @param $config
+     * @param ProductCollection $collection
+     * @param                   $websiteId
+     */
+    public function joinPriceIndexLeft($collection, $websiteId)
+    {
+        $joinCond = join(
+            ' AND ',
+            [
+                'price_index.entity_id = e.entity_id',
+                'price_index.website_id = ' . $websiteId,
+                'price_index.customer_group_id = 0'
+            ]
+        );
+        $colls = ['final_price', 'min_price', 'max_price'];
+        $tableName = ['price_index' => $collection->getTable('catalog_product_index_price')];
+        $collection->getSelect()->joinLeft($tableName, $joinCond, $colls);
+    }
+
+    /**
+     * @param array             $config
+     * @param ProductCollection $collection
+     */
+    private function appendReviews($config, $collection)
+    {
+        if (!$config['reviews']) {
+            return;
+        }
+
+        $this->reviewFactory->create()->appendSummary($collection);
+    }
+
+    /**
+     * @param       $parentRelations
+     * @param array $config
      *
-     * @return \Magento\Catalog\Model\ResourceModel\Product\Collection
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return ProductCollection
+     * @throws LocalizedException
      */
     public function getParents($parentRelations, $config)
     {
         if (!empty($parentRelations)) {
             $filters = $config['filters'];
-
-            if (!$config['flat']) {
-                $productFlatState = $this->productFlatState->create(['isAvailable' => false]);
-            } else {
-                $productFlatState = $this->productFlatState->create(['isAvailable' => true]);
-            }
-
             $attributes = $this->getAttributes($config['attributes']);
-            $collection = $this->productCollectionFactory
-                ->create(['catalogProductFlatState' => $productFlatState])
+            $productFlatState = $this->getProductFlatState($config);
+
+            /** @var ProductCollection $collection */
+            $collection = $this->productCollectionFactory->create(['catalogProductFlatState' => $productFlatState]);
+            $collection->addAttributeToSelect($attributes)
                 ->addAttributeToFilter('entity_id', ['in' => array_values($parentRelations)])
-                ->addAttributeToSelect($attributes)
-                ->addMinimalPrice()
-                ->addUrlRewrite()
-                ->addFinalPrice();
+                ->addStoreFilter($config['store_id'])
+                ->addUrlRewrite();
 
             if (!empty($filters['category_ids'])) {
                 if (!empty($filters['category_type'])) {
@@ -391,24 +456,10 @@ class Products
                 $collection->addAttributeToFilter('visibility', ['in' => $filters['visibility_parent']]);
             }
 
-            $collection->joinTable(
-                'cataloginventory_stock_item',
-                'product_id=entity_id',
-                $config['inventory']['attributes']
-            );
-
-            if (!empty($filters['stock'])) {
-                $this->stockHelper->addInStockFilterToCollection($collection);
-                if (version_compare($this->generalHelper->getMagentoVersion(), "2.2.0", ">=")) {
-                    $collection->setFlag('has_stock_status_filter', true);
-                }
-            } else {
-                if (version_compare($this->generalHelper->getMagentoVersion(), "2.2.0", ">=")) {
-                    $collection->setFlag('has_stock_status_filter', false);
-                }
-            }
-
+            $this->joinCatalogInventoryLeft($collection, $config);
             $this->addFilters($filters, $collection, 'parent');
+            $this->joinPriceIndexLeft($collection, $config['website_id']);
+
             return $collection->load();
         }
     }
@@ -416,7 +467,7 @@ class Products
     /**
      * Direct Database Query to get total records of collection with filters.
      *
-     * @param \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollection
+     * @param ProductCollection $productCollection
      *
      * @return int
      */
