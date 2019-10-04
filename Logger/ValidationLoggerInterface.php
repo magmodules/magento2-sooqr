@@ -20,5 +20,4 @@ interface ValidationLoggerInterface
      * @return void
      */
     public function add($type, $data);
-
 }

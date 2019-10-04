@@ -20,5 +20,4 @@ interface GeneralLoggerInterface
      * @return void
      */
     public function add($type, $data);
-
 }

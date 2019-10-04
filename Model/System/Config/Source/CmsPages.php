@@ -61,7 +61,6 @@ class CmsPages implements ArrayInterface
         $this->pageRepository = $pageRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
-
     }
 
     /**

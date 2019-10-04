@@ -984,9 +984,9 @@ class Product extends AbstractHelper
 
         if (in_array('configurable', $filters['relations'])
             && (($visibility == Visibility::VISIBILITY_NOT_VISIBLE) || !in_array(
-                    'configurable',
-                    $filters['nonvisible']
-                ))
+                'configurable',
+                $filters['nonvisible']
+            ))
         ) {
             $configurableIds = $this->catalogProductTypeConfigurable->getParentIdsByChild($productId);
             if (!empty($configurableIds)) {

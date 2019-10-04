@@ -24,5 +24,4 @@ class Validation extends Base
      * @var int
      */
     protected $loggerType = Monolog::DEBUG;
-
 }

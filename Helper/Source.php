@@ -697,7 +697,6 @@ class Source extends AbstractHelper
         $reviewData = [];
         if ($ratingSummary = $product->getRatingSummary()) {
             $reviewData['sqr:rating'] = $ratingSummary->getRatingSummary();
-
         }
 
         return $reviewData;

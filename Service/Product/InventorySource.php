@@ -56,5 +56,4 @@ class InventorySource
 
         return $connection->fetchOne($select);
     }
-
 }
