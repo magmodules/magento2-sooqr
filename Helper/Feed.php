@@ -10,12 +10,14 @@ use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Filesystem;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magmodules\Sooqr\Exceptions\Validation as ValidationException;
 
 /**
  * Class Feed
@@ -32,34 +34,51 @@ class Feed extends AbstractHelper
     const XPATH_FEED_URL = 'magmodules_sooqr/feeds/url';
     const XPATH_FEED_RESULT = 'magmodules_sooqr/feeds/results';
     const XPATH_FEED_FILENAME = 'magmodules_sooqr/generate/filename';
+
     /**
      * @var General
      */
     private $generalHelper;
+
     /**
      * @var StoreManagerInterface
      */
     private $storeManager;
+
     /**
      * @var Filesystem\Directory\WriteInterface
      */
     private $directory;
+
     /**
      * @var
      */
     private $stream;
+
+    /**
+     * @var File
+     */
+    private $filesystemIo;
+
     /**
      * @var TimezoneInterface
      */
     private $timezone;
+
     /**
      * @var DateTime
      */
     private $datetime;
+
     /**
      * @var null|string
      */
     private $baseDir = null;
+
+    /**
+     * @var string
+     */
+    private $tempDir = null;
 
     /**
      * Feed constructor.
@@ -68,6 +87,7 @@ class Feed extends AbstractHelper
      * @param StoreManagerInterface $storeManager
      * @param Filesystem            $filesystem
      * @param DirectoryList         $directoryList
+     * @param File                  $filesystemIo
      * @param DateTime              $datetime
      * @param TimezoneInterface     $timezone
      * @param General               $generalHelper
@@ -77,6 +97,7 @@ class Feed extends AbstractHelper
         StoreManagerInterface $storeManager,
         Filesystem $filesystem,
         DirectoryList $directoryList,
+        File $filesystemIo,
         DateTime $datetime,
         TimezoneInterface $timezone,
         GeneralHelper $generalHelper
@@ -84,7 +105,9 @@ class Feed extends AbstractHelper
         $this->generalHelper = $generalHelper;
         $this->storeManager = $storeManager;
         $this->directory = $filesystem;
+        $this->filesystemIo = $filesystemIo;
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
+        $this->tempDir = $directoryList->getPath(DirectoryList::TMP);
         $this->timezone = $timezone;
         $this->datetime = $datetime;
         parent::__construct($context);
@@ -147,6 +170,7 @@ class Feed extends AbstractHelper
         $location = [];
         $location['path'] = self::DEFAULT_DIRECTORY_PATH . '/' . $fileName;
         $location['full_path'] = $this->baseDir . '/' . self::DEFAULT_DIRECTORY_PATH . '/' . $fileName;
+        $location['full_temp_path'] = $this->tempDir . '/' . $fileName;
         $location['url'] = $feedUrl . '/' . $fileName;
         $location['file_name'] = $fileName;
         $location['base_dir'] = self::DEFAULT_DIRECTORY_PATH;
@@ -241,7 +265,7 @@ class Feed extends AbstractHelper
 
     /**
      * @return mixed
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws LocalizedException
      */
     public function getStream()
     {
@@ -254,13 +278,15 @@ class Feed extends AbstractHelper
 
     /**
      * @param $config
+     * @param $headerConfig
      *
      * @throws LocalizedException
+     * @throws \Magento\Framework\Exception\FileSystemException
      */
     public function createFeed($config, $headerConfig)
     {
-        $path = $config['feed_locations']['path'];
-        $this->stream = $this->directory->getDirectoryWrite(DirectoryList::ROOT)->openFile($path);
+        $filename = $config['feed_locations']['file_name'];
+        $this->stream = $this->directory->getDirectoryWrite(DirectoryList::TMP)->openFile($filename);
 
         $header = '<?xml version="1.0" encoding="utf-8"?>' . PHP_EOL;
         $header .= '<rss xmlns:sqr="http://base.sooqr.com/ns/1.0" version="2.0" encoding="utf-8">' . PHP_EOL;
@@ -281,6 +307,41 @@ class Feed extends AbstractHelper
         $footer .= $summary;
         $footer .= '</rss>' . PHP_EOL;
         $this->getStream()->write($footer);
+    }
+
+    /**
+     * @param $config
+     * @param $type
+     *
+     * @throws ValidationException
+     */
+    public function validateAndMove($config, $type)
+    {
+        $src = $config['feed_locations']['full_temp_path'];
+        $destination = $config['feed_locations']['full_path'];
+
+        libxml_use_internal_errors(true);
+
+        $doc = new \DOMDocument;
+        $validationErrrors = [];
+        if (!$doc->load($src)) {
+            foreach (libxml_get_errors() as $error) {
+                $validationErrrors[] = $error->message;
+            }
+
+            libxml_clear_errors();
+        }
+
+        libxml_use_internal_errors(false);
+
+        if (empty($validationErrrors)) {
+            $this->filesystemIo->setAllowCreateFolders(true);
+            $this->filesystemIo->createDestinationDir(dirname($destination));
+            $this->filesystemIo->cp($src, $destination);
+        } else {
+            $this->generalHelper->addTolog($type, $validationErrrors, 'validation');
+            throw new ValidationException(__('Unable to genrate feed due to validation errors, please check var/sooqr/validation.log'));
+        }
     }
 
     /**

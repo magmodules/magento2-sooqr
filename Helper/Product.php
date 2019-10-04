@@ -18,7 +18,7 @@ use Magento\Framework\Filter\FilterManager;
 use Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable as ConfigurableResource;
 use Magento\GroupedProduct\Model\ResourceModel\Product\Link as GroupedResource;
 use Magento\Bundle\Model\ResourceModel\Selection as BundleResource;
-use Magmodules\Sooqr\Logger\SooqrLogger;
+use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
 use Magmodules\Sooqr\Service\Product\InventoryData;
 use Magmodules\Sooqr\Service\Product\PriceData;
 
@@ -75,7 +75,7 @@ class Product extends AbstractHelper
      */
     private $priceData;
     /**
-     * @var SooqrLogger
+     * @var GeneralLoggerInterface
      */
     private $logger;
 
@@ -94,7 +94,7 @@ class Product extends AbstractHelper
      * @param ConfigurableResource            $catalogProductTypeConfigurable
      * @param InventoryData                   $inventoryData
      * @param PriceData                       $priceData
-     * @param SooqrLogger                     $logger
+     * @param GeneralLoggerInterface          $logger
      */
     public function __construct(
         Context $context,
@@ -109,7 +109,7 @@ class Product extends AbstractHelper
         ConfigurableResource $catalogProductTypeConfigurable,
         InventoryData $inventoryData,
         PriceData $priceData,
-        SooqrLogger $logger
+        GeneralLoggerInterface $logger
     ) {
         $this->galleryReadHandler = $galleryReadHandler;
         $this->catalogProductMediaConfig = $catalogProductMediaConfig;
