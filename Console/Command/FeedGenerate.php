@@ -10,8 +10,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Magmodules\Sooqr\Model\Feed\Proxy as FeedModel;
-use Magmodules\Sooqr\Helper\General\Proxy as GeneralHelper;
+use Magmodules\Sooqr\Model\Feed as FeedModel;
+use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magento\Framework\App\State as AppState;
 
 /**

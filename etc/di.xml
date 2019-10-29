@@ -45,4 +45,19 @@
             </argument>
         </arguments>
     </type>
+    <type name="Magmodules\Sooqr\Console\Command\Config">
+        <arguments>
+            <argument name="configHelper" xsi:type="object">Magmodules\Sooqr\Helper\Config\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
+        <arguments>
+            <argument name="feedModel" xsi:type="object">Magmodules\Sooqr\Model\Feed\Proxy</argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
+        <arguments>
+            <argument name="generalHelper" xsi:type="object">Magmodules\Sooqr\Helper\General</argument>
+        </arguments>
+    </type>
 </config>
