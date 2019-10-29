@@ -8,14 +8,15 @@ namespace Magmodules\Sooqr\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
-use Magento\Store\Model\ScopeInterface;
-use Magento\Config\Model\ResourceModel\Config as ConfigData;
-use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
+use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Magento\Config\Model\ResourceModel\Config as ConfigData;
+use Magento\Config\Model\ResourceModel\Config\Data\CollectionFactory as ConfigDataCollectionFactory;
 use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
 use Magmodules\Sooqr\Logger\ValidationLoggerInterface;
 
@@ -77,6 +78,10 @@ class General extends AbstractHelper
      * @var ValidationLoggerInterface
      */
     private $validationLogger;
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
 
     /**
      * General constructor.
@@ -102,7 +107,8 @@ class General extends AbstractHelper
         DateTime $coreDate,
         TimezoneInterface $localeDate,
         GeneralLoggerInterface $generalLogger,
-        ValidationLoggerInterface $validationLogger
+        ValidationLoggerInterface $validationLogger,
+        SerializerInterface $serializer
     ) {
         $this->storeManager = $storeManager;
         $this->moduleList = $moduleList;
@@ -113,6 +119,7 @@ class General extends AbstractHelper
         $this->localeDate = $localeDate;
         $this->generalLogger = $generalLogger;
         $this->validationLogger = $validationLogger;
+        $this->serializer = $serializer;
         parent::__construct($context);
     }
 
@@ -239,7 +246,12 @@ class General extends AbstractHelper
             return [];
         }
 
-        $value = @unserialize($value);
+        try {
+            $value = $this->serializer->unserialize($value);
+        } catch (\InvalidArgumentException $e) {
+            return [];
+        }
+
         if (is_array($value)) {
             return $value;
         }

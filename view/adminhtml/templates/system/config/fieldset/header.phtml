@@ -2,31 +2,36 @@
 /**
  * Copyright © 2019 Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
+ *
  * @var $block Magmodules\Sooqr\Block\Adminhtml\Magmodules\Header
  */
 ?>
 <div class="mm-block-sooqr">
     <a class="helpbutton" href="https://my.sooqr.com/user/login" target="_blank"></a>
     <p>
-        <strong>Developed by Magmodules.</strong>
-        A Magento only eCommerce Agency located in the Netherlands.
+        <strong><?= $block->escapeHtml(__('Developed by Magmodules.')); ?></strong>
+        <?= $block->escapeHtml(__('A Magento only eCommerce Agency located in the Netherlands.')); ?>
     </p>
     <table>
         <tbody>
-        <tr>
-            <td>
-                <div class="icon1"></div>
-                <a href="https://www.magmodules.eu/" target="_blank">Visit Magmodules.eu</a>
-            </td>
-            <td>
-                <div class="icon2"></div>
-                <a href="<?php echo $block->getSupportLink(); ?>" target="_blank">Sooqr Support</a>
-            </td>
-            <td class="signup">
-                <div class="icon3"></div>
-                <a href="<?php echo $block->getSingupLink(); ?>" target="_blank">Sooqr Account Signup</a>
-            </td>
-        </tr>
+            <tr>
+                <td>
+                    <div class="icon1"></div>
+                    <?= $block->escapeHtml(__('Visit Magmodules.eu')); ?>
+                </td>
+                <td>
+                    <div class="icon2"></div>
+                    <a href="<?= $block->escapeUrl($block->getSupportLink()); ?>" target="_blank">
+                        <?= $block->escapeHtml(__('Sooqr Support')); ?>
+                    </a>
+                </td>
+                <td class="signup">
+                    <div class="icon3"></div>
+                    <a href="<?= $block->escapeUrl($block->getSingupLink()); ?>" target="_blank">
+                        <?= $block->escapeHtml(__('Sooqr Account Signup')); ?>
+                    </a>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
