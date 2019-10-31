@@ -8,6 +8,9 @@ namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 
 use Magento\Framework\DataObject;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
+use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes;
+use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions;
+use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes;
 
 /**
  * Class Filters
@@ -18,15 +21,15 @@ class Filters extends AbstractFieldArray
 {
 
     /**
-     * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes
+     * @var Attributes
      */
     private $attributeRenderer;
     /**
-     * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions
+     * @var Conditions
      */
     private $conditionRenderer;
     /**
-     * @var \Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes
+     * @var ProductTypes
      */
     private $productTypeRenderer;
 
@@ -64,7 +67,7 @@ class Filters extends AbstractFieldArray
         if (!$this->attributeRenderer) {
             try {
                 $this->attributeRenderer = $this->getLayout()->createBlock(
-                    '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes',
+                    Attributes::class,
                     '',
                     ['data' => ['is_render_to_js_template' => true]]
                 );
@@ -86,7 +89,7 @@ class Filters extends AbstractFieldArray
         if (!$this->conditionRenderer) {
             try {
                 $this->conditionRenderer = $this->getLayout()->createBlock(
-                    '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions',
+                    Conditions::class,
                     '',
                     ['data' => ['is_render_to_js_template' => true]]
                 );
@@ -108,7 +111,7 @@ class Filters extends AbstractFieldArray
         if (!$this->productTypeRenderer) {
             try {
                 $this->productTypeRenderer = $this->getLayout()->createBlock(
-                    '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes',
+                    ProductTypes::class,
                     '',
                     ['data' => ['is_render_to_js_template' => true]]
                 );

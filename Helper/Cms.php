@@ -11,7 +11,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Cms\Api\PageRepositoryInterface;
-use Magento\Cms\Helper\Page as PageHelper;
 use Magento\Cms\Api\Data\PageInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
@@ -42,17 +41,12 @@ class Cms extends AbstractHelper
      * @var FilterBuilder
      */
     private $filterBuilder;
-    /**
-     * @var PageHelper
-     */
-    private $cmsPage;
 
     /**
      * Cms constructor.
      *
      * @param Context                 $context
      * @param General                 $generalHelper
-     * @param PageHelper              $cmsPage
      * @param PageRepositoryInterface $pageRepository
      * @param SearchCriteriaBuilder   $searchCriteriaBuilder
      * @param FilterBuilder           $filterBuilder
@@ -60,13 +54,11 @@ class Cms extends AbstractHelper
     public function __construct(
         Context $context,
         GeneralHelper $generalHelper,
-        PageHelper $cmsPage,
         PageRepositoryInterface $pageRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder
     ) {
         $this->generalHelper = $generalHelper;
-        $this->cmsPage = $cmsPage;
         $this->pageRepository = $pageRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
@@ -75,11 +67,12 @@ class Cms extends AbstractHelper
 
     /**
      * @param $storeId
+     * @param $baseUrl
      *
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function getCmsPages($storeId)
+    public function getCmsPages($storeId, $baseUrl)
     {
         $cmspages = [];
         $selection = null;
@@ -93,14 +86,14 @@ class Cms extends AbstractHelper
         $searchCriteria = $this->getSearchCriteria($storeId, $selection);
         $result = $this->pageRepository->getList($searchCriteria);
 
+        /** @var \Magento\Cms\Model\Page $page */
         foreach ($result->getItems() as $page) {
-            $url = $this->cmsPage->getPageUrl($page['identifier']);
             $cmspages[] = [
                 'sqr:content_type' => 'cms',
-                'sqr:id'           => $page['identifier'],
-                'sqr:title'        => $page['title'],
-                'sqr:description'  => $this->cleanData($page['content']),
-                'sqr:link'         => strtok($url, '?'),
+                'sqr:id'           => $page->getIdentifier(),
+                'sqr:title'        => $page->getTitle(),
+                'sqr:description'  => $this->cleanData($page->getContent()),
+                'sqr:link'         => $baseUrl . $page->getIdentifier()
             ];
         }
 

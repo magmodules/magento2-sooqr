@@ -8,6 +8,7 @@ namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 
 use Magento\Framework\DataObject;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
+use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes;
 
 /**
  * Class ExtraFields
@@ -18,7 +19,7 @@ class ExtraFields extends AbstractFieldArray
 {
 
     /**
-     * @var
+     * @var Attributes
      */
     private $attributeRenderer;
 
@@ -45,7 +46,7 @@ class ExtraFields extends AbstractFieldArray
         if (!$this->attributeRenderer) {
             try {
                 $this->attributeRenderer = $this->getLayout()->createBlock(
-                    '\Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes',
+                    Attributes::class,
                     '',
                     ['data' => ['is_render_to_js_template' => true]]
                 );

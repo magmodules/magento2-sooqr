@@ -7,11 +7,9 @@
  * @var $block \Magmodules\Sooqr\Block\Head
  */
 ?>
-<?php if ($block->getHeadDataEnabled()) { ?>
+<?php if ($block->getHeadDataEnabled()) : ?>
     <script type="text/javascript">
-        var sooqrUenc = '<?php echo $block->getUenc(); ?>';
-        var sooqrFormKey = '<?php echo $block->getFormKey() ?>';
+        var sooqrUenc = '<?= $block->escapeHtml($block->getUenc()); ?>';
+        var sooqrFormKey = '<?= $block->escapeHtml($block->getFormKey()) ?>';
     </script>
-<?php } ?>
-
-
+<?php endif; ?>
