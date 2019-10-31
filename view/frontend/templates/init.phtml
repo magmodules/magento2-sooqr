@@ -8,9 +8,12 @@
  */
 ?>
 <?php if ($block->getFrontendEnabled()) : ?>
+    <?php
+    $sooqrOptions = $this->helper(\Magento\Framework\Json\Helper\Data::class)->jsonEncode($block->getSooqrOptions());
+    ?>
     <script type="text/javascript">
         var _wssq = _wssq || [];
-        _wssq.push(['_load', {'suggest': <?= $block->escapeHtml(json_encode($block->getSooqrOptions())) ?>}]);
+        _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $sooqrOptions ?>}]);
         _wssq.push(['suggest._setPosition', 'screen-middle']);
         _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($block->getSooqrLanguage()) ?>']);
         <?php if (!$block->isTrackingEnabled()) : ?>
