@@ -19,7 +19,7 @@
         <?php if (!$block->isTrackingEnabled()) : ?>
         _wssq.push(['suggest._disableTracking']);
         <?php endif; ?>
-        <?= $block->escapeHtml($block->getSooqrJavascript()) ?>
+        <?= /* @noEscape */ $block->getSooqrJavascript() ?>
         (function () {
             var ws = document.createElement('script');
             ws.type = 'text/javascript';
