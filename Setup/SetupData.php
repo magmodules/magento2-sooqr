@@ -6,18 +6,17 @@
 
 namespace Magmodules\Sooqr\Setup;
 
+use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product;
-use Magento\Eav\Setup\EavSetup;
-use Magento\Eav\Setup\EavSetupFactory;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
-use Magento\Framework\Setup\ModuleDataSetupInterface;
+use Magento\Eav\Model\Entity\Attribute\Source\Boolean;
+use Magento\Eav\Setup\EavSetupFactory;
+use Magento\Framework\App\Config\Storage\WriterInterface;
+use Magento\Framework\App\Config\ValueInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\ObjectManagerInterface;
-use Magento\Framework\App\Config\ValueInterface;
-use Magento\Framework\App\Config\Storage\WriterInterface;
-use Magento\Catalog\Model\Category;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magmodules\Sooqr\Helper\General;
-use Magmodules\Sooqr\Helper\Source as SourceHelper;
 
 /**
  * Class SetupData
@@ -26,7 +25,6 @@ use Magmodules\Sooqr\Helper\Source as SourceHelper;
  */
 class SetupData
 {
-
     const CATEGORY_EXCLUDE_ATT = 'sooqr_cat_disable_export';
     const PRODUCT_EXCLUDE_ATT = 'sooqr_exclude';
 
@@ -101,7 +99,6 @@ class SetupData
             ->addFieldToFilter("scope_id", ["neq" => 0]);
 
         foreach ($collection as $config) {
-            /** @var \Magento\Framework\App\Config\Value $config */
             $this->configWriter->delete(
                 General::XPATH_EXTENSION_ENABLED,
                 $config->getScope(),
@@ -111,55 +108,12 @@ class SetupData
     }
 
     /**
-     * Convert Serialzed Data fields to Json for Magento 2.2
-     * Using Object Manager for backwards compatability
-     *
-     * @param ModuleDataSetupInterface $setup
-     */
-    public function convertSerializedDataToJson(ModuleDataSetupInterface $setup)
-    {
-        $magentoVersion = $this->productMetadata->getVersion();
-        if (version_compare($magentoVersion, '2.2.0', '<')) {
-            return;
-        }
-
-        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        $fieldDataConverter = $this->objectManager
-            ->create(\Magento\Framework\DB\FieldDataConverterFactory::class)
-            ->create(\Magento\Framework\DB\DataConverter\SerializedToJson::class);
-
-        /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        $queryModifier = $this->objectManager
-            ->create(\Magento\Framework\DB\Select\QueryModifierFactory::class)
-            ->create(
-                'in',
-                [
-                    'values' => [
-                        'path' => [
-                            SourceHelper::XPATH_EXTRA_FIELDS,
-                            SourceHelper::XPATH_FILTERS_DATA
-                        ]
-                    ]
-                ]
-            );
-
-        $fieldDataConverter->convert(
-            $setup->getConnection(),
-            $setup->getTable('core_config_data'),
-            'config_id',
-            'value',
-            $queryModifier
-        );
-    }
-
-    /**
      * @param ModuleDataSetupInterface $setup
      */
     public function addProductAtribute(ModuleDataSetupInterface $setup)
     {
         $groupName = 'Sooqr Search';
 
-        /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
         $attributeSetIds = $eavSetup->getAllAttributeSetIds(Product::ENTITY);
 
@@ -175,7 +129,7 @@ class SetupData
                 'type'                    => 'int',
                 'label'                   => 'Exclude for Sooqr Search',
                 'input'                   => 'boolean',
-                'source'                  => \Magento\Eav\Model\Entity\Attribute\Source\Boolean::class,
+                'source'                  => Boolean::class,
                 'global'                  => ScopedAttributeInterface::SCOPE_GLOBAL,
                 'default'                 => '0',
                 'user_defined'            => true,
@@ -207,7 +161,6 @@ class SetupData
      */
     public function addExcludeCateroryAttribute(ModuleDataSetupInterface $setup)
     {
-        /** @var EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
         $eavSetup->addAttribute(
             Category::ENTITY,
@@ -216,7 +169,7 @@ class SetupData
                 'type'         => 'int',
                 'label'        => 'Disable Category from export',
                 'input'        => 'select',
-                'source'       => \Magento\Eav\Model\Entity\Attribute\Source\Boolean::class,
+                'source'       => Boolean::class,
                 'global'       => 1,
                 'visible'      => true,
                 'required'     => false,
