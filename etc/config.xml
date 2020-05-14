@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -11,6 +11,7 @@
         <magmodules_sooqr>
             <general>
                 <enable>1</enable>
+                <version>v1.1.3</version>
             </general>
             <implementation>
                 <advanced_version>4</advanced_version>

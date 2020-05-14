@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -21,13 +21,11 @@
             </group>
             <group id="general" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General</label>
-                <field id="version" translate="label" type="note" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="version" translate="text" type="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Version</label>
-                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Version</frontend_model>
                 </field>
-                <field id="token" translate="label" type="note" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="token" translate="label" type="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Token</label>
-                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Token</frontend_model>
                 </field>
                 <field id="enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Enable</label>

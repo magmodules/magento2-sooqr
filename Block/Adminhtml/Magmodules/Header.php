@@ -21,8 +21,9 @@ class Header extends Field
 {
 
     const MODULE_CODE = 'magento2-sooqr';
-    const MODULE_SUPPORT_LINK = 'https://support.sooqr.com/?base=';
-    const MODULE_SINGUP_LINK = 'https://signup.sooqr.com/?base=';
+    const MODULE_SUPPORT_LINK = 'https://support.sooqr.com/?utm_source=magento_plugin&utm_medium=referral&utm_campaign=m2_plugin&base=';
+    const MODULE_SINGUP_LINK = 'https://signup.sooqr.com/?utm_source=magento_plugin&utm_medium=referral&utm_campaign=m2_plugin&base=';
+
     /**
      * @var string
      */

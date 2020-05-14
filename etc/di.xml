@@ -41,13 +41,7 @@
         <arguments>
             <argument name="commands" xsi:type="array">
                 <item name="SooqrFeedGenerate" xsi:type="object">Magmodules\Sooqr\Console\Command\FeedGenerate</item>
-                <item name="SooqrConfig" xsi:type="object">Magmodules\Sooqr\Console\Command\Config</item>
             </argument>
-        </arguments>
-    </type>
-    <type name="Magmodules\Sooqr\Console\Command\Config">
-        <arguments>
-            <argument name="configHelper" xsi:type="object">Magmodules\Sooqr\Helper\Config\Proxy</argument>
         </arguments>
     </type>
     <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
