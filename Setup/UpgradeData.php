@@ -48,7 +48,6 @@ class UpgradeData implements UpgradeDataInterface
 
         if (version_compare($moduleVersion, '1.0.2', '<')) {
             $this->installer->changeConfigPaths();
-            $this->installer->convertSerializedDataToJson($setup);
         }
 
         if (version_compare($moduleVersion, '1.0.10', '<')) {
