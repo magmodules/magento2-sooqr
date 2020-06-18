@@ -54,4 +54,12 @@
             <argument name="generalHelper" xsi:type="object">Magmodules\Sooqr\Helper\General</argument>
         </arguments>
     </type>
+    <type name="Magento\Config\Model\Config\TypePool">
+        <arguments>
+           <argument name="sensitive" xsi:type="array">
+              <item name="magmodules_sooqr/implementation/account_id" xsi:type="string">1</item>
+              <item name="magmodules_sooqr/implementation/api_key" xsi:type="string">1</item>
+           </argument>
+        </arguments>
+     </type>
 </config>
