@@ -286,6 +286,14 @@
                         <field id="bundle" separator=",">simple,both</field>
                     </depends>
                 </field>
+                <field id="bundle_parent_price" translate="label" type="select" sortOrder="36" showInDefault="1" showInWebsite="1"
+                       showInStore="1">
+                    <label>Parent Price</label>
+                    <source_model>Magmodules\Sooqr\Model\System\Config\Source\Bundle\Price</source_model>
+                    <depends>
+                        <field id="bundle" separator=",">parent,both</field>
+                    </depends>
+                </field>
                 <field id="heading_grouped" translate="label comment" type="text" sortOrder="40" showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Grouped Products</label>
