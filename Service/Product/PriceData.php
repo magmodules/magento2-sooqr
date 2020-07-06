@@ -1,19 +1,19 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magmodules\Sooqr\Service\Product;
 
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\CatalogPrice;
 use Magento\CatalogRule\Model\ResourceModel\RuleFactory;
 use Magento\Catalog\Helper\Data as CatalogHelper;
+use Magento\GroupedProduct\Model\Product\Type\Grouped;
 
 /**
  * Class PriceData
- *
- * @package Magmodules\Sooqr\Service\Product
  */
 class PriceData
 {
@@ -45,8 +45,8 @@ class PriceData
     /**
      * PriceData constructor.
      *
-     * @param CatalogPrice  $commonPriceModel
-     * @param RuleFactory   $ruleFactory
+     * @param CatalogPrice $commonPriceModel
+     * @param RuleFactory $ruleFactory
      * @param CatalogHelper $catalogHelper
      */
     public function __construct(
@@ -60,8 +60,8 @@ class PriceData
     }
 
     /**
-     * @param                                $config
-     * @param \Magento\Catalog\Model\Product $product
+     * @param $config
+     * @param Product $product
      *
      * @return array
      */
@@ -70,22 +70,22 @@ class PriceData
         $this->setPrices($product, $config);
 
         return [
-            'price'            => $this->processPrice($product, $this->price, $config),
-            'price_ex'         => $this->processPrice($product, $this->price, $config, true),
-            'final_price'      => $this->processPrice($product, $this->finalPrice, $config),
-            'final_price_ex'   => $this->processPrice($product, $this->finalPrice, $config, true),
-            'sales_price'      => $this->processPrice($product, $this->salesPrice, $config),
-            'min_price'        => $this->processPrice($product, $this->minPrice, $config),
-            'max_price'        => $this->processPrice($product, $this->maxPrice, $config),
-            'total_price'      => $this->processPrice($product, $this->totalPrice, $config),
+            'price' => $this->processPrice($product, $this->price, $config),
+            'price_ex' => $this->processPrice($product, $this->price, $config, true),
+            'final_price' => $this->processPrice($product, $this->finalPrice, $config),
+            'final_price_ex' => $this->processPrice($product, $this->finalPrice, $config, true),
+            'sales_price' => $this->processPrice($product, $this->salesPrice, $config),
+            'min_price' => $this->processPrice($product, $this->minPrice, $config),
+            'max_price' => $this->processPrice($product, $this->maxPrice, $config),
+            'total_price' => $this->processPrice($product, $this->totalPrice, $config),
             'sales_date_range' => $this->getSpecialPriceDateRang($product),
-            'discount_perc'    => $this->getDiscountPercentage()
+            'discount_perc' => $this->getDiscountPercentage(),
         ];
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param array                          $config
+     * @param Product $product
+     * @param array $config
      */
     private function setPrices($product, $config)
     {
@@ -96,12 +96,19 @@ class PriceData
             case 'grouped':
                 $this->setGroupedPrices($product, $config);
                 break;
+            case 'bundle':
+                $this->setBundlePrices($product, $config);
+                break;
             default:
                 $this->setSimplePrices($product);
                 break;
         }
 
         $this->rulePrice = $this->getRulePrice($product, $config);
+
+        if ($this->finalPrice == '0.0000' && $this->minPrice > 0) {
+            $this->finalPrice = $this->minPrice;
+        }
 
         if ($this->finalPrice !== null && $this->finalPrice < $this->minPrice) {
             $this->minPrice = $this->finalPrice;
@@ -121,7 +128,7 @@ class PriceData
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      */
     private function setConfigurablePrices($product)
     {
@@ -141,8 +148,8 @@ class PriceData
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param array                          $config
+     * @param Product $product
+     * @param array $config
      */
     private function setGroupedPrices($product, $config)
     {
@@ -155,11 +162,11 @@ class PriceData
             $groupedPriceType = $config['price_config']['grouped_price_type'];
         }
 
-        /* @var $typeInstance \Magento\GroupedProduct\Model\Product\Type\Grouped */
+        /* @var $typeInstance Grouped */
         $typeInstance = $product->getTypeInstance();
         $subProducts = $typeInstance->getAssociatedProducts($product);
 
-        /** @var \Magento\Catalog\Model\Product $subProduct */
+        /** @var Product $subProduct */
         foreach ($subProducts as $subProduct) {
             $subProduct->setWebsiteId($config['website_id']);
             if ($subProduct->isSalable()) {
@@ -187,12 +194,14 @@ class PriceData
         if ($groupedPriceType == 'max') {
             $this->price = $maxPrice;
             $this->finalPrice = $maxPrice;
+
             return;
         }
 
         if ($groupedPriceType == 'total') {
             $this->price = $totalPrice;
             $this->finalPrice = $totalPrice;
+
             return;
         }
 
@@ -201,7 +210,37 @@ class PriceData
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
+     * @param array $config
+     */
+    private function setBundlePrices($product, $config)
+    {
+        $this->price = $product->getPrice() !== 0 ? $product->getPrice() : null;
+        $this->finalPrice = $product->getFinalPrice() !== 0 ? $product->getFinalPrice() : null;
+        $this->specialPrice = $product->getSpecialPrice() !== 0 ? $product->getFinalPrice() : null;
+        $this->minPrice = $product['min_price'] >= 0 ? $product['min_price'] : null;
+        $this->maxPrice = $product['max_price'] >= 0 ? $product['max_price'] : null;
+
+        $bundlePriceType = null;
+        if (!empty($config['price_config']['bundle_price_type'])) {
+            $bundlePriceType = $config['price_config']['bundle_price_type'];
+        }
+
+        if ($bundlePriceType == 'max') {
+            $this->price = $this->maxPrice;
+            $this->finalPrice = $this->maxPrice;
+        }
+
+        if ($bundlePriceType == 'min') {
+            $this->price = $this->minPrice;
+            $this->finalPrice = $this->minPrice;
+        }
+
+        return;
+    }
+
+    /**
+     * @param Product $product
      */
     private function setSimplePrices($product)
     {
@@ -213,8 +252,8 @@ class PriceData
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param array                          $config
+     * @param Product $product
+     * @param array $config
      *
      * @return
      */
@@ -235,10 +274,10 @@ class PriceData
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
-     * @param                                $price
-     * @param array                          $config
-     * @param bool                           $forceExVat
+     * @param Product $product
+     * @param $price
+     * @param array $config
+     * @param bool $forceExVat
      *
      * @return string
      */
@@ -268,14 +307,14 @@ class PriceData
         $decimal = isset($config['decimal_point']) ? $config['decimal_point'] : '.';
         $price = number_format(floatval(str_replace(',', '.', $price)), 2, $decimal, '');
         if (!empty($config['use_currency']) && ($price >= 0)) {
-            $price .= ' ' . $config['currency'];
+            $price .= ' '.$config['currency'];
         }
 
         return $price;
     }
 
     /**
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      *
      * @return string|void
      */
@@ -292,7 +331,8 @@ class PriceData
         if ($product->getSpecialFromDate() && $product->getSpecialToDate()) {
             $from = date('Y-m-d', strtotime($product->getSpecialFromDate()));
             $to = date('Y-m-d', strtotime($product->getSpecialToDate()));
-            return $from . '/' . $to;
+
+            return $from.'/'.$to;
         }
     }
 
@@ -305,7 +345,7 @@ class PriceData
             $discount = ($this->salesPrice - $this->price) / $this->price;
             $discount = $discount * -100;
             if ($discount > 0) {
-                return round($discount, 1) . '%';
+                return round($discount, 1).'%';
             }
         }
     }

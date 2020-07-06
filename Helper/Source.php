@@ -63,6 +63,7 @@ class Source extends AbstractHelper
     const XPATH_BUNDLE_IMAGE = 'magmodules_sooqr/types/bundle_image';
     const XPATH_BUNDLE_PARENT_ATTS = 'magmodules_sooqr/types/bundle_parent_atts';
     const XPATH_BUNDLE_NONVISIBLE = 'magmodules_sooqr/types/bundle_nonvisible';
+    const XPATH_BUNDLE_PARENT_PRICE = 'magmodules_sooqr/types/bundle_parent_price';
     const XPATH_GROUPED = 'magmodules_sooqr/types/grouped';
     const XPATH_GROUPED_LINK = 'magmodules_sooqr/types/grouped_link';
     const XPATH_GROUPED_IMAGE = 'magmodules_sooqr/types/grouped_image';
@@ -611,6 +612,7 @@ class Source extends AbstractHelper
         $priceFields['currency'] = $store->getCurrentCurrency()->getCode();
         $priceFields['exchange_rate'] = $store->getBaseCurrency()->getRate($priceFields['currency']);
         $priceFields['grouped_price_type'] = $this->generalHelper->getStoreValue(self::XPATH_GROUPED_PARENT_PRICE);
+        $priceFields['bundle_price_type'] = $this->generalHelper->getStoreValue(self::XPATH_BUNDLE_PARENT_PRICE);
 
         return $priceFields;
     }
