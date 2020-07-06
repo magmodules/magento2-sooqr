@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 
@@ -14,8 +14,6 @@ use Magento\GroupedProduct\Model\Product\Type\Grouped;
 
 /**
  * Class PriceData
- *
- * @package Magmodules\Sooqr\Service\Product
  */
 class PriceData
 {
@@ -107,6 +105,10 @@ class PriceData
         }
 
         $this->rulePrice = $this->getRulePrice($product, $config);
+
+        if ($this->finalPrice == '0.0000' && $this->minPrice > 0) {
+            $this->finalPrice = $this->minPrice;
+        }
 
         if ($this->finalPrice !== null && $this->finalPrice < $this->minPrice) {
             $this->minPrice = $this->finalPrice;
