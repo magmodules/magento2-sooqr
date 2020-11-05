@@ -34,7 +34,7 @@
             </group>
             <group id="implementation" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Frontend Implementation</label>
-                <comment>Set the general settings to connect your store with the Sooqr API. You can find your Sooqr Account ID and Sooqr API Key in your Sooqr account.</comment>
+                <comment>Set the general settings to connect your store with Sooqr. You can find your Sooqr Account ID in your Sooqr account.</comment>
                 <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Search</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
