@@ -53,13 +53,6 @@
                         <field id="enable">1</field>
                     </depends>
                 </field>
-                <field id="api_key" translate="label" type="obscure" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Sooqr API Key</label>
-                    <depends>
-                        <field id="enable">1</field>
-                    </depends>
-                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
-                </field>
                 <field id="statistics" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Statistics</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
