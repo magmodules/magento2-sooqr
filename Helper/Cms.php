@@ -122,12 +122,13 @@ class Cms extends AbstractHelper
     /**
      * @param $value
      *
-     * @return mixed|string
+     * @return string
      */
-    public function cleanData($value)
+    private function cleanData($value)
     {
-        $value = str_replace(["\r", "\n"], "", $value);
-        $value = strip_tags($value);
-        return $value;
+        $data = trim(strip_tags(
+            str_replace(["\r", "\n"], "", $value)
+        ));
+        return preg_replace('/{{[^}]+}}/', '', $data);
     }
 }

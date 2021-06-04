@@ -283,8 +283,8 @@ class PriceData
      */
     private function processPrice($product, $price, $config, $forceExVat = false)
     {
-        if (!empty($config['exchange_rate'])) {
-            $price = $price * $config['exchange_rate'];
+        if (!empty($config['price_config']['exchange_rate'])) {
+            $price = $price * $config['price_config']['exchange_rate'];
         }
 
         if ($forceExVat) {
