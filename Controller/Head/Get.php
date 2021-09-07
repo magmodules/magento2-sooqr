@@ -10,7 +10,6 @@ namespace Magmodules\Sooqr\Controller\Head;
 use Magento\Checkout\Model\SessionFactory as Session;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\Action\HttpPostActionInterface as HttpPostActionInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
@@ -20,7 +19,7 @@ use Magento\Framework\Controller\ResultInterface;
  * Class Get
  * Ajax controller to get queued events
  */
-class Get extends Action implements HttpPostActionInterface
+class Get extends Action 
 {
 
     /**
