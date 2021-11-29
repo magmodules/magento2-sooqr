@@ -101,10 +101,6 @@
                         <field id="enable">1</field>
                     </depends>
                 </field>
-                <field id="headdata" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Session Variable and Formkey</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                </field>
                 <field id="add_to_cart_controller" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add to Cart Controller</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
