@@ -47,11 +47,7 @@
     <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
         <arguments>
             <argument name="feedModel" xsi:type="object">Magmodules\Sooqr\Model\Feed\Proxy</argument>
-        </arguments>
-    </type>
-    <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
-        <arguments>
-            <argument name="generalHelper" xsi:type="object">Magmodules\Sooqr\Helper\General</argument>
+            <argument name="generalHelper" xsi:type="object">Magmodules\Sooqr\Helper\General\Proxy</argument>
         </arguments>
     </type>
     <type name="Magento\Config\Model\Config\TypePool">

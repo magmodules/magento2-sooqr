@@ -31,13 +31,13 @@ class General extends AbstractHelper
     const MODULE_CODE = 'Magmodules_Sooqr';
     const XPATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
     const XPATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
-    const XPATH_HEADDATA_ENABLED = 'magmodules_sooqr/implementation/headdata';
     const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
     const XPATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enable';
     const XPATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
     const XPATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
     const XPATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
     const XPATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
+    const XPATH_ADD_TO_CART_CONTROLLER = 'magmodules_sooqr/implementation/add_to_cart_controller';
     const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
     const XPATH_STAGING = 'magmodules_sooqr/implementation/advanced_staging';
     const XPATH_TOKEN = 'magmodules_sooqr/general/token';
@@ -138,24 +138,6 @@ class General extends AbstractHelper
         }
 
         if (!$this->getAccountId($storeId)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param null $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getHeadDataEnabled($storeId = null)
-    {
-        if (!$this->getEnabled()) {
-            return false;
-        }
-
-        if (!$this->getStoreValue(self::XPATH_HEADDATA_ENABLED, $storeId)) {
             return false;
         }
 
@@ -303,6 +285,16 @@ class General extends AbstractHelper
     public function getCustomJs($storeId = null)
     {
         return $this->getStoreValue(self::XPATH_CUSTOM_JS, $storeId);
+    }
+
+    /**
+     * General check if Extension is enabled.
+     *
+     * @return bool
+     */
+    public function getAddToCartController(): bool
+    {
+        return (boolean)$this->getStoreValue(self::XPATH_ADD_TO_CART_CONTROLLER);
     }
 
     /**
