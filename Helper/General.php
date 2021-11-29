@@ -31,7 +31,6 @@ class General extends AbstractHelper
     const MODULE_CODE = 'Magmodules_Sooqr';
     const XPATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
     const XPATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
-    const XPATH_HEADDATA_ENABLED = 'magmodules_sooqr/implementation/headdata';
     const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
     const XPATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enable';
     const XPATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
@@ -139,24 +138,6 @@ class General extends AbstractHelper
         }
 
         if (!$this->getAccountId($storeId)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * @param null $storeId
-     *
-     * @return bool|mixed
-     */
-    public function getHeadDataEnabled($storeId = null)
-    {
-        if (!$this->getEnabled()) {
-            return false;
-        }
-
-        if (!$this->getStoreValue(self::XPATH_HEADDATA_ENABLED, $storeId)) {
             return false;
         }
 
