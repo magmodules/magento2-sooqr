@@ -7,8 +7,8 @@ declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Controller\Cart;
 
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Model\Product;
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
 use Magento\Framework\App\Action\Context;
@@ -17,11 +17,11 @@ use Magento\Framework\App\Response\RedirectInterface;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Data\Form\FormKey;
 use Magento\Framework\Data\Form\FormKey\Validator;
+use Magento\Framework\Escaper;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Magento\Framework\Escaper;
 use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
 
 /**
@@ -30,6 +30,18 @@ use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
 class Add extends \Magento\Checkout\Controller\Cart
 {
     /**
+     * @var Cart
+     */
+    protected $cart;
+    /**
+     * @var Session
+     */
+    protected $checkoutSession;
+    /**
+     * @var ScopeConfigInterface
+     */
+    protected $scopeConfig;
+    /**
      * @var FormKey
      */
     private $formKey;
@@ -37,10 +49,6 @@ class Add extends \Magento\Checkout\Controller\Cart
      * @var RedirectInterface
      */
     private $redirect;
-    /**
-     * @var Cart
-     */
-    protected $cart;
     /**
      * @var ProductRepositoryInterface
      */
@@ -53,14 +61,6 @@ class Add extends \Magento\Checkout\Controller\Cart
      * @var GeneralHelper
      */
     private $generalHelper;
-    /**
-     * @var Session
-     */
-    protected $checkoutSession;
-    /**
-     * @var ScopeConfigInterface
-     */
-    protected $scopeConfig;
     /**
      * @var Escaper
      */
@@ -118,7 +118,6 @@ class Add extends \Magento\Checkout\Controller\Cart
     /**
      * @return Redirect
      * @throws NoSuchEntityException
-     * @throws LocalizedException
      */
     public function execute(): Redirect
     {
@@ -129,30 +128,28 @@ class Add extends \Magento\Checkout\Controller\Cart
 
         try {
             $product = $this->initProduct();
-            if ($product) {
-                $params = [
-                    'form_key' => $this->formKey->getFormKey(),
-                    'product' => $product->getId(),
-                    'qty' => $this->getRequest()->getParam('qty', 1) ?: 1,
-                ];
-                $this->cart->addProduct($product, $params);
-                $this->cart->save();
+            $params = [
+                'form_key' => $this->formKey->getFormKey(),
+                'product' => $product->getId(),
+                'qty' => $this->getRequest()->getParam('qty', 1) ?: 1,
+            ];
+            $this->cart->addProduct($product, $params);
+            $this->cart->save();
 
-                $this->_eventManager->dispatch(
-                    'checkout_cart_add_product_complete',
-                    ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
+            $this->_eventManager->dispatch(
+                'checkout_cart_add_product_complete',
+                ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
+            );
+
+            if (!$this->cart->getQuote()->getHasError()) {
+                $message = __(
+                    'You added %1 to your shopping cart.',
+                    $product->getName()
                 );
-
-                if (!$this->cart->getQuote()->getHasError()) {
-                    $message = __(
-                        'You added %1 to your shopping cart.',
-                        $product->getName()
-                    );
-                    $this->messageManager->addSuccessMessage($message);
-                    return $this->goBack($this->getCartUrl());
-                }
-                return $this->goBack();
+                $this->messageManager->addSuccessMessage($message);
+                return $this->goBack($this->getCartUrl());
             }
+            return $this->goBack();
         } catch (LocalizedException $e) {
             if ($this->_checkoutSession->getUseNotice(true)) {
                 $this->messageManager->addNoticeMessage(
@@ -166,13 +163,9 @@ class Add extends \Magento\Checkout\Controller\Cart
                     );
                 }
             }
-
-            $url = $this->_checkoutSession->getRedirectUrl(true);
-
-            if (!$url) {
+            if (!$url = $this->_checkoutSession->getRedirectUrl(true)) {
                 $url = $this->_redirect->getRedirectUrl($this->getCartUrl());
             }
-
             return $this->goBack($url);
         } catch (\Exception $e) {
             $this->messageManager->addExceptionMessage(
@@ -185,22 +178,25 @@ class Add extends \Magento\Checkout\Controller\Cart
     }
 
     /**
+     * @param null $backUrl
+     * @return Redirect
+     */
+    protected function goBack($backUrl = null)
+    {
+        return parent::_goBack($backUrl);
+    }
+
+    /**
      * Initialize product instance from request data
      *
-     * @return Product|false
+     * @return ProductInterface
+     * @throws NoSuchEntityException
      */
     private function initProduct()
     {
         $productId = (int)$this->getRequest()->getParam('product');
-        if ($productId) {
-            $storeId = $this->storeManager->getStore()->getId();
-            try {
-                return $this->productRepository->getById($productId, false, $storeId);
-            } catch (NoSuchEntityException $e) {
-                return false;
-            }
-        }
-        return false;
+        $storeId = $this->storeManager->getStore()->getId();
+        return $this->productRepository->getById($productId, false, $storeId);
     }
 
     /**
@@ -211,14 +207,5 @@ class Add extends \Magento\Checkout\Controller\Cart
     private function getCartUrl()
     {
         return $this->_url->getUrl('checkout/cart', ['_secure' => true]);
-    }
-
-    /**
-     * @param null $backUrl
-     * @return Redirect
-     */
-    protected function goBack($backUrl = null)
-    {
-        return parent::_goBack($backUrl);
     }
 }
