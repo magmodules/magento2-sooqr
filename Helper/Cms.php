@@ -91,6 +91,7 @@ class Cms extends AbstractHelper
             $cmspages[] = [
                 'sqr:content_type' => 'cms',
                 'sqr:id'           => $page->getIdentifier(),
+                'sqr:assoc_id'     => $page->getIdentifier(),
                 'sqr:title'        => $page->getTitle(),
                 'sqr:description'  => $this->cleanData($page->getContent()),
                 'sqr:link'         => $baseUrl . $page->getIdentifier()
