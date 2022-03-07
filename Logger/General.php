@@ -1,20 +1,37 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 
 namespace Magmodules\Sooqr\Logger;
 
+use Magento\Framework\Serialize\Serializer\Json;
 use Monolog\Logger;
 
-/**
- * Class General
- *
- * @package Magmodules\Sooqr\Logger
- */
 class General extends Logger implements GeneralLoggerInterface
 {
+
+    /**
+     * @var Json
+     */
+    private $json;
+
+    /**
+     * @param Json   $json
+     * @param string $name
+     * @param array  $handlers
+     * @param array  $processors
+     */
+    public function __construct(
+        Json $json,
+        string $name,
+        array $handlers = [],
+        array $processors = []
+    ) {
+        $this->json = $json;
+        parent::__construct($name, $handlers, $processors);
+    }
 
     /**
      * {@inheritDoc}
@@ -22,9 +39,9 @@ class General extends Logger implements GeneralLoggerInterface
     public function add($type, $data)
     {
         if (is_array($data) || is_object($data)) {
-            $this->addInfo($type . ':' . implode(PHP_EOL, $data));
+            $this->addRecord(static::INFO, $type . ': ' . $this->json->serialize($data));
         } else {
-            $this->addInfo($type . ':' .  $data);
+            $this->addRecord(static::INFO, $type . ': ' . $data);
         }
     }
 }
