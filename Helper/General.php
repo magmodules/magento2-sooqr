@@ -38,8 +38,8 @@ class General extends AbstractHelper
     const XPATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
     const XPATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
     const XPATH_ADD_TO_CART_CONTROLLER = 'magmodules_sooqr/implementation/add_to_cart_controller';
+    const XPATH_ADD_TO_WISHLIST = 'magmodules_sooqr/implementation/add_to_wishlist_controller';
     const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
-    const XPATH_STAGING = 'magmodules_sooqr/implementation/advanced_staging';
     const XPATH_TOKEN = 'magmodules_sooqr/general/token';
     /**
      * @var ModuleListInterface
@@ -54,7 +54,7 @@ class General extends AbstractHelper
      */
     private $storeManager;
     /**
-     * @var Config
+     * @var ConfigData
      */
     private $config;
     /**
@@ -62,7 +62,7 @@ class General extends AbstractHelper
      */
     private $configDataCollectionFactory;
     /**
-     * @var ConfigData
+     * @var DateTime
      */
     private $coreDate;
     /**
@@ -288,13 +288,23 @@ class General extends AbstractHelper
     }
 
     /**
-     * General check if Extension is enabled.
+     * General check if AddToCart is enabled.
      *
      * @return bool
      */
     public function getAddToCartController(): bool
     {
-        return (boolean)$this->getStoreValue(self::XPATH_ADD_TO_CART_CONTROLLER);
+        return (bool)$this->getStoreValue(self::XPATH_ADD_TO_CART_CONTROLLER) && $this->getEnabled();
+    }
+
+    /**
+     * General check if AddToWishlist is enabled.
+     *
+     * @return bool
+     */
+    public function addToWishlistController(): bool
+    {
+        return (bool)$this->getStoreValue(self::XPATH_ADD_TO_WISHLIST) && $this->getEnabled();
     }
 
     /**
