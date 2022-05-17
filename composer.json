@@ -2,7 +2,7 @@
     "name": "magmodules/magento2-sooqr",
     "description": "Sooqr integration for Magento 2",
     "type": "magento2-module",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "license": [
         "OSL-3.0",
         "AFL-3.0"

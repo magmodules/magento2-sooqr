@@ -15,7 +15,6 @@ use Magento\Framework\Filesystem;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
-use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magmodules\Sooqr\Helper\General as GeneralHelper;
 use Magmodules\Sooqr\Exceptions\Validation as ValidationException;
 
@@ -61,11 +60,6 @@ class Feed extends AbstractHelper
     private $filesystemIo;
 
     /**
-     * @var TimezoneInterface
-     */
-    private $timezone;
-
-    /**
      * @var DateTime
      */
     private $datetime;
@@ -89,7 +83,6 @@ class Feed extends AbstractHelper
      * @param DirectoryList         $directoryList
      * @param File                  $filesystemIo
      * @param DateTime              $datetime
-     * @param TimezoneInterface     $timezone
      * @param General               $generalHelper
      */
     public function __construct(
@@ -99,7 +92,6 @@ class Feed extends AbstractHelper
         DirectoryList $directoryList,
         File $filesystemIo,
         DateTime $datetime,
-        TimezoneInterface $timezone,
         GeneralHelper $generalHelper
     ) {
         $this->generalHelper = $generalHelper;
@@ -108,7 +100,6 @@ class Feed extends AbstractHelper
         $this->filesystemIo = $filesystemIo;
         $this->baseDir = $directoryList->getPath(DirectoryList::ROOT);
         $this->tempDir = $directoryList->getPath(DirectoryList::TMP);
-        $this->timezone = $timezone;
         $this->datetime = $datetime;
         parent::__construct($context);
     }
@@ -373,7 +364,7 @@ class Feed extends AbstractHelper
         $summary['products_total'] = $processed;
         $summary['products_limit'] = $limit;
         $summary['processing_time'] = $this->getTimeUsage($timeStart);
-        $summary['date_created'] = $this->timezone->formatDateTime(null, 1);
+        $summary['date_created'] = $this->datetime->gmtDate();
         return $summary;
     }
 
