@@ -406,7 +406,7 @@ class Source extends AbstractHelper
             $filters['limit'] = self::LIMIT_PREVIEW;
         } else {
             $advanced = (int)$this->generalHelper->getStoreValue(self::XPATH_ADVANCED);
-            $paging = preg_replace('/\D/', '', $this->generalHelper->getStoreValue(self::XPATH_PAGING));
+            $paging = (int)$this->generalHelper->getStoreValue(self::XPATH_PAGING);
             if ($advanced && ($paging > 0)) {
                 $filters['limit'] = $paging;
             }

@@ -209,7 +209,7 @@ class General extends AbstractHelper
     {
         $value = $this->getStoreValue($path, $storeId, $scope);
 
-        $result = json_decode($value, true);
+        $result = json_decode((string)$value, true);
         if (json_last_error() == JSON_ERROR_NONE) {
             if (is_array($result)) {
                 return $result;
