@@ -101,13 +101,34 @@
                         <field id="enable">1</field>
                     </depends>
                 </field>
-                <field id="add_to_cart_controller" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="heading_add_to" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Add to cart</label>
+                    <frontend_model>Magmodules\Sooqr\Block\Adminhtml\Magmodules\Heading</frontend_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
+                </field>
+                <field id="add_to_cart_controller" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add to Cart Controller</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
                 </field>
-                <field id="add_to_cart_wishlist" translate="label" type="select" sortOrder="41" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="add_to_cart_ajax" translate="label" type="select" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Ajax based Add to Cart</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                        <field id="add_to_cart_controller">1</field>
+                    </depends>
+                </field>
+                <field id="add_to_cart_wishlist" translate="label" type="select" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add to Wishlist Controller</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <depends>
+                        <field id="enable">1</field>
+                    </depends>
                 </field>
             </group>
             <group id="data" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">

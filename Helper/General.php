@@ -38,6 +38,7 @@ class General extends AbstractHelper
     const XPATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
     const XPATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
     const XPATH_ADD_TO_CART_CONTROLLER = 'magmodules_sooqr/implementation/add_to_cart_controller';
+    const XPATH_AJAX_TO_CART_CONTROLLER = 'magmodules_sooqr/implementation/add_to_cart_ajax';
     const XPATH_ADD_TO_WISHLIST = 'magmodules_sooqr/implementation/add_to_wishlist_controller';
     const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
     const XPATH_TOKEN = 'magmodules_sooqr/general/token';
@@ -295,6 +296,18 @@ class General extends AbstractHelper
     public function getAddToCartController(): bool
     {
         return (bool)$this->getStoreValue(self::XPATH_ADD_TO_CART_CONTROLLER) && $this->getEnabled();
+    }
+
+    /**
+     * Check if ajax based AddToCart is enabled.
+     *
+     * @param int $storeId
+     * @return bool
+     */
+    public function isAjaxAddToCartEnabled(int $storeId): bool
+    {
+        return $this->getStoreValue(self::XPATH_AJAX_TO_CART_CONTROLLER, $storeId)
+            && $this->getAddToCartController();
     }
 
     /**
