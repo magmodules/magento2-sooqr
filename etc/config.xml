@@ -11,7 +11,7 @@
         <magmodules_sooqr>
             <general>
                 <enable>1</enable>
-                <version>v1.4.1</version>
+                <version>v1.4.2</version>
             </general>
             <implementation>
                 <advanced_version>4</advanced_version>
