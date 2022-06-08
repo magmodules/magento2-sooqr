@@ -97,15 +97,16 @@ class Feed
     {
         $storeIds = $this->generalHelper->getEnabledArray(self::XPATH_GENERATE);
         foreach ($storeIds as $storeId) {
-            $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
-
             try {
+                $this->generalHelper->addTolog('generateAll - Store ID: ' . $storeId, 'start');
+                $this->appEmulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND, true);
                 $this->generateByStore($storeId, 'cron');
+                $this->generalHelper->addTolog('generateAll - Store ID: ' . $storeId, 'finish');
             } catch (\Exception $e) {
-                $this->generalHelper->addTolog('Generate', $e->getMessage());
+                $this->generalHelper->addTolog('generateAll - Store ID: ' . $storeId, $e->getMessage());
+            } finally {
+                $this->appEmulation->stopEnvironmentEmulation();
             }
-
-            $this->appEmulation->stopEnvironmentEmulation();
         }
     }
 

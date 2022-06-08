@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="default">
+    <group id="sooqr">
         <job name="magmodules_sooqr" instance="Magmodules\Sooqr\Cron\GenerateFeeds" method="execute">
             <schedule>0 0 * * *</schedule>
             <config_path>crontab/default/jobs/magmodules_sooqr/schedule/cron_expr</config_path>
