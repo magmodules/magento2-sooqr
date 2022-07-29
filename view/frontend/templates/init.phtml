@@ -29,4 +29,13 @@
             s.parentNode.insertBefore(ws, s);
         })();
     </script>
+    <?php if ($block->isAjaxAddToCartEnabled()) : ?>
+        <script type="text/x-magento-init">
+            {
+                "*": {
+                    "Magmodules_Sooqr/js/add-to-cart": {}
+                }
+            }
+        </script>
+    <?php endif; ?>
 <?php endif; ?>
