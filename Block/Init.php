@@ -73,6 +73,16 @@ class Init extends Template
     }
 
     /**
+     * Check if ajax based AddToCart is enabled.
+     *
+     * @return bool
+     */
+    public function isAjaxAddToCartEnabled(): bool
+    {
+        return $this->generalHelper->isAjaxAddToCartEnabled($this->storeId);
+    }
+
+    /**
      * @return array
      */
     public function getSooqrOptions()
