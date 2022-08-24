@@ -34,6 +34,7 @@ class General extends AbstractHelper
     const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
     const XPATH_GENERATE_ENABLED = 'magmodules_sooqr/generate/enable';
     const XPATH_ACCOUNT_ID = 'magmodules_sooqr/implementation/account_id';
+    const XPATH_LOADER = 'magmodules_sooqr/implementation/loader';
     const XPATH_PARENT = 'magmodules_sooqr/implementation/advanced_parent';
     const XPATH_VERSION = 'magmodules_sooqr/implementation/advanced_version';
     const XPATH_CUSTOM_JS = 'magmodules_sooqr/implementation/advanced_custom_js';
@@ -263,6 +264,16 @@ class General extends AbstractHelper
      *
      * @return mixed
      */
+    public function getLoaderType($storeId = null)
+    {
+        return $this->getStoreValue(self::XPATH_LOADER, $storeId) ?? 'default';
+    }
+
+    /**
+     * @param null $storeId
+     *
+     * @return mixed
+     */
     public function getParent($storeId = null)
     {
         return $this->getStoreValue(self::XPATH_PARENT, $storeId);
@@ -301,10 +312,10 @@ class General extends AbstractHelper
     /**
      * Check if ajax based AddToCart is enabled.
      *
-     * @param int $storeId
+     * @param int|null $storeId
      * @return bool
      */
-    public function isAjaxAddToCartEnabled(int $storeId): bool
+    public function isAjaxAddToCartEnabled(?int $storeId = null): bool
     {
         return $this->getStoreValue(self::XPATH_AJAX_TO_CART_CONTROLLER, $storeId)
             && $this->getAddToCartController();

@@ -7,29 +7,36 @@
  * @var $block \Magmodules\Sooqr\Block\Init
  */
 ?>
-<?php if ($block->getFrontendEnabled()) : ?>
-    <?php
-    $sooqrOptions = $this->helper(\Magento\Framework\Json\Helper\Data::class)->jsonEncode($block->getSooqrOptions());
-    ?>
-    <script type="text/javascript">
-        var _wssq = _wssq || [];
-        _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $sooqrOptions ?>}]);
-        _wssq.push(['suggest._setPosition', 'screen-middle']);
-        _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($block->getSooqrLanguage()) ?>']);
-        <?php if (!$block->isTrackingEnabled()) : ?>
-        _wssq.push(['suggest._disableTracking']);
-        <?php endif; ?>
-        <?= /* @noEscape */ $block->getSooqrJavascript() ?>
-        (function () {
-            var ws = document.createElement('script');
-            ws.type = 'text/javascript';
-            ws.async = true;
-            ws.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + '<?= $block->escapeUrl($block->getSooqrScriptUri()) ?>';
-            var s = document.getElementsByTagName('script')[0];
-            s.parentNode.insertBefore(ws, s);
-        })();
-    </script>
-    <?php if ($block->isAjaxAddToCartEnabled()) : ?>
+<?php if ($block->getFrontendEnabled()): ?>
+    <?php if ($block->getLoaderType() == 'custom'): ?>
+        <script type="text/javascript">
+            (function() {
+                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://') + '<?= $block->escapeUrl($block->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php else: ?>
+        <script type="text/javascript">
+            var _wssq = _wssq || [];
+            _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $block->getSooqrOptions() ?>}]);
+            _wssq.push(['suggest._setPosition', 'screen-middle']);
+            _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($block->getSooqrLanguage()) ?>']);
+            <?php if (!$block->isTrackingEnabled()) : ?>
+            _wssq.push(['suggest._disableTracking']);
+            <?php endif; ?>
+            <?= /* @noEscape */ $block->getSooqrJavascript() ?>
+            (function () {
+                var ws = document.createElement('script');
+                ws.type = 'text/javascript';
+                ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://') + '<?= $block->escapeUrl($block->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php endif; ?>
+    <?php if ($block->isAjaxAddToCartEnabled()): ?>
         <script type="text/x-magento-init">
             {
                 "*": {

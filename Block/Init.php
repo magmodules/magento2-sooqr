@@ -6,10 +6,13 @@
 
 namespace Magmodules\Sooqr\Block;
 
-use Magento\Framework\View\Element\Template\Context;
-use Magento\Framework\View\Element\Template;
-use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Locale\Resolver;
+use Magento\Framework\Serialize\SerializerInterface;
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
+use Magento\Store\Model\StoreManagerInterface;
+use Magmodules\Sooqr\Helper\General as GeneralHelper;
 
 /**
  * Class Init
@@ -20,47 +23,44 @@ class Init extends Template
 {
 
     const SOOQR_SCRIPT_URL = 'static.sooqr.com/sooqr.js';
+    const SOOQR_CUSTOM_SCRIPT_URL = 'static.sooqr.com/custom/%s/snippet.js';
 
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    private $scopeConfig;
     /**
      * @var GeneralHelper
      */
     private $generalHelper;
     /**
-     * @var \Magento\Store\Model\StoreManagerInterface
+     * @var StoreManagerInterface
      */
     private $storeManager;
-    /**
-     * @var int
-     */
-    private $storeId;
     /**
      * @var Resolver
      */
     private $localeResolver;
+    /**
+     * @var SerializerInterface
+     */
+    private $serializer;
 
     /**
      * Init constructor.
      *
-     * @param Context       $context
+     * @param Context $context
      * @param GeneralHelper $generalHelper
-     * @param Resolver      $localeResolver
-     * @param array         $data
+     * @param Resolver $localeResolver
+     * @param array $data
      */
     public function __construct(
         Context $context,
         GeneralHelper $generalHelper,
         Resolver $localeResolver,
+        SerializerInterface $serializer,
         array $data = []
     ) {
-        $this->scopeConfig = $context->getScopeConfig();
         $this->storeManager = $context->getStoreManager();
-        $this->storeId = $this->storeManager->getStore()->getId();
         $this->localeResolver = $localeResolver;
         $this->generalHelper = $generalHelper;
+        $this->serializer = $serializer;
         parent::__construct($context, $data);
     }
 
@@ -69,7 +69,7 @@ class Init extends Template
      */
     public function getFrontendEnabled()
     {
-        return $this->generalHelper->getFrontendEnabled($this->storeId);
+        return $this->generalHelper->getFrontendEnabled();
     }
 
     /**
@@ -79,26 +79,26 @@ class Init extends Template
      */
     public function isAjaxAddToCartEnabled(): bool
     {
-        return $this->generalHelper->isAjaxAddToCartEnabled($this->storeId);
+        return $this->generalHelper->isAjaxAddToCartEnabled();
     }
 
     /**
-     * @return array
+     * @return string
      */
-    public function getSooqrOptions()
+    public function getSooqrOptions(): string
     {
-        $accountId = $this->generalHelper->getAccountId($this->storeId);
+        $accountId = $this->generalHelper->getAccountId();
         $options = ['account' => $accountId, 'fieldId' => 'search'];
 
-        if ($parent = $this->generalHelper->getParent($this->storeId)) {
+        if ($parent = $this->generalHelper->getParent()) {
             $options['containerParent'] = $parent;
         }
 
-        if ($version = $this->generalHelper->getVersion($this->storeId)) {
+        if ($version = $this->generalHelper->getVersion()) {
             $options['version'] = $version;
         }
 
-        return $options;
+        return $this->serializer->serialize($options);
     }
 
     /**
@@ -114,7 +114,7 @@ class Init extends Template
      */
     public function getSooqrJavascript()
     {
-        if ($customJs = $this->generalHelper->getCustomJs($this->storeId)) {
+        if ($customJs = $this->generalHelper->getCustomJs()) {
             return $customJs;
         }
     }
@@ -124,22 +124,54 @@ class Init extends Template
      */
     public function isTrackingEnabled()
     {
-        return $this->generalHelper->getStatistics($this->storeId);
+        return $this->generalHelper->getStatistics();
     }
 
     /**
      * @return string
      */
-    public function getSooqrScriptUri()
+    public function getSooqrScriptUri(): string
     {
+        if ($this->getLoaderType() == 'custom') {
+            return sprintf(
+                self::SOOQR_CUSTOM_SCRIPT_URL,
+                $this->getCleanAccountId()
+            );
+        }
+
         return self::SOOQR_SCRIPT_URL;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
-    public function getStoreCode()
+    public function getLoaderType(): string
     {
-        return $this->storeManager->getStore()->getCode();
+        return $this->generalHelper->getLoaderType();
+    }
+
+    /**
+     * @return ?int
+     */
+    public function getCleanAccountId(): ?int
+    {
+        $accountId = trim((string)$this->generalHelper->getAccountId());
+        if ($accountId && preg_match('/-(.*?)-/', $accountId, $match) == 1) {
+            return (int)$match[1];
+        }
+
+        return null;
+    }
+
+    /**
+     * @return string
+     */
+    public function getStoreCode(): string
+    {
+        try {
+            return $this->storeManager->getStore()->getCode();
+        } catch (NoSuchEntityException $e) {
+            return '';
+        }
     }
 }
