@@ -79,7 +79,7 @@
                     <label>Parent HTML node</label>
                     <depends>
                         <field id="enable">1</field>
-                        <field id="loader"/>
+                        <field id="loader" negative="1">custom</field>
                     </depends>
                 </field>
                 <field id="advanced_staging" translate="label" type="select" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -87,7 +87,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enable">1</field>
-                        <field id="loader"/>
+                        <field id="loader" negative="1">custom</field>
                     </depends>
                 </field>
                 <field id="advanced_debug" translate="label" type="select" sortOrder="23" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -95,7 +95,7 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <depends>
                         <field id="enable">1</field>
-                        <field id="loader"/>
+                        <field id="loader" negative="1">custom</field>
                     </depends>
                 </field>
                 <field id="advanced_version" translate="label" type="select" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -103,14 +103,14 @@
                     <source_model>Magmodules\Sooqr\Model\System\Config\Source\Frontend</source_model>
                     <depends>
                         <field id="enable">1</field>
-                        <field id="loader"/>
+                        <field id="loader" negative="1">custom</field>
                     </depends>
                 </field>
                 <field id="advanced_custom_js" translate="label" type="textarea" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Custom JS</label>
                     <depends>
                         <field id="enable">1</field>
-                        <field id="loader"/>
+                        <field id="loader" negative="1">custom</field>
                     </depends>
                 </field>
                 <field id="heading_add_to" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
