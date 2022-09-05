@@ -11,7 +11,6 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Framework\Serialize\SerializerInterface;
-use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -29,6 +28,7 @@ class General extends AbstractHelper
 {
 
     const MODULE_CODE = 'Magmodules_Sooqr';
+    const XPATH_EXTENSION_VERSION = 'magmodules_sooqr/general/version';
     const XPATH_EXTENSION_ENABLED = 'magmodules_sooqr/general/enable';
     const XPATH_FRONTEND_ENABLED = 'magmodules_sooqr/implementation/enable';
     const XPATH_CRON_ENABLED = 'magmodules_sooqr/generate/cron';
@@ -43,10 +43,7 @@ class General extends AbstractHelper
     const XPATH_ADD_TO_WISHLIST = 'magmodules_sooqr/implementation/add_to_wishlist_controller';
     const XPATH_STATISTICS = 'magmodules_sooqr/implementation/statistics';
     const XPATH_TOKEN = 'magmodules_sooqr/general/token';
-    /**
-     * @var ModuleListInterface
-     */
-    private $moduleList;
+
     /**
      * @var ProductMetadataInterface
      */
@@ -87,21 +84,20 @@ class General extends AbstractHelper
     /**
      * General constructor.
      *
-     * @param Context                     $context
-     * @param StoreManagerInterface       $storeManager
-     * @param ModuleListInterface         $moduleList
-     * @param ProductMetadataInterface    $metadata
+     * @param Context $context
+     * @param StoreManagerInterface $storeManager
+     * @param ProductMetadataInterface $metadata
      * @param ConfigDataCollectionFactory $configDataCollectionFactory
-     * @param ConfigData                  $config
-     * @param DateTime                    $coreDate
-     * @param TimezoneInterface           $localeDate
-     * @param GeneralLoggerInterface      $generalLogger
-     * @param ValidationLoggerInterface   $validationLogger
+     * @param ConfigData $config
+     * @param DateTime $coreDate
+     * @param TimezoneInterface $localeDate
+     * @param GeneralLoggerInterface $generalLogger
+     * @param ValidationLoggerInterface $validationLogger
+     * @param SerializerInterface $serializer
      */
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
-        ModuleListInterface $moduleList,
         ProductMetadataInterface $metadata,
         ConfigDataCollectionFactory $configDataCollectionFactory,
         ConfigData $config,
@@ -112,7 +108,6 @@ class General extends AbstractHelper
         SerializerInterface $serializer
     ) {
         $this->storeManager = $storeManager;
-        $this->moduleList = $moduleList;
         $this->metadata = $metadata;
         $this->configDataCollectionFactory = $configDataCollectionFactory;
         $this->config = $config;
@@ -364,9 +359,7 @@ class General extends AbstractHelper
      */
     public function getExtensionVersion()
     {
-        $moduleInfo = $this->moduleList->getOne(self::MODULE_CODE);
-
-        return $moduleInfo['setup_version'];
+        return $this->getStoreValue(self::XPATH_EXTENSION_VERSION);
     }
 
     /**
