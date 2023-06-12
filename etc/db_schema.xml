@@ -1,0 +1,45 @@
+<?xml version="1.0" ?>
+<!--
+  ~ Copyright © Magmodules.eu. All rights reserved.
+  ~ See COPYING.txt for license details.
+  -->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+
+    <table name="sooqr_delta" engine="innodb" resource="default" comment="Sooqr Delta">
+        <column name="entity_id" xsi:type="int" padding="10" identity="true" nullable="false" unsigned="true" comment="Entity ID"/>
+        <column name="product_id" xsi:type="int" padding="10" nullable="false" identity="false" unsigned="true" comment="Product ID"/>
+        <column name="updated_at" xsi:type="timestamp" on_update="true" default="CURRENT_TIMESTAMP" comment="Updated At"/>
+        <column name="product_updated_at" xsi:type="timestamp" on_update="false" default="CURRENT_TIMESTAMP" comment="Product Updated At"/>
+        <column name="stock_updated_at" xsi:type="timestamp" on_update="true" default="CURRENT_TIMESTAMP" comment="Stock Updated At"/>
+        <column name="stock_status" xsi:type="smallint" padding="5" unsigned="true" nullable="true" identity="false" comment="Stock Status"/>
+        <column name="stock_status_updated_at" xsi:type="timestamp" on_update="true" default="CURRENT_TIMESTAMP" comment="Stock Updated At"/>
+        <column name="deleted" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" default="0" comment="Deleted (1/0)"/>
+        <constraint referenceId="PRIMARY" xsi:type="primary">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+
+    <table name="sooqr_feed" engine="innodb" resource="default" comment="Sooqr Feed">
+        <column name="entity_id" xsi:type="int" padding="10" identity="true" nullable="false" unsigned="true" comment="Entity ID"/>
+        <column name="store_id" xsi:type="smallint" padding="5" nullable="false" identity="false" unsigned="true" comment="Store ID"/>
+        <column name="result" xsi:type="varchar" length="255" nullable="false" comment="Result"/>
+        <column name="products" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" default="0" comment="Products generated (1/0)"/>
+        <column name="cms_pages" xsi:type="smallint" padding="2" nullable="false" identity="false" default="0" comment="CMS pages generated (1/0)"/>
+        <column name="categories" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" default="0" comment="Categories generated (1/0)"/>
+        <column name="execution_time" xsi:type="smallint" padding="5" nullable="false" identity="false" unsigned="true" comment="Store ID"/>
+        <column name="executed_by" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" comment="Executed By"/>
+        <column name="filename" xsi:type="varchar" length="255" nullable="true" comment="Filename"/>
+        <column name="webhook_url" xsi:type="varchar" length="255" nullable="true" comment="Filename"/>
+        <column name="response" xsi:type="varchar" length="255" nullable="false" comment="Response"/>
+        <column name="sent_to_platform" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" comment="Is data was sent to platform"/>
+        <column name="type" xsi:type="smallint" padding="2" nullable="false" identity="false" unsigned="true" comment="Type"/>
+        <column name="started_at" xsi:type="timestamp" on_update="false" comment="Started At"/>
+        <column name="created_at" xsi:type="timestamp" on_update="false" default="CURRENT_TIMESTAMP" comment="Created At"/>
+        <column name="finished_at" xsi:type="timestamp" on_update="false" comment="Finished At"/>
+        <column name="downloaded_at" xsi:type="timestamp" on_update="false" comment="Downloaded At"/>
+        <constraint referenceId="PRIMARY" xsi:type="primary">
+            <column name="entity_id"/>
+        </constraint>
+    </table>
+</schema>

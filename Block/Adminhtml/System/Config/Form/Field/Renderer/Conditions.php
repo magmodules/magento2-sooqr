@@ -1,19 +1,18 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer;
 
-use Magento\Framework\View\Element\Html\Select;
 use Magento\Framework\View\Element\Context;
-use Magmodules\Sooqr\Model\System\Config\Source\Conditions as ConditionsSource;
+use Magento\Framework\View\Element\Html\Select;
+use Magmodules\Sooqr\Model\Config\Source\Conditions as ConditionsSource;
 
 /**
- * Class Conditions
- *
- * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer
+ * HTML select for Conditions
  */
 class Conditions extends Select
 {
@@ -26,9 +25,9 @@ class Conditions extends Select
     /**
      * Conditions constructor.
      *
-     * @param Context          $context
+     * @param Context $context
      * @param ConditionsSource $conditions
-     * @param array            $data
+     * @param array $data
      */
     public function __construct(
         Context $context,
@@ -40,9 +39,7 @@ class Conditions extends Select
     }
 
     /**
-     * Render block HTML.
-     *
-     * @return string
+     * @inheritDoc
      */
     public function _toHtml()
     {
@@ -64,6 +61,6 @@ class Conditions extends Select
      */
     public function setInputName($value)
     {
-        return $this->setName($value);
+        return $this->setData('name', $value);
     }
 }

@@ -1,65 +1,100 @@
 <?xml version="1.0"?>
 <!--
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="Magmodules\Sooqr\Logger\Handler\General">
-        <arguments>
-            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
-        </arguments>
-    </type>
-    <type name="Magmodules\Sooqr\Logger\General">
-        <arguments>
-            <argument name="name" xsi:type="string">GeneralLogger</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\General</item>
-            </argument>
-        </arguments>
-    </type>
-    <type name="Magmodules\Sooqr\Logger\Handler\Validation">
-        <arguments>
-            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
-        </arguments>
-    </type>
-    <type name="Magmodules\Sooqr\Logger\Validation">
-        <arguments>
-            <argument name="name" xsi:type="string">ValidationLogger</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Validation</item>
-            </argument>
-        </arguments>
-    </type>
-    <preference for="Magmodules\Sooqr\Logger\GeneralLoggerInterface"
-                type="Magmodules\Sooqr\Logger\General"/>
-    <preference for="Magmodules\Sooqr\Logger\ValidationLoggerInterface"
-                type="Magmodules\Sooqr\Logger\Validation"/>
+
+    <preference for="Magmodules\Sooqr\Api\Log\RepositoryInterface" type="Magmodules\Sooqr\Model\Log\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\Config\RepositoryInterface" type="Magmodules\Sooqr\Model\Config\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\ProductData\RepositoryInterface" type="Magmodules\Sooqr\Model\ProductData\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\Log\RepositoryInterface" type="Magmodules\Sooqr\Model\Log\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\Cms\RepositoryInterface" type="Magmodules\Sooqr\Model\Cms\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\Generate\RepositoryInterface" type="Magmodules\Sooqr\Model\Generate\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\WebApi\RepositoryInterface" type="Magmodules\Sooqr\Model\WebApi\Repository"/>
+
+    <!-- CLI Start -->
     <type name="Magento\Framework\Console\CommandList">
         <arguments>
             <argument name="commands" xsi:type="array">
-                <item name="SooqrFeedGenerate" xsi:type="object">Magmodules\Sooqr\Console\Command\FeedGenerate</item>
+                <item name="GenerateFeed" xsi:type="object">Magmodules\Sooqr\Console\Command\CreateFeed</item>
             </argument>
         </arguments>
     </type>
-    <type name="Magmodules\Sooqr\Console\Command\FeedGenerate">
+    <type name="Magmodules\Sooqr\Console\Command\CreateFeed">
         <arguments>
-            <argument name="feedModel" xsi:type="object">Magmodules\Sooqr\Model\Feed\Proxy</argument>
-            <argument name="generalHelper" xsi:type="object">Magmodules\Sooqr\Helper\General\Proxy</argument>
+            <argument name="generateFeedRepository" xsi:type="object">Magmodules\Sooqr\Api\Generate\RepositoryInterface\Proxy</argument>
         </arguments>
     </type>
-    <type name="Magento\Config\Model\Config\TypePool">
-        <arguments>
-            <argument name="sensitive" xsi:type="array">
-                <item name="magmodules_sooqr/implementation/account_id" xsi:type="string">1</item>
-                <item name="magmodules_sooqr/implementation/api_key" xsi:type="string">1</item>
-            </argument>
-            <argument name="environment" xsi:type="array">
-                <item name="magmodules_sooqr/feeds/results" xsi:type="string">1</item>
-            </argument>
-        </arguments>
-     </type>
- </config>
+    <!-- CLI End -->
 
+    <!-- Log Block Start -->
+    <type name="Magmodules\Sooqr\Logger\ErrorLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">SooqrError</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Error</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Logger\DebugLogger">
+        <arguments>
+            <argument name="name" xsi:type="string">SooqrDebug</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Debug</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Log Block End -->
+
+    <!-- Feed Block Start -->
+    <preference for="Magmodules\Sooqr\Api\Feed\RepositoryInterface" type="Magmodules\Sooqr\Model\Feed\Repository"/>
+    <preference for="Magmodules\Sooqr\Api\Feed\Data\DataInterface" type="Magmodules\Sooqr\Model\Feed\DataModel"/>
+    <preference for="Magmodules\Sooqr\Api\Feed\Data\SearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+    <virtualType name="Magmodules\Sooqr\Model\Feed\Grid\Collection" type="Magento\Framework\View\Element\UiComponent\DataProvider\SearchResult">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">sooqr_feed</argument>
+            <argument name="resourceModel" xsi:type="string">Magmodules\Sooqr\Model\Feed\Collection</argument>
+        </arguments>
+    </virtualType>
+    <!-- Feed Block End -->
+
+    <!-- Data Providers Start -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="sooqr_feed_listing_data_source" xsi:type="string">Magmodules\Sooqr\Model\Feed\Grid\Collection</item>
+                <item name="sooqr_delta_listing_data_source" xsi:type="string">Magmodules\Sooqr\Model\Delta\Grid\Collection</item>
+            </argument>
+        </arguments>
+    </type>
+    <!-- Data Providers End -->
+
+    <!-- Delta Block Start -->
+    <preference for="Magmodules\Sooqr\Api\Delta\Data\DataInterface" type="Magmodules\Sooqr\Model\Delta\DataModel"/>
+    <type name="Magmodules\Sooqr\Model\Delta\Grid\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">sooqr_delta</argument>
+            <argument name="resourceModel" xsi:type="string">Magmodules\Sooqr\Model\Delta\Collection</argument>
+        </arguments>
+    </type>
+    <!-- Delta Block End -->
+
+    <!-- Plugins -->
+    <type name="\Magento\Catalog\Model\Indexer\Product\Eav">
+        <plugin name="bindDeltaIndexer" type="\Magmodules\Sooqr\Plugin\Catalog\Model\Indexer\Product\Eav\BindDeltaIndexer" />
+    </type>
+    <type name="\Magento\Catalog\Controller\Adminhtml\Product\MassDelete">
+        <plugin name="bindDeltaIndexerMassDelete" type="\Magmodules\Sooqr\Plugin\Catalog\Controller\Adminhtml\Product\MassDelete\BindDeltaIndexer" />
+    </type>
+    <type name="\Magento\CatalogInventory\Model\Indexer\Stock">
+        <plugin name="bindDeltaIndexerInventory" type="\Magmodules\Sooqr\Plugin\CatalogInventory\Model\Indexer\Stock\BindDeltaIndexer" />
+    </type>
+    <type name="Magento\Catalog\Model\ResourceModel\Category">
+        <plugin name="sooqr-category-save" type="Magmodules\Sooqr\Plugin\Catalog\Category\Save" />
+    </type>
+    <!-- Plugins -->
+</config>

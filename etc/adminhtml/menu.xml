@@ -1,0 +1,35 @@
+<?xml version="1.0" ?>
+<!--
+  ~ Copyright © Magmodules.eu. All rights reserved.
+  ~ See COPYING.txt for license details.
+  -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Magmodules_Sooqr::general"
+             title="Sooqr"
+             module="Magmodules_Sooqr"
+             sortOrder="100"
+             resource="Magmodules_Sooqr::general"
+             parent="Magento_Backend::marketing"
+        />
+        <add id="Magmodules_Sooqr::feed"
+             title="Data Feeds"
+             module="Magmodules_Sooqr"
+             sortOrder="10"
+             parent="Magmodules_Sooqr::general"
+             resource="Magmodules_Sooqr::feed"
+             action="sooqr/feed/index"
+        />
+        <!--
+        <add id="Magmodules_Sooqr::delta"
+             title="Product Updates"
+             module="Magmodules_Sooqr"
+             sortOrder="20"
+             parent="Magmodules_Sooqr::general"
+             resource="Magmodules_Sooqr::delta"
+             action="sooqr/delta/index"
+        />
+        -->
+    </menu>
+</config>

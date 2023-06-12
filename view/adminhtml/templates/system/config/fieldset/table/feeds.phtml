@@ -1,0 +1,50 @@
+<?php
+/**
+ * Copyright © Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ *
+ * @var $block Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Table\Feeds
+ */
+?>
+<tr class="sooqr-table" id="row_<?= $block->escapeHtml($block->getHtmlId()); ?>">
+    <td class="label"><?= $block->escapeHtml(__('Feeds')) ?></td>
+    <td class="value">
+        <table class="data-grid" id="<?= $block->escapeHtml($block->getId()) ?>_table">
+            <thead>
+                <th>
+                    <?= $block->escapeHtml(__('StoreView')) ?>
+                </th>
+                <th>
+                    <?= $block->escapeHtml(__('Feed file')) ?>
+                </th>
+                <th>
+                    <?= $block->escapeHtml(__('Edit')) ?>
+                </th>
+            </thead>
+            <tbody>
+                <?php foreach ($block->getStoreData() as $store): ?>
+                    <tr>
+                        <td>
+                            <?= $block->escapeHtml($store['name']); ?>
+                        </td>
+                        <td>
+                            <a href="<?= $block->escapeUrl($store['full_url']); ?>">
+                                <?= $block->escapeHtml($store['full_url']) ?>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="<?= $block->escapeUrl($store['preview_url']); ?>">
+                                <?= $block->escapeHtml(__('Preview')) ?>
+                            </a>
+                            <br/>
+                            <a href="<?= $block->escapeUrl($store['grid_url']); ?>">
+                                <?= $block->escapeHtml(__('All Feeds')) ?>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </td>
+    <td></td>
+</tr>

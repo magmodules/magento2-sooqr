@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!--
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 -->
@@ -15,6 +15,11 @@
                         <resource id="Magento_Config::config">
                             <resource id="Magmodules_Sooqr::config" title="Sooqr" sortOrder="80"/>
                         </resource>
+                    </resource>
+                </resource>
+                <resource id="Magento_Backend::marketing">
+                    <resource id="Magmodules_Sooqr::sooqr" title="Sooqr">
+                        <resource id="Magmodules_Sooqr::feed" title="Data Feeds" sortOrder="20"/>
                     </resource>
                 </resource>
             </resource>

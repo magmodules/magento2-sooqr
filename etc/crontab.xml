@@ -1,15 +1,20 @@
-<?xml version="1.0"?>
+<?xml version="1.0" ?>
 <!--
-/**
- * Copyright © Magmodules.eu. All rights reserved.
- * See COPYING.txt for license details.
- */
--->
+  ~ Copyright © Magmodules.eu. All rights reserved.
+  ~ See COPYING.txt for license details.
+  -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
-    <group id="sooqr">
-        <job name="magmodules_sooqr" instance="Magmodules\Sooqr\Cron\GenerateFeeds" method="execute">
+    <group id="default">
+        <job instance="Magmodules\Sooqr\Cron\Feed" method="execute" name="sooqr_generate_feed">
             <schedule>0 0 * * *</schedule>
-            <config_path>crontab/default/jobs/magmodules_sooqr/schedule/cron_expr</config_path>
+            <config_path>crontab/default/jobs/sooqr_data/general/cron_frequency</config_path>
+        </job>
+<!--        <job instance="Magmodules\Sooqr\Cron\Delta" method="execute" name="sooqr_generate_delta_feed">-->
+<!--            <schedule>0 * * * *</schedule>-->
+<!--            <config_path>crontab/default/jobs/sooqr_data/general/cron_frequency_delta</config_path>-->
+<!--        </job>-->
+        <job instance="Magmodules\Sooqr\Cron\Cleanup" method="execute" name="sooqr_cleanup_old_feeds">
+            <schedule>0 0 * * *</schedule>
         </job>
     </group>
 </config>

@@ -1,7 +1,11 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <body>
         <referenceContainer name="before.body.end">
-            <block class="Magmodules\Sooqr\Block\Init" name="sooqr.init" template="Magmodules_Sooqr::init.phtml"/>
+            <block name="magmodules_sooqr.search" class="Magento\Framework\View\Element\Template" before="-" template="Magmodules_Sooqr::search.phtml">
+                <arguments>
+                    <argument name="view_model" xsi:type="object">Magmodules\Sooqr\ViewModel\Search</argument>
+                </arguments>
+            </block>
         </referenceContainer>
     </body>
 </page>
