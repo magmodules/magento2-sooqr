@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <section id="sooqr_general" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>General</label>
+        <tab>sooqr</tab>
+        <resource>Magmodules_Sooqr::config_sooqr_general</resource>
+        <group id="branding" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="1">
+            <label>Branding</label>
+            <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Sooqr\Header</frontend_model>
+        </group>
+        <group id="general" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>General</label>
+            <attribute type="expanded">1</attribute>
+            <field id="version" translate="label" type="label" sortOrder="1" showInDefault="1" showInStore="1">
+                <label>Version</label>
+                <config_path>sooqr_general/general/version</config_path>
+            </field>
+            <field id="enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Enable</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_general/general/enable</config_path>
+            </field>
+        </group>
+        <group id="credentials" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Credentials</label>
+            <attribute type="expanded">1</attribute>
+            <field id="environment" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Environment</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Environment</source_model>
+                <config_path>sooqr_general/credentials/environment</config_path>
+            </field>
+            <field id="account_id" translate="label" type="text" sortOrder="14" showInDefault="0" showInWebsite="0" showInStore="1">
+                <label>Sooqr Account ID</label>
+                <config_path>sooqr_general/credentials/account_id</config_path>
+                <comment>You can find your Sooqr Account ID in your Sooqr account, you can find the link in the information box at the top of this page. Your Sooqr Account ID should look like SQ-123456-1.</comment>
+            </field>
+            <field id="account_ids" translate="label" type="text" sortOrder="15" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label/>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Table\Accounts</frontend_model>
+            </field>
+        </group>
+        <group id="debug" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Debug</label>
+            <attribute type="expanded">0</attribute>
+            <field id="debug" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Debug Mode</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_general/debug/enable</config_path>
+                <comment>Enable this function to write debug records into a sooqr/debug.log file.</comment>
+            </field>
+        </group>
+    </section>
+</include>

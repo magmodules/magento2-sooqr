@@ -1,0 +1,117 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <section id="sooqr_search" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Search</label>
+        <tab>sooqr</tab>
+        <resource>Magmodules_Sooqr::config_sooqr_search</resource>
+        <group id="frontend" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Frontend Implementation</label>
+            <attribute type="expanded">1</attribute>
+            <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable Search</label>
+                <config_path>sooqr_search/frontend/enable</config_path>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            </field>
+            <field id="loader" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sooqr Loader</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Loader</source_model>
+                <config_path>sooqr_search/frontend/loader</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                </depends>
+            </field>
+            <field id="statistics" translate="label" type="select" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Statistics</label>
+                <config_path>sooqr_search/frontend/statistics</config_path>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+            </field>
+            <field id="heading_advanced" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Advanced Settings</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>Only recommended for Developers.</comment>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+            </field>
+            <field id="advanced_parent" translate="label" type="text" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Parent HTML node</label>
+                <config_path>sooqr_search/frontend/advanced_parent</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+            </field>
+            <field id="advanced_debug" translate="label" type="select" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable Debugging</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_search/frontend/advanced_debug</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+            </field>
+            <field id="advanced_version" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Frontend Version</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Frontend</source_model>
+                <config_path>sooqr_search/frontend/advanced_version</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+            </field>
+            <field id="advanced_custom_js" translate="label" type="textarea" sortOrder="26" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Custom JS</label>
+                <config_path>sooqr_search/frontend/advanced_custom_js</config_path>
+                <backend_model>Magmodules\Sooqr\Model\Config\Backend\Json</backend_model>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="loader" negative="1">custom</field>
+                </depends>
+                <tooltip>Only valid JOSN data is accepted</tooltip>
+            </field>
+            <field id="heading_add_to" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Add to cart</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <depends>
+                    <field id="enable">1</field>
+                </depends>
+            </field>
+            <field id="add_to_cart_controller" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Add to Cart Controller</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_search/frontend/add_to_cart</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                </depends>
+            </field>
+            <field id="add_to_cart_ajax" translate="label" type="select" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Ajax based Add to Cart</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <depends>
+                    <field id="enable">1</field>
+                    <field id="add_to_cart_controller">1</field>
+                </depends>
+            </field>
+            <field id="add_to_cart_wishlist" translate="label" type="select" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Add to Wishlist Controller</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_search/frontend/add_to_wishlist</config_path>
+                <depends>
+                    <field id="enable">1</field>
+                </depends>
+            </field>
+        </group>
+    </section>
+</include>

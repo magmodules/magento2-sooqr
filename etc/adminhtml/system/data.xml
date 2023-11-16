@@ -1,0 +1,363 @@
+<?xml version="1.0"?>
+<!--
+/**
+ * Copyright © Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <section id="sooqr_data" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Data</label>
+        <tab>sooqr</tab>
+        <resource>Magmodules_Sooqr::config_search</resource>
+        <group id="general" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>General</label>
+            <attribute type="expanded">1</attribute>
+            <field id="enable" translate="label comment" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_data/general/enable</config_path>
+            </field>
+            <field id="filename" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Filename</label>
+                <config_path>sooqr_data/general/filename</config_path>
+            </field>
+            <field id="cron_frequency" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">
+                <label>Cron Frequency General</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\CronFrequency</source_model>
+                <backend_model>Magmodules\Sooqr\Model\Config\Backend\Cron</backend_model>
+                <config_path>sooqr_data/general/cron_frequency</config_path>
+            </field>
+<!--            <field id="cron_frequency_delta" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="0" showInStore="0" canRestore="1">-->
+<!--                <label>Cron Frequency Delta</label>-->
+<!--                <source_model>Magmodules\Sooqr\Model\Config\Source\CronFrequency</source_model>-->
+<!--                <config_path>sooqr_data/general/cron_frequency_delta</config_path>-->
+<!--            </field>-->
+            <field id="feeds" translate="label" type="text" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="0">
+                <label/>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Table\Feeds</frontend_model>
+            </field>
+        </group>
+        <group id="product_data" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Product Data</label>
+            <attribute type="expanded">1</attribute>
+            <comment>Connect the right attributes for the basic product values to the Sooqr feed.</comment>
+            <field id="heading_name" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Product Fields</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+            </field>
+            <field id="name_attribute" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Name</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Attributes</source_model>
+                <comment>Select the attribute associate with the product name.</comment>
+                <config_path>sooqr_data/product_data/name_attribute</config_path>
+            </field>
+            <field id="sku_attribute" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Sku</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Attributes</source_model>
+                <comment>Select the attribute associated with the SKU.</comment>
+                <config_path>sooqr_data/product_data/sku_attribute</config_path>
+            </field>
+            <field id="description_attribute" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Description</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Attributes</source_model>
+                <comment>Select the attribute associated with the product description.</comment>
+                <config_path>sooqr_data/product_data/description_attribute</config_path>
+            </field>
+            <field id="brand_attribute" translate="label" type="select" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Brand</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Attributes</source_model>
+                <comment>Select the attribute associated with the brand or manufacturer.</comment>
+                <config_path>sooqr_data/product_data/brand_attribute</config_path>
+            </field>
+<!--            <field id="heading_image" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--                <label>Images</label>-->
+<!--                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>-->
+<!--            </field>-->
+<!--            <field id="image_source" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+<!--                <label>Source</label>-->
+<!--                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageSource</source_model>-->
+<!--                <config_path>sooqr_data/product_data/image_source</config_path>-->
+<!--            </field>-->
+<!--            <field id="image_resize" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+<!--                <label>Resize Image</label>-->
+<!--                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageSize</source_model>-->
+<!--                <config_path>sooqr_data/product_data/image_resize</config_path>-->
+<!--            </field>-->
+<!--            <field id="image_size_fixed" translate="label" type="select" sortOrder="13" showInDefault="1" showInWebsite="1">-->
+<!--                <label>Image Size</label>-->
+<!--                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageResize</source_model>-->
+<!--                <config_path>sooqr_data/product_data/image_resize_fixed</config_path>-->
+<!--                <comment>Image resize options are only available on store level which can be selected from the scope dropdown on the left top of this page. Please note that the Sooqr Feed needs to be regenerated if an Image Cache Flush is executed.</comment>-->
+<!--                <depends>-->
+<!--                    <field id="image_resize">fixed</field>-->
+<!--                </depends>-->
+<!--            </field>-->
+<!--            <field id="image_size_custom" translate="label comment" type="text" sortOrder="14" showInDefault="1" showInWebsite="1" showInStore="1">-->
+<!--                <label>Image Size</label>-->
+<!--                <comment>Example format: 200x300</comment>-->
+<!--                <config_path>sooqr_data/product_data/image_size_custom</config_path>-->
+<!--                <depends>-->
+<!--                    <field id="image_resize">custom</field>-->
+<!--                </depends>-->
+<!--            </field>-->
+            <field id="heading_extra" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Extra Fields</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>You can add custom fields with your attributes to enrich your data in Sooqr. Click the Add button to add an attribute with a custom field-name as reference.</comment>
+            </field>
+            <field id="extra_fields" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Extra Fields</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\ExtraFields</frontend_model>
+                <backend_model>Magmodules\Sooqr\Model\Config\Backend\Serialized\ExtraFields</backend_model>
+                <config_path>sooqr_data/product_data/extra_fields</config_path>
+            </field>
+            <field id="heading_reviews" translate="label comment" type="text" sortOrder="30" showInDefault="1"
+                   showInWebsite="1" showInStore="1">
+                <label>Product Reviews</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>Export the product rating score in the feed to use it in Sooqr Search. Please keep in mind that activating this option can cause a higher load on the feed generation.</comment>
+            </field>
+            <field id="add_rating_summary" translate="label" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Add Product Review Score</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_data/product_data/add_rating_summary</config_path>
+            </field>
+        </group>
+        <group id="product_types" translate="label comment" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Product Types</label>
+            <attribute type="expanded">1</attribute>
+            <comment><![CDATA[Configure the 3 different product types to make sure that your using the right attribute values for the different product types.]]></comment>
+            <field id="heading_configurable" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Configurable Products</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment><![CDATA[For configurable products, we recommend to only add the simple products to the configuration as a ‘configurable product’ by itself cannot be purchased. Choose the attribute(s) that you want to use from the parent relation configurable product.]]></comment>
+            </field>
+            <field id="configurable_use" translate="label comment" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Configurable/Simple Products</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Configurable\Option</source_model>
+                <config_path>sooqr_data/product_types/configurable</config_path>
+                <comment><![CDATA[<strong>Recommended:</strong> Only Linked Simple Products. Selecting this option will export linked simple products that are part of a configurable product. This option is recommended so that the unique product variants are exported to the Sooqr Feed.]]></comment>
+            </field>
+            <field id="configurable_link" translate="label comment" type="select" sortOrder="22" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Parent URL for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Configurable\Link</source_model>
+                <comment><![CDATA[<strong>Recommended:</strong> Yes, with Auto-Link. In this way the URL will be automatically link to the correct simple product on the configurable product landing page.]]></comment>
+                <config_path>sooqr_data/product_types/configurable_link</config_path>
+                <depends>
+                    <field id="configurable_use" separator=",">simple,both</field>
+                </depends>
+            </field>
+            <field id="configurable_image" translate="label comment" type="select" sortOrder="23" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Parent Image for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Configurable\Image</source_model>
+                <depends>
+                    <field id="configurable_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. Selecting this option will export the parent image which will be used if there is no image available for a simple product.]]></comment>
+                <config_path>sooqr_data/product_types/configurable_image</config_path>
+            </field>
+            <field id="configurable_use_parent_attributes" translate="label comment" type="multiselect" sortOrder="24" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Parent Data for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\ParentAttributes</source_model>
+                <depends>
+                    <field id="configurable_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[Select the attributes that you want to use from the parent configurable product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
+                <config_path>sooqr_data/product_types/configurable_use_parent_attributes</config_path>
+            </field>
+            <field id="configurable_use_non_visible_fallback" translate="label comment" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Fallback only on Non Visible Simples</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <comment>
+                    <![CDATA[<strong>Recommended:</strong> Yes. In this way you only use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated als "normal" simple products without relations.]]></comment>
+                <depends>
+                    <field id="configurable_use" separator=",">simple,both</field>
+                </depends>
+                <config_path>sooqr_data/product_types/configurable_use_non_visible_fallback</config_path>
+            </field>
+            <field id="heading_bundle" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Bundle Products</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment><![CDATA[For Bundle Products, we recommend to only add the Bundle product by itself as this is the item that can be purchased.<br>]]></comment>
+            </field>
+            <field id="bundle_use" translate="label comment" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Bundle Products</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Bundle\Option</source_model>
+                <comment><![CDATA[<strong>Recommended:</strong> Only Bundle Product. Selecting this option will export the bundle product by itself to the Sooqr Feed.]]></comment>
+                <config_path>sooqr_data/product_types/bundle_use</config_path>
+            </field>
+            <field id="bundle_link" translate="label comment" type="select" sortOrder="32" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent URL for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Bundle\Link</source_model>
+                <depends>
+                    <field id="bundle_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this option will export the URL that links directly to the Bundle Product.]]></comment>
+                <config_path>sooqr_data/product_types/bundle_link</config_path>
+            </field>
+            <field id="bundle_image" translate="label comment" type="select" sortOrder="33" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent Image for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Bundle\Image</source_model>
+                <depends>
+                    <field id="bundle_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. Selecting this option will export the parent image which will be used if there is no image available for a simple product]]></comment>
+                <config_path>sooqr_data/product_types/bundle_image</config_path>
+            </field>
+            <field id="bundle_use_parent_attributes" translate="label comment" type="multiselect" sortOrder="34" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent Data for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\ParentAttributes</source_model>
+                <depends>
+                    <field id="bundle_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[Select the attributes that you want to use from the parent bundle product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
+                <config_path>sooqr_data/product_types/bundle_use_parent_attributes</config_path>
+            </field>
+            <field id="bundle_use_non_visible_fallback" translate="label comment" type="select" sortOrder="35" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Fallback only on Non Visible Simples</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
+                <depends>
+                    <field id="bundle_use" separator=",">simple,both</field>
+                </depends>
+                <config_path>sooqr_data/product_types/bundle_use_non_visible_fallback</config_path>
+            </field>
+            <field id="heading_grouped" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Grouped Products</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment><![CDATA[For Grouped Products we recommend to only add the Grouped product by itself as that is the product that can be bought.<br>]]></comment>
+            </field>
+            <field id="grouped_use" translate="label comment" type="select" sortOrder="41" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Use Grouped Products</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Grouped\Option</source_model>
+                <comment><![CDATA[For Group Products, we recommend to only add the Grouped Product by itself as that is the product that can be purchased.<br>]]></comment>
+                <config_path>sooqr_data/product_types/grouped_use</config_path>
+            </field>
+            <field id="grouped_link" translate="label comment" type="select" sortOrder="42" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent URL for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Grouped\Link</source_model>
+                <depends>
+                    <field id="grouped_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[<strong>Recommended:</strong> Yes. Selecting this option will export the URL that links directly to the Bundle Product.]]></comment>
+                <config_path>sooqr_data/product_types/grouped_link</config_path>
+            </field>
+            <field id="grouped_image" translate="label comment" type="select" sortOrder="43" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent Image for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Grouped\Image</source_model>
+                <depends>
+                    <field id="grouped_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[<strong>Recommended:</strong> Only if Empty. Selecting this option will export the parent image which will be used if there is no image available for a simple product]]></comment>
+                <config_path>sooqr_data/product_types/grouped_image</config_path>
+            </field>
+            <field id="grouped_price_logic" translate="label comment" type="select" sortOrder="44" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Parent Price</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Grouped\Price</source_model>
+                <depends>
+                    <field id="grouped_use" separator=",">parent,both</field>
+                </depends>
+                <config_path>sooqr_data/product_types/grouped_price_logic</config_path>
+            </field>
+            <field id="grouped_use_parent_attributes" translate="label comment" type="multiselect" sortOrder="45" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Parent Data for Simples</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\ParentAttributes</source_model>
+                <depends>
+                    <field id="grouped_use" separator=",">simple,both</field>
+                </depends>
+                <comment><![CDATA[Select the attributes that you want to use from the parent grouped product. It is not recommended to select the attributes that need to be unique for the simples, such as GTIN and Color.]]></comment>
+                <config_path>sooqr_data/product_types/grouped_use_parent_attributes</config_path>
+            </field>
+            <field id="grouped_use_non_visible_fallback" translate="label comment" type="select" sortOrder="46" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Use Fallback only on Non Visible Simples</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <comment><![CDATA[<strong>Recommended:</strong> Yes. This selecting will use the logic for the attribute fallback and relations on simples with the visibility "Not Visible Individually". Simples that are visible in the catalog are treated as "normal" simple products without relations.]]></comment>
+                <depends>
+                    <field id="grouped_use" separator=",">simple,both</field>
+                </depends>
+                <config_path>sooqr_data/product_types/grouped_use_non_visible_fallback</config_path>
+            </field>
+        </group>
+        <group id="product_filter" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Product Filter Options</label>
+            <attribute type="expanded">1</attribute>
+            <comment>This option allows you to include/exclude products from the Sooqr feed based on the product visibility or stock information.</comment>
+            <field id="heading_visibility" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Filter on Visibility</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>Include or exclude products based on the visibility.</comment>
+            </field>
+            <field id="visibility_enable" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Enable</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_data/product_filter/visibility_enable</config_path>
+            </field>
+            <field id="visibility" translate="label" type="multiselect" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Only add products with the following Visibility</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\ProductVisibility</source_model>
+                <comment>Include or exclude products based on the visibility.</comment>
+                <depends>
+                    <field id="visibility_enable">1</field>
+                </depends>
+                <config_path>sooqr_data/product_filter/visibility</config_path>
+            </field>
+            <field id="heading_category" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Filter by Category</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>Include or Exclude products based on the category.</comment>
+            </field>
+            <field id="category_enable" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Enable</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <config_path>sooqr_data/product_filter/category_enable</config_path>
+            </field>
+            <field id="category_type" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Type of filter</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\CategoryTypeList</source_model>
+                <depends>
+                    <field id="category_enable">1</field>
+                </depends>
+                <config_path>sooqr_data/product_filter/category_type</config_path>
+            </field>
+            <field id="category" translate="label" type="multiselect" sortOrder="13" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Category</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\CategoryList</source_model>
+                <depends>
+                    <field id="category_enable">1</field>
+                </depends>
+                <config_path>sooqr_data/product_filter/category</config_path>
+                <comment><![CDATA[Include or Exclude Products based on the Category.<br><strong><br>Note for Include:</strong><br>Simple products within a bundled, configurable or grouped product are treated as own entities; these should also be present in the included categories.<br><br><strong>Note for Exclude: </strong><br>Exclude the products from these categories. Products that are available within different categories need to be excluded from all of the categories they are assigned to.]]></comment>
+            </field>
+            <field id="heading_stock" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Exclude Out of Stock</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+                <comment>Exclude products that are out of stock in your store.</comment>
+            </field>
+            <field id="stock" translate="label" type="select" sortOrder="21" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Enable</label>
+                <config_path>sooqr_data/product_filter/stock</config_path>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            </field>
+        </group>
+        <group id="cms" translate="label comment" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>CMS Pages</label>
+            <attribute type="expanded">1</attribute>
+            <comment>Export your CMS pages into the feed to use them in the Sooqr Search Output.</comment>
+            <field id="enable" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Enable</label>
+                <config_path>sooqr_data/cms/enable_type</config_path>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\Cms</source_model>
+            </field>
+            <field id="cms_selection" translate="label" type="multiselect" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Selection</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\CmsPages</source_model>
+                <depends>
+                    <field id="enable">2</field>
+                </depends>
+                <config_path>sooqr_data/cms/cms_selection</config_path>
+                <comment><![CDATA[Select the CMS Pages that you want to export using the multi-select above.]]></comment>
+            </field>
+        </group>
+    </section>
+</include>

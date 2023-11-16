@@ -1,19 +1,18 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer;
 
-use Magento\Framework\View\Element\Html\Select;
 use Magento\Framework\View\Element\Context;
-use Magmodules\Sooqr\Model\System\Config\Source\Attributes as AttributesSource;
+use Magento\Framework\View\Element\Html\Select;
+use Magmodules\Sooqr\Model\Config\Source\Attributes as AttributesSource;
 
 /**
- * Class Attributes
- *
- * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer
+ * HTML select for Product Attributes
  */
 class Attributes extends Select
 {
@@ -30,9 +29,9 @@ class Attributes extends Select
     /**
      * Attributes constructor.
      *
-     * @param Context          $context
+     * @param Context $context
      * @param AttributesSource $attributes
-     * @param array            $data
+     * @param array $data
      */
     public function __construct(
         Context $context,
@@ -44,9 +43,7 @@ class Attributes extends Select
     }
 
     /**
-     * Render block HTML
-     *
-     * @return string
+     * @inheritDoc
      */
     public function _toHtml()
     {
@@ -60,7 +57,7 @@ class Attributes extends Select
     }
 
     /**
-     * Get all attributes
+     * Get all attributes.
      *
      * @return array
      */
@@ -74,7 +71,7 @@ class Attributes extends Select
     }
 
     /**
-     * Sets name for input element
+     * Sets name for input element.
      *
      * @param $value
      *
@@ -82,6 +79,6 @@ class Attributes extends Select
      */
     public function setInputName($value)
     {
-        return $this->setName($value);
+        return $this->setData('name', $value);
     }
 }

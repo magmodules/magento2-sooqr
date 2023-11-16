@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Model\Config\Backend\Serialized;
 
@@ -11,7 +12,6 @@ use Magento\Config\Model\Config\Backend\Serialized\ArraySerialized;
 /**
  * Class Filters
  *
- * @package Magmodules\Sooqr\Model\Config\Backend\Serialized
  */
 class Filters extends ArraySerialized
 {
@@ -34,7 +34,6 @@ class Filters extends ArraySerialized
                 if (($row['condition'] != 'empty') && ($row['condition'] != 'not-empty')) {
                     if (empty($row['value'])) {
                         unset($data[$key]);
-                        continue;
                     }
                 }
             }

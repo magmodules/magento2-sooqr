@@ -1,147 +1,120 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field;
 
-use Magento\Framework\DataObject;
+use Exception;
+use Magento\Backend\Block\Template\Context;
 use Magento\Config\Block\System\Config\Form\Field\FieldArray\AbstractFieldArray;
-use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Attributes;
-use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\Conditions;
-use Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Renderer\ProductTypes;
+use Magento\Framework\DataObject;
+use Magento\Framework\View\Element\BlockInterface as ElementBlockInterface;
+use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 
 /**
- * Class Filters
- *
- * @package Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field
+ * Represents a table for collection filters in the admin configuration
  */
 class Filters extends AbstractFieldArray
 {
 
-    /**
-     * @var Attributes
-     */
-    private $attributeRenderer;
-    /**
-     * @var Conditions
-     */
-    private $conditionRenderer;
-    /**
-     * @var ProductTypes
-     */
-    private $productTypeRenderer;
+    public const OPTION_PATTERN = 'option_%s';
+    public const SELECTED = 'selected="selected"';
+    public const RENDERERS = [
+        'attribute' => Renderer\Attributes::class,
+        'condition' => Renderer\Conditions::class,
+        'product_type' => Renderer\ProductTypes::class,
+    ];
 
     /**
-     * Render block.
+     * @var array
+     */
+    private $renderers;
+    /**
+     * @var LogRepository
+     */
+    private $logger;
+
+    /**
+     * ExtraFields constructor.
+     * @param Context $context
+     * @param LogRepository $logger
+     * @param array $data
+     */
+    public function __construct(
+        Context $context,
+        LogRepository $logger,
+        array $data = []
+    ) {
+        $this->logger = $logger;
+        parent::__construct($context, $data);
+    }
+
+    /**
+     * @inheritDoc
      */
     public function _prepareToRender()
     {
         $this->addColumn('attribute', [
-            'label'    => __('Attribute'),
-            'renderer' => $this->getAttributeRenderer()
+            'label' => (string)__('Attribute'),
+            'class' => 'required-entry',
+            'renderer' => $this->getRenderer('attribute')
         ]);
         $this->addColumn('condition', [
-            'label'    => __('Condition'),
-            'renderer' => $this->getConditionRenderer()
+            'label' => (string)__('Condition'),
+            'class' => 'required-entry',
+            'renderer' => $this->getRenderer('condition')
         ]);
         $this->addColumn('value', [
-            'label' => __('Value'),
+            'label' => (string)__('Value'),
+            'class' => 'required-entry'
         ]);
         $this->addColumn('product_type', [
-            'label' => __('Apply To'),
-            'renderer' => $this->getProductTypeRenderer()
+            'label' => (string)__('Apply To'),
+            'class' => 'required-entry',
+            'renderer' => $this->getRenderer('product_type')
         ]);
         $this->_addAfter = false;
-        $this->_addButtonLabel = __('Add');
+        $this->_addButtonLabel = (string)__('Add');
     }
 
     /**
-     * Returns render of Attributes.
+     * Returns render according defined type.
      *
-     * @return \Magento\Framework\View\Element\BlockInterface
+     * @param string $type
+     * @return ElementBlockInterface
      */
-    public function getAttributeRenderer()
+    public function getRenderer(string $type): ElementBlockInterface
     {
-        if (!$this->attributeRenderer) {
+        if (!isset($this->renderers[$type])) {
             try {
-                $this->attributeRenderer = $this->getLayout()->createBlock(
-                    Attributes::class,
+                $this->renderers[$type] = $this->getLayout()->createBlock(
+                    self::RENDERERS[$type],
                     '',
                     ['data' => ['is_render_to_js_template' => true]]
                 );
-            } catch (\Exception $e) {
-                $this->attributeRenderer = [];
+            } catch (Exception $e) {
+                $this->logger->addErrorLog('LocalizedException', $e->getMessage());
             }
         }
-
-        return $this->attributeRenderer;
+        return $this->renderers[$type];
     }
 
     /**
-     * Returns render of Attributes.
-     *
-     * @return \Magento\Framework\View\Element\BlockInterface
-     */
-    public function getConditionRenderer()
-    {
-        if (!$this->conditionRenderer) {
-            try {
-                $this->conditionRenderer = $this->getLayout()->createBlock(
-                    Conditions::class,
-                    '',
-                    ['data' => ['is_render_to_js_template' => true]]
-                );
-            } catch (\Exception $e) {
-                $this->conditionRenderer = [];
-            }
-        }
-
-        return $this->conditionRenderer;
-    }
-
-    /**
-     * Returns render of Product Types.
-     *
-     * @return \Magento\Framework\View\Element\BlockInterface
-     */
-    public function getProductTypeRenderer()
-    {
-        if (!$this->productTypeRenderer) {
-            try {
-                $this->productTypeRenderer = $this->getLayout()->createBlock(
-                    ProductTypes::class,
-                    '',
-                    ['data' => ['is_render_to_js_template' => true]]
-                );
-            } catch (\Exception $e) {
-                $this->productTypeRenderer = [];
-            }
-        }
-
-        return $this->productTypeRenderer;
-    }
-
-    /**
-     * Prepare existing row data object.
-     *
-     * @param DataObject $row
+     * @inheritDoc
      */
     public function _prepareArrayRow(DataObject $row)
     {
         $options = [];
-        $attribute = $row->getAttribute();
-        if ($attribute) {
-            $options['option_' . $this->getAttributeRenderer()->calcOptionHash($attribute)] = 'selected="selected"';
-        }
-        $condition = $row->getCondition();
-        if ($condition) {
-            $options['option_' . $this->getConditionRenderer()->calcOptionHash($condition)] = 'selected="selected"';
-        }
-        $productType = $row->getProductType();
-        if ($condition) {
-            $options['option_' . $this->getProductTypeRenderer()->calcOptionHash($productType)] = 'selected="selected"';
+        foreach (array_keys(self::RENDERERS) as $element) {
+            if ($elementData = $row->getData($element)) {
+                $options[sprintf(
+                    self::OPTION_PATTERN,
+                    $this->getRenderer($element)->calcOptionHash($elementData)
+                )] = self::SELECTED;
+            }
         }
         $row->setData('option_extra_attrs', $options);
     }

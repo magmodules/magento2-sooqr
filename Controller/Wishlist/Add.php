@@ -9,108 +9,129 @@ namespace Magmodules\Sooqr\Controller\Wishlist;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Model\Session;
-use Magento\Framework\App\Action;
-use Magento\Framework\App\Action\Context;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Framework\DataObject;
+use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\SessionException;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Wishlist\Controller\IndexInterface;
+use Magento\Framework\App\ActionInterface;
 use Magento\Wishlist\Controller\WishlistProviderInterface;
 use Magento\Wishlist\Model\AuthenticationStateInterface;
-use Magmodules\Sooqr\Helper\General as GeneralHelper;
+use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Framework\Exception\NotFoundException;
 use Magento\Wishlist\Helper\Data as WishlistHelper;
 use Magento\Framework\App\Response\RedirectInterface;
-use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
+use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 
 /**
  * Add to wishlist controller
  */
-class Add extends Action\Action implements IndexInterface
+class Add implements ActionInterface
 {
     /**
-     * @var GeneralHelper
+     * @var ConfigProvider
      */
-    private $generalHelper;
-
+    private $configProvider;
     /**
      * @var WishlistProviderInterface
      */
     private $wishlistProvider;
-
     /**
      * @var Session
      */
     private $customerSession;
-
     /**
      * @var ProductRepositoryInterface
      */
     private $productRepository;
-
     /**
      * @var WishlistHelper
      */
     private $wishlistHelper;
-
     /**
      * @var RedirectInterface
      */
     private $redirect;
-
     /**
-     * @var GeneralLoggerInterface
+     * @var LogRepository
      */
-    private $logger;
-
+    private $logRepository;
     /**
      * @var AuthenticationStateInterface
      */
-    protected $authenticationState;
-
+    private $authenticationState;
     /**
      * @var ScopeConfigInterface
      */
-    protected $config;
+    private $config;
+    /**
+     * @var MessageManagerInterface
+     */
+    private $messageManager;
+    /**
+     * @var RequestInterface
+     */
+    private $request;
+    /**
+     * @var EventManagerInterface
+     */
+    private $eventManager;
+    /**
+     * @var ResultFactory
+     */
+    private $resultFactory;
 
     /**
      * Add constructor.
      *
-     * @param GeneralHelper $generalHelper
+     * @param ConfigProvider $configProvider
      * @param Session $customerSession
      * @param WishlistProviderInterface $wishlistProvider
      * @param ProductRepositoryInterface $productRepository
      * @param WishlistHelper $wishlistHelper
      * @param RedirectInterface $redirect
-     * @param GeneralLoggerInterface $logger
-     * @param Context $context
+     * @param LogRepository $logRepository
+     * @param AuthenticationStateInterface $authenticationState
+     * @param ScopeConfigInterface $config
+     * @param MessageManagerInterface $messageManager
+     * @param RequestInterface $request
+     * @param EventManagerInterface $eventManager
+     * @param ResultFactory $resultFactory
      */
     public function __construct(
-        GeneralHelper $generalHelper,
+        ConfigProvider $configProvider,
         Session $customerSession,
         WishlistProviderInterface $wishlistProvider,
         ProductRepositoryInterface $productRepository,
         WishlistHelper $wishlistHelper,
         RedirectInterface $redirect,
-        GeneralLoggerInterface $logger,
+        LogRepository $logRepository,
         AuthenticationStateInterface $authenticationState,
         ScopeConfigInterface $config,
-        Context $context
+        MessageManagerInterface $messageManager,
+        RequestInterface $request,
+        EventManagerInterface $eventManager,
+        ResultFactory $resultFactory
     ) {
-        $this->generalHelper = $generalHelper;
+        $this->configProvider = $configProvider;
         $this->customerSession = $customerSession;
         $this->wishlistProvider = $wishlistProvider;
         $this->productRepository = $productRepository;
         $this->wishlistHelper = $wishlistHelper;
         $this->redirect = $redirect;
-        $this->logger = $logger;
+        $this->logRepository = $logRepository;
         $this->authenticationState = $authenticationState;
         $this->config = $config;
-        parent::__construct($context);
+        $this->messageManager = $messageManager;
+        $this->request = $request;
+        $this->eventManager = $eventManager;
+        $this->resultFactory = $resultFactory;
     }
 
     /**
@@ -128,7 +149,7 @@ class Add extends Action\Action implements IndexInterface
             return $resultRedirect->setPath('customer/account/login');
         }
 
-        if (!$this->generalHelper->addToWishlistController()) {
+        if (!$this->configProvider->addToWishlistController()) {
             $this->messageManager->addErrorMessage(__('Controller disabled in admin'));
             return $resultRedirect->setPath($this->redirect->getRefererUrl());
         }
@@ -140,7 +161,7 @@ class Add extends Action\Action implements IndexInterface
 
         $session = $this->customerSession;
 
-        $requestParams = $this->getRequest()->getParams();
+        $requestParams = $this->request->getParams();
 
         if ($session->getBeforeWishlistRequest()) {
             $requestParams = $session->getBeforeWishlistRequest();
@@ -174,7 +195,7 @@ class Add extends Action\Action implements IndexInterface
             if ($wishlist->isObjectNew()) {
                 $wishlist->save();
             }
-            $this->_eventManager->dispatch(
+            $this->eventManager->dispatch(
                 'wishlist_add_product',
                 ['wishlist' => $wishlist, 'product' => $product, 'item' => $result]
             );
@@ -196,12 +217,12 @@ class Add extends Action\Action implements IndexInterface
                 ]
             );
         } catch (LocalizedException $e) {
-            $this->logger->add('wishlist', $e->getMessage());
+            $this->logRepository->addDebugLog('wishlist', $e->getMessage());
             $this->messageManager->addErrorMessage(
                 __('We can\'t add the item to Wish List right now: %1.', $e->getMessage())
             );
         } catch (\Exception $e) {
-            $this->logger->add('wishlist', $e->getMessage());
+            $this->logRepository->addDebugLog('wishlist', $e->getMessage());
             $this->messageManager->addExceptionMessage(
                 $e,
                 __('We can\'t add the item to Wish List right now.')
@@ -211,13 +232,18 @@ class Add extends Action\Action implements IndexInterface
         return $resultRedirect->setPath($this->redirect->getRefererUrl());
     }
 
+    /**
+     * @return bool
+     * @throws NotFoundException
+     * @throws SessionException
+     */
     private function checkIfCustomerIsLoggedIn()
     {
         if ($this->authenticationState->isEnabled() && !$this->customerSession->authenticate()) {
             if (!$this->customerSession->getBeforeWishlistUrl()) {
                 $this->customerSession->setBeforeWishlistUrl($this->redirect->getRefererUrl());
             }
-            $data = $this->getRequest()->getParams();
+            $data = $this->request->getParams();
             unset($data['login']);
             $this->customerSession->setBeforeWishlistRequest($data);
             $this->customerSession->setBeforeRequestParams($this->customerSession->getBeforeWishlistRequest());

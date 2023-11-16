@@ -7,12 +7,12 @@
 namespace Magmodules\Sooqr\Setup\Patch\Data;
 
 use Magento\Catalog\Model\Category;
+use Magento\Eav\Model\Entity\Attribute\Source\Boolean;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Zend_Validate_Exception;
+use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 
 /**
  * Class CategoryAttributes
@@ -30,22 +30,37 @@ class CategoryAttributes implements DataPatchInterface
      * @var EavSetupFactory
      */
     private $eavSetupFactory;
+    /**
+     * @var LogRepository
+     */
+    private $logger;
 
     /**
      * CategoryAttributes constructor.
      * @param EavSetupFactory $eavSetupFactory
      * @param ModuleDataSetupInterface $moduleDataSetup
+     * @param LogRepository $logger
      */
     public function __construct(
         EavSetupFactory $eavSetupFactory,
-        ModuleDataSetupInterface $moduleDataSetup
+        ModuleDataSetupInterface $moduleDataSetup,
+        LogRepository $logger
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->moduleDataSetup = $moduleDataSetup;
+        $this->logger = $logger;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     */
+    public static function getDependencies()
+    {
+        return [];
+    }
+
+    /**
+     * @inheritdoc
      */
     public function apply()
     {
@@ -57,41 +72,38 @@ class CategoryAttributes implements DataPatchInterface
     }
 
     /**
-     * @throws LocalizedException
-     * @throws Zend_Validate_Exception
+     * Adds 'Disable Category from export' category attribute
+     *
+     * @return void
      */
     public function addExcludeCategoryAttribute()
     {
-        /** @var EavSetup $eavSetup */
-        $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
-        $eavSetup->addAttribute(
-            Category::ENTITY,
-            self::CATEGORY_EXCLUDE_ATT,
-            [
-                'type' => 'int',
-                'label' => 'Disable Category from export',
-                'input' => 'select',
-                'source' => \Magento\Eav\Model\Entity\Attribute\Source\Boolean::class,
-                'global' => 1,
-                'visible' => true,
-                'required' => false,
-                'user_defined' => false,
-                'sort_order' => 100,
-                'default' => 0
-            ]
-        );
+        try {
+            /** @var EavSetup $eavSetup */
+            $eavSetup = $this->eavSetupFactory->create(['setup' => $this->moduleDataSetup]);
+            $eavSetup->addAttribute(
+                Category::ENTITY,
+                self::CATEGORY_EXCLUDE_ATT,
+                [
+                    'type' => 'int',
+                    'label' => 'Disable Category from export',
+                    'input' => 'select',
+                    'source' => Boolean::class,
+                    'global' => 1,
+                    'visible' => true,
+                    'required' => false,
+                    'user_defined' => false,
+                    'sort_order' => 100,
+                    'default' => 0
+                ]
+            );
+        } catch (\Exception $e) {
+            $this->logger->addErrorLog('addExcludeCategoryAttribute', $e->getMessage());
+        }
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public static function getDependencies()
-    {
-        return [];
-    }
-
-    /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases()
     {

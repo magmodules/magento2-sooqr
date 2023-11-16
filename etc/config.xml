@@ -8,38 +8,51 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <magmodules_sooqr>
+        <sooqr_general>
             <general>
                 <enable>1</enable>
                 <version>v1.6.1</version>
             </general>
-            <implementation>
-                <advanced_version>4</advanced_version>
-                <api_key backend_model="Magento\Config\Model\Config\Backend\Encrypted" />
-            </implementation>
-            <data>
+            <credentials>
+                <environment>production</environment>
+            </credentials>
+        </sooqr_general>
+        <sooqr_data>
+            <general>
+                <cleanup_offset>7</cleanup_offset>
+                <filename>sooqr.xml</filename>
+                <cron_frequency>0 0 * * *</cron_frequency>
+<!--                <cron_frequency_delta>0 * * * *</cron_frequency_delta>-->
+            </general>
+            <product_data>
                 <name_attribute>name</name_attribute>
                 <sku_attribute>sku</sku_attribute>
                 <description_attribute>description</description_attribute>
-                <gtin_attribute>sku</gtin_attribute>
                 <brand_attribute>manufacturer</brand_attribute>
-                <color_attribute>color</color_attribute>
-                <size_attribute>size</size_attribute>
-                <gender_attribute>gender</gender_attribute>
-            </data>
-            <types>
+                <image_source>image</image_source>
+                <image_resize>0</image_resize>
+                <add_reviews>0</add_reviews>
+            </product_data>
+            <product_types>
                 <configurable>simple</configurable>
                 <configurable_link>1</configurable_link>
                 <configurable_image>2</configurable_image>
-                <configurable_parent_atts>description</configurable_parent_atts>
-                <configurable_nonvisible>1</configurable_nonvisible>
+                <configurable_use_parent_attributes>description</configurable_use_parent_attributes>
+                <configurable_use_non_visible_fallback>1</configurable_use_non_visible_fallback>
                 <bundle>parent</bundle>
                 <grouped>parent</grouped>
-            </types>
-            <generate>
-                <enable>1</enable>
-                <filename>sooqr.xml</filename>
-            </generate>
-        </magmodules_sooqr>
+                <grouped_price_logic/>
+            </product_types>
+            <product_filter>
+                <visibility_enable>0</visibility_enable>
+                <category_enable>0</category_enable>
+                <stock>0</stock>
+            </product_filter>
+        </sooqr_data>
+        <sooqr_search>
+            <frontend>
+                <advanced_version>4</advanced_version>
+            </frontend>
+        </sooqr_search>
     </default>
 </config>

@@ -1,8 +1,9 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Model\Config\Backend;
 
@@ -16,15 +17,12 @@ use Magento\Framework\Model\ResourceModel\AbstractResource;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Exception\LocalizedException;
 
-/**
- * Class Cron
- *
- * @package Magmodules\Sooqr\Model\Config\Backend
- */
 class Cron extends Value
 {
 
-    const CRON_STRING_PATH = 'crontab/default/jobs/magmodules_sooqr/schedule/cron_expr';
+    private const CRON_FULL = 'crontab/default/jobs/sooqr_data/general/cron_frequency';
+    private const CRON_DELTA = 'crontab/default/jobs/sooqr_data/general/cron_frequency_delta';
+
     /**
      * @var ValueFactory
      */
@@ -33,15 +31,14 @@ class Cron extends Value
     /**
      * Cron constructor.
      *
-     * @param Context               $context
-     * @param Registry              $registry
-     * @param ScopeConfigInterface  $config
-     * @param TypeListInterface     $cacheTypeList
-     * @param ValueFactory          $configValueFactory
+     * @param Context $context
+     * @param Registry $registry
+     * @param ScopeConfigInterface $config
+     * @param TypeListInterface $cacheTypeList
+     * @param ValueFactory $configValueFactory
      * @param AbstractResource|null $resource
-     * @param AbstractDb|null       $resourceCollection
-     * @param string                $runModelPath
-     * @param array                 $data
+     * @param AbstractDb|null $resourceCollection
+     * @param array $data
      */
     public function __construct(
         Context $context,
@@ -51,7 +48,6 @@ class Cron extends Value
         ValueFactory $configValueFactory,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
-        $runModelPath = '',
         array $data = []
     ) {
         $this->configValueFactory = $configValueFactory;
@@ -59,27 +55,30 @@ class Cron extends Value
     }
 
     /**
-     * @return \Magento\Framework\App\Config\Value
+     * @return Value
      * @throws LocalizedException
      */
     public function afterSave()
     {
-
-        $expression = $this->getData('groups/generate/fields/cron_frequency/value');
-
-        if ($expression == 'custom') {
-            $expression = $this->getData('groups/generate/fields/custom_frequency/value');
-        }
-
         try {
             $this->configValueFactory->create()->load(
-                self::CRON_STRING_PATH,
+                self::CRON_FULL,
                 'path'
             )->setValue(
-                $expression
+                $this->getData('groups/general/fields/cron_frequency/value') ?? ''
             )->setPath(
-                self::CRON_STRING_PATH
+                self::CRON_FULL
             )->save();
+
+//            $this->configValueFactory->create()->load(
+//                self::CRON_DELTA,
+//                'path'
+//            )->setValue(
+//                $this->getData('groups/general/fields/cron_frequency_delta/value') ?? ''
+//            )->setPath(
+//                self::CRON_DELTA
+//            )->save();
+
         } catch (\Exception $e) {
             throw new LocalizedException(__('We can\'t save the cron expression.'));
         }

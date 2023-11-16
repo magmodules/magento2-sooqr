@@ -1,18 +1,7 @@
-<?xml version="1.0"?>
-<!--
-/**
- * Copyright © Magmodules.eu. All rights reserved.
- * See COPYING.txt for license details.
- */
--->
+<?xml version="1.0" encoding="UTF-8"?>
 <csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
     <policies>
-        <policy id="img-src">
-            <values>
-                <value id="sooqr-static" type="host">*.sooqr.com</value>
-            </values>
-        </policy>
         <policy id="style-src">
             <values>
                 <value id="sooqr-static" type="host">*.sooqr.com</value>
