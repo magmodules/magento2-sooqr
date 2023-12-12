@@ -1,0 +1,52 @@
+<?php
+/**
+ * @var \Magento\Framework\View\Element\Template $block
+ * @var \Magmodules\Sooqr\ViewModel\Search $viewModel
+ */
+$viewModel = $block->getData('view_model');
+?>
+<?php if ($viewModel->isSearchEnabled()): ?>
+    <?php if ($viewModel->getLoaderType() == 'custom'): ?>
+        <script>
+            (function() {
+                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php else: ?>
+        <script>
+            var _wssq = _wssq || [];
+            _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $viewModel->getSooqrOptions() ?>}]);
+            _wssq.push(['suggest._setPosition', 'screen-middle']);
+            _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($viewModel->getSooqrLanguage()) ?>']);
+            <?php if ($viewModel->isTrackingEnabled()): ?>
+            (function() {
+                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                ws.src = ('https:' == document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrInsightsUri()) ?>';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+            })();
+            <?php endif; ?>
+            (function () {
+                var ws = document.createElement('script');
+                ws.type = 'text/javascript';
+                ws.async = true;
+                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
+                var s = document.getElementsByTagName('script')[0];
+                s.parentNode.insertBefore(ws, s);
+            })();
+        </script>
+    <?php endif; ?>
+    <?php if ($viewModel->isAjaxAddToCartEnabled()): ?>
+        <script type="text/x-magento-init">
+            {
+                "*": {
+                    "Magmodules_Sooqr/js/add-to-cart": {}
+                }
+            }
+        </script>
+    <?php endif; ?>
+<?php endif; ?>

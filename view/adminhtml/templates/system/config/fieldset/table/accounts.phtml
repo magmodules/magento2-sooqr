@@ -1,0 +1,54 @@
+<?php
+/**
+ * Copyright © Magmodules.eu. All rights reserved.
+ * See COPYING.txt for license details.
+ *
+ * @var $block Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Table\Accounts
+ */
+?>
+<tr class="sooqr-table" id="row_<?= $block->escapeHtml($block->getHtmlId()); ?>">
+    <td class="label"><?= $block->escapeHtml(__('Account ID')) ?></td>
+    <td class="value">
+        <table class="data-grid" id="<?= $block->escapeHtml($block->getId()) ?>_table">
+            <thead>
+                <th>
+                    <?= $block->escapeHtml(__('StoreView')) ?>
+                </th>
+                <th>
+                    <?= $block->escapeHtml(__('Account ID')) ?>
+                </th>
+<!--                disable for release 2.0.0-->
+<!--                <th>-->
+<!--                    //= $block->escapeHtml(__('Credentials')) ?>-->
+<!--                </th>-->
+                <th>
+                    <?= $block->escapeHtml(__('Edit')) ?>
+                </th>
+            </thead>
+            <tbody>
+                <?php foreach ($block->getStoreData() as $store): ?>
+                    <tr>
+                        <td>
+                            <?= $block->escapeHtml($store['name']); ?>
+                        </td>
+                        <td>
+                            <?= $block->escapeHtml($store['account_id']) ?>
+                        </td>
+<!--                        disable for release 2.0.0-->
+<!--                        <td>-->
+<!--                            <a href=" $block->escapeUrl($store['test_url']); ?>">-->
+<!--                                 $block->escapeHtml(__('Test')) ?>-->
+<!--                            </a>-->
+<!--                        </td>-->
+                        <td>
+                            <a href="<?= $block->escapeUrl($store['edit_url']); ?>">
+                                <?= $block->escapeHtml(__('Edit')) ?>
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </td>
+    <td></td>
+</tr>

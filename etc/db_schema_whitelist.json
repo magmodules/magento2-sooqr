@@ -1,0 +1,41 @@
+{
+    "sooqr_delta": {
+        "column": {
+            "entity_id": true,
+            "product_id": true,
+            "updated_at": true,
+            "product_updated_at": true,
+            "stock_updated_at": true,
+            "stock_status": true,
+            "stock_status_updated_at": true,
+            "deleted": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    },
+    "sooqr_feed": {
+        "column": {
+            "entity_id": true,
+            "store_id": true,
+            "result": true,
+            "products": true,
+            "cms_pages": true,
+            "categories": true,
+            "execution_time": true,
+            "executed_by": true,
+            "filename": true,
+            "webhook_url": true,
+            "response": true,
+            "sent_to_platform": true,
+            "type": true,
+            "started_at": true,
+            "created_at": true,
+            "finished_at": true,
+            "downloaded_at": true
+        },
+        "constraint": {
+            "PRIMARY": true
+        }
+    }
+}

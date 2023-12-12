@@ -8,12 +8,12 @@ namespace Magmodules\Sooqr\Setup\Patch\Data;
 
 use Magento\Catalog\Model\Product;
 use Magento\Eav\Model\Entity\Attribute\ScopedAttributeInterface;
+use Magento\Eav\Model\Entity\Attribute\Source\Boolean;
 use Magento\Eav\Setup\EavSetup;
 use Magento\Eav\Setup\EavSetupFactory;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Setup\ModuleDataSetupInterface;
 use Magento\Framework\Setup\Patch\DataPatchInterface;
-use Zend_Validate_Exception;
+use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 
 /**
  * Class ProductAttributes
@@ -32,22 +32,29 @@ class ProductAttributes implements DataPatchInterface
      * @var EavSetupFactory
      */
     private $eavSetupFactory;
+    /**
+     * @var LogRepository
+     */
+    private $logger;
 
     /**
      * ProductAttributes constructor.
      * @param EavSetupFactory $eavSetupFactory
      * @param ModuleDataSetupInterface $moduleDataSetup
+     * @param LogRepository $logger
      */
     public function __construct(
         EavSetupFactory $eavSetupFactory,
-        ModuleDataSetupInterface $moduleDataSetup
+        ModuleDataSetupInterface $moduleDataSetup,
+        LogRepository $logger
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->moduleDataSetup = $moduleDataSetup;
+        $this->logger = $logger;
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function apply()
     {
@@ -59,8 +66,9 @@ class ProductAttributes implements DataPatchInterface
     }
 
     /**
-     * @throws LocalizedException
-     * @throws Zend_Validate_Exception
+     * Adds 'Exclude for Sooqr Search' product attribute
+     *
+     * @return void
      */
     public function addProductAttribute()
     {
@@ -72,43 +80,47 @@ class ProductAttributes implements DataPatchInterface
             $eavSetup->addAttributeGroup(Product::ENTITY, $attributeSetId, self::GROUP_NAME, 1000);
         }
 
-        $eavSetup->addAttribute(
-            Product::ENTITY,
-            self::PRODUCT_EXCLUDE_ATT,
-            [
-                'group' => self::GROUP_NAME,
-                'type' => 'int',
-                'label' => 'Exclude for Sooqr Search',
-                'input' => 'boolean',
-                'source' => \Magento\Eav\Model\Entity\Attribute\Source\Boolean::class,
-                'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
-                'default' => '0',
-                'user_defined' => true,
-                'required' => false,
-                'searchable' => false,
-                'filterable' => false,
-                'comparable' => false,
-                'visible_on_front' => false,
-                'used_in_product_listing' => false,
-                'unique' => false,
-                'apply_to' => 'simple,configurable,virtual,bundle,downloadable'
-            ]
-        );
-
-        $attribute = $eavSetup->getAttribute(Product::ENTITY, self::PRODUCT_EXCLUDE_ATT);
-        foreach ($attributeSetIds as $attributeSetId) {
-            $eavSetup->addAttributeToGroup(
+        try {
+            $eavSetup->addAttribute(
                 Product::ENTITY,
-                $attributeSetId,
-                self::GROUP_NAME,
-                $attribute['attribute_id'],
-                110
+                self::PRODUCT_EXCLUDE_ATT,
+                [
+                    'group' => self::GROUP_NAME,
+                    'type' => 'int',
+                    'label' => 'Exclude for Sooqr Search',
+                    'input' => 'boolean',
+                    'source' => Boolean::class,
+                    'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                    'default' => '0',
+                    'user_defined' => true,
+                    'required' => false,
+                    'searchable' => false,
+                    'filterable' => false,
+                    'comparable' => false,
+                    'visible_on_front' => false,
+                    'used_in_product_listing' => false,
+                    'unique' => false,
+                    'apply_to' => 'simple,configurable,virtual,bundle,downloadable'
+                ]
             );
+
+            $attribute = $eavSetup->getAttribute(Product::ENTITY, self::PRODUCT_EXCLUDE_ATT);
+            foreach ($attributeSetIds as $attributeSetId) {
+                $eavSetup->addAttributeToGroup(
+                    Product::ENTITY,
+                    $attributeSetId,
+                    self::GROUP_NAME,
+                    $attribute['attribute_id'],
+                    110
+                );
+            }
+        } catch (\Exception $e) {
+            $this->logger->addErrorLog('addExcludeCategoryAttribute', $e->getMessage());
         }
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public static function getDependencies()
     {
@@ -116,7 +128,7 @@ class ProductAttributes implements DataPatchInterface
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function getAliases()
     {

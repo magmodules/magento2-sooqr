@@ -1,6 +1,6 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
 declare(strict_types=1);
@@ -11,36 +11,43 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Checkout\Model\Cart;
 use Magento\Checkout\Model\Session;
-use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\ActionInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\App\Response\RedirectInterface;
+use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\Result\Redirect;
+use Magento\Framework\Controller\Result\RedirectFactory;
 use Magento\Framework\Data\Form\FormKey;
-use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Framework\Escaper;
+use Magento\Framework\Event\ManagerInterface as EventManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Message\ManagerInterface as MessageManagerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
-use Magmodules\Sooqr\Helper\General as GeneralHelper;
-use Magmodules\Sooqr\Logger\GeneralLoggerInterface;
+use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
+use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 
 /**
  * Class Add
  */
-class Add extends \Magento\Checkout\Controller\Cart
+class Add implements ActionInterface
 {
     /**
      * @var Cart
      */
-    protected $cart;
+    private $cart;
     /**
      * @var Session
      */
-    protected $checkoutSession;
+    private $checkoutSession;
     /**
      * @var ScopeConfigInterface
      */
-    protected $scopeConfig;
+    private $scopeConfig;
     /**
      * @var FormKey
      */
@@ -58,70 +65,107 @@ class Add extends \Magento\Checkout\Controller\Cart
      */
     private $storeManager;
     /**
-     * @var GeneralHelper
+     * @var ConfigProvider
      */
-    private $generalHelper;
+    private $configProvider;
     /**
      * @var Escaper
      */
     private $escaper;
     /**
-     * @var GeneralLoggerInterface
+     * @var LogRepository
      */
     private $logger;
+    /**
+     * @var MessageManagerInterface
+     */
+    private $messageManager;
+    /**
+     * @var RequestInterface
+     */
+    private $request;
+    /**
+     * @var EventManagerInterface
+     */
+    private $eventManager;
+    /**
+     * @var ResponseInterface
+     */
+    private $response;
+    /**
+     * @var RedirectFactory
+     */
+    protected $resultRedirectFactory;
+    /**
+     * @var UrlInterface
+     */
+    protected $url;
 
     /**
      * Add constructor.
      *
-     * @param Context $context
      * @param FormKey $formKey
      * @param Cart $cart
      * @param ProductRepositoryInterface $productRepository
      * @param RedirectInterface $redirectInterface
      * @param StoreManagerInterface $storeManager
-     * @param GeneralHelper $generalHelper
+     * @param ConfigProvider $configProvider
+     * @param Session $checkoutSession
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Escaper $escaper
+     * @param LogRepository $logger
+     * @param MessageManagerInterface $messageManager
+     * @param RequestInterface $request
+     * @param EventManagerInterface $eventManager
+     * @param ResponseInterface $response
+     * @param RedirectFactory $resultRedirectFactory
+     * @param UrlInterface $url
      */
     public function __construct(
-        Context $context,
         FormKey $formKey,
         Cart $cart,
         ProductRepositoryInterface $productRepository,
         RedirectInterface $redirectInterface,
         StoreManagerInterface $storeManager,
-        GeneralHelper $generalHelper,
+        ConfigProvider $configProvider,
         Session $checkoutSession,
         ScopeConfigInterface $scopeConfig,
-        Validator $formKeyValidator,
         Escaper $escaper,
-        GeneralLoggerInterface $logger
+        LogRepository $logger,
+        MessageManagerInterface $messageManager,
+        RequestInterface $request,
+        EventManagerInterface $eventManager,
+        ResponseInterface $response,
+        RedirectFactory $resultRedirectFactory,
+        UrlInterface $url
     ) {
         $this->formKey = $formKey;
         $this->cart = $cart;
         $this->productRepository = $productRepository;
         $this->redirect = $redirectInterface;
         $this->storeManager = $storeManager;
-        $this->generalHelper = $generalHelper;
+        $this->configProvider = $configProvider;
         $this->checkoutSession = $checkoutSession;
         $this->scopeConfig = $scopeConfig;
         $this->escaper = $escaper;
         $this->logger = $logger;
-        parent::__construct(
-            $context,
-            $scopeConfig,
-            $checkoutSession,
-            $storeManager,
-            $formKeyValidator,
-            $cart
-        );
+        $this->messageManager = $messageManager;
+        $this->request = $request;
+        $this->eventManager = $eventManager;
+        $this->response = $response;
+        $this->resultRedirectFactory = $resultRedirectFactory;
+        $this->url = $url;
     }
 
     /**
+     * Add product to cart
+     *
      * @return Redirect
      * @throws NoSuchEntityException
      */
     public function execute(): Redirect
     {
-        if (!$this->generalHelper->getAddToCartController()) {
+        if (!$this->configProvider->addToCartController()) {
             $this->messageManager->addErrorMessage(__('Controller disabled in admin'));
             return $this->goBack();
         }
@@ -131,14 +175,14 @@ class Add extends \Magento\Checkout\Controller\Cart
             $params = [
                 'form_key' => $this->formKey->getFormKey(),
                 'product' => $product->getId(),
-                'qty' => $this->getRequest()->getParam('qty', 1) ?: 1,
+                'qty' => $this->request->getParam('qty', 1) ?: 1,
             ];
             $this->cart->addProduct($product, $params);
             $this->cart->save();
 
-            $this->_eventManager->dispatch(
+            $this->eventManager->dispatch(
                 'checkout_cart_add_product_complete',
-                ['product' => $product, 'request' => $this->getRequest(), 'response' => $this->getResponse()]
+                ['product' => $product, 'request' => $this->request, 'response' => $this->response]
             );
 
             if (!$this->cart->getQuote()->getHasError()) {
@@ -151,7 +195,7 @@ class Add extends \Magento\Checkout\Controller\Cart
             }
             return $this->goBack();
         } catch (LocalizedException $e) {
-            if ($this->_checkoutSession->getUseNotice(true)) {
+            if ($this->checkoutSession->getUseNotice(true)) {
                 $this->messageManager->addNoticeMessage(
                     $this->escaper->escapeHtml($e->getMessage())
                 );
@@ -163,8 +207,8 @@ class Add extends \Magento\Checkout\Controller\Cart
                     );
                 }
             }
-            if (!$url = $this->_checkoutSession->getRedirectUrl(true)) {
-                $url = $this->_redirect->getRedirectUrl($this->getCartUrl());
+            if (!$url = $this->checkoutSession->getRedirectUrl(true)) {
+                $url = $this->redirect->getRedirectUrl($this->getCartUrl());
             }
             return $this->goBack($url);
         } catch (\Exception $e) {
@@ -172,7 +216,7 @@ class Add extends \Magento\Checkout\Controller\Cart
                 $e,
                 __('We can\'t add this item to your shopping cart right now.')
             );
-            $this->logger->add('addProductToCart', $e->getMessage());
+            $this->logger->addErrorLog('addProductToCart', $e->getMessage());
             return $this->goBack();
         }
     }
@@ -180,10 +224,65 @@ class Add extends \Magento\Checkout\Controller\Cart
     /**
      * @param null $backUrl
      * @return Redirect
+     * @throws NoSuchEntityException
      */
-    protected function goBack($backUrl = null)
+    private function goBack($backUrl = null)
     {
-        return parent::_goBack($backUrl);
+        $resultRedirect = $this->resultRedirectFactory->create();
+
+        if ($backUrl || $backUrl = $this->getBackUrl($this->redirect->getRefererUrl())) {
+            $resultRedirect->setUrl($backUrl);
+        }
+
+        return $resultRedirect;
+    }
+
+    /**
+     * Get resolved back url
+     *
+     * @param string|null $defaultUrl
+     * @return mixed|null|string
+     * @throws NoSuchEntityException
+     */
+    private function getBackUrl($defaultUrl = null)
+    {
+        $returnUrl = $this->request->getParam('return_url');
+        if ($returnUrl && $this->isInternalUrl($returnUrl)) {
+            $this->messageManager->getMessages()->clear();
+            return $returnUrl;
+        }
+
+        if ($this->shouldRedirectToCart() || $this->request->getParam('in_cart')) {
+            if ($this->request->getActionName() == 'add' && !$this->request->getParam('in_cart')) {
+                $this->checkoutSession->setContinueShoppingUrl($this->redirect->getRefererUrl());
+            }
+            return $this->url->getUrl('checkout/cart');
+        }
+
+        return $defaultUrl;
+    }
+
+    /**
+     * Check if URL corresponds store
+     *
+     * @param string $url
+     * @return bool
+     * @throws NoSuchEntityException
+     */
+    private function isInternalUrl($url)
+    {
+        if (strpos($url, 'http') === false) {
+            return false;
+        }
+
+        /**
+         * Url must start from base secure or base unsecure url
+         */
+        /** @var $store Store */
+        $store = $this->storeManager->getStore();
+        $unsecure = strpos($url, (string) $store->getBaseUrl()) === 0;
+        $secure = strpos($url, (string) $store->getBaseUrl(UrlInterface::URL_TYPE_LINK, true)) === 0;
+        return $unsecure || $secure;
     }
 
     /**
@@ -194,7 +293,7 @@ class Add extends \Magento\Checkout\Controller\Cart
      */
     private function initProduct()
     {
-        $productId = (int)$this->getRequest()->getParam('product');
+        $productId = (int)$this->request->getParam('product');
         $storeId = $this->storeManager->getStore()->getId();
         return $this->productRepository->getById($productId, false, $storeId);
     }
@@ -206,6 +305,19 @@ class Add extends \Magento\Checkout\Controller\Cart
      */
     private function getCartUrl()
     {
-        return $this->_url->getUrl('checkout/cart', ['_secure' => true]);
+        return $this->url->getUrl('checkout/cart', ['_secure' => true]);
+    }
+
+    /**
+     * Is redirect should be performed after the product was added to cart.
+     *
+     * @return bool
+     */
+    private function shouldRedirectToCart()
+    {
+        return $this->scopeConfig->isSetFlag(
+            'checkout/cart/redirect_to_cart',
+            ScopeInterface::SCOPE_STORE
+        );
     }
 }

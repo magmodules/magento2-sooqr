@@ -1,58 +1,72 @@
 <?php
 /**
- * Copyright © 2019 Magmodules.eu. All rights reserved.
+ * Copyright © Magmodules.eu. All rights reserved.
  * See COPYING.txt for license details.
  */
+declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Controller\Installation;
 
-use Magento\Framework\App\Action\Action;
-use Magento\Framework\App\Action\Context;
+use Magento\Framework\App\ActionInterface;
+use Magento\Framework\App\ResponseInterface;
+use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
-use Magmodules\Sooqr\Helper\Feed;
+use Magento\Framework\Controller\ResultInterface;
+use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
 
 /**
- * Class Index
- *
- * @package Magmodules\Sooqr\Controller\Installation
+ * Installation Index Controller
  */
-class Index extends Action
+class Index implements ActionInterface
 {
 
-    /**
-     * @var Feed
-     */
-    private $feedHelper;
     /**
      * @var JsonFactory
      */
     private $resultJsonFactory;
+    /**
+     * @var ConfigProvider
+     */
+    private $configProvider;
 
     /**
      * Index constructor.
      *
-     * @param Context     $context
-     * @param Feed        $feedHelper
+     * @param ConfigProvider $configProvider
      * @param JsonFactory $resultJsonFactory
      */
     public function __construct(
-        Context $context,
-        Feed $feedHelper,
+        ConfigProvider $configProvider,
         JsonFactory $resultJsonFactory
     ) {
-        $this->feedHelper = $feedHelper;
+        $this->configProvider = $configProvider;
         $this->resultJsonFactory = $resultJsonFactory;
-        parent::__construct($context);
     }
 
     /**
-     * @return mixed
+     * @return Json
      */
-    public function execute()
+    public function execute(): Json
     {
-        if ($feed = $this->feedHelper->getInstallation()) {
-            $result = $this->resultJsonFactory->create();
-            return $result->setData($feed);
+        $result = $this->resultJsonFactory->create();
+        return $result->setData($this->getData());
+    }
+
+    /**
+     * @return array
+     */
+    private function getData(): array
+    {
+        $json = [];
+        foreach ($this->configProvider->getAllEnabledStoreIds() as $sId) {
+            $store = $this->configProvider->getStore($sId);
+            $json['feeds'][$sId] = [
+                'name' => $store->getName(),
+                'extension' => 'Magmodules_Sooqr',
+                'platform_version' => $this->configProvider->getMagentoVersion(),
+                'extension_version' => $this->configProvider->getExtensionVersion(),
+            ];
         }
+        return $json;
     }
 }
