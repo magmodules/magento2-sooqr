@@ -18,8 +18,9 @@ use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
 class Search implements ArgumentInterface
 {
 
-    public const SOOQR_SCRIPT_URL = 'static.sooqr.com/sooqr.js';
-    public const SOOQR_CUSTOM_SCRIPT_URL = 'static.sooqr.com/custom/%s/snippet.js';
+    public const SOOQR_SCRIPT_URL = 'static.spotlersearch.com/sooqr.js';
+    public const SOOQR_CUSTOM_SCRIPT_URL = 'static.spotlersearch.com/custom/%s/snippet.js';
+    public const SOOQR_INSIGHTS_URL = 'spotlersearchanalytics.com/insights.js';
 
     /**
      * @var ConfigProvider
@@ -128,6 +129,14 @@ class Search implements ArgumentInterface
         }
 
         return static::SOOQR_SCRIPT_URL;
+    }
+
+    /**
+     * @return string
+     */
+    public function getSooqrInsightsUri(): string
+    {
+        return static::SOOQR_INSIGHTS_URL;
     }
 
     /**

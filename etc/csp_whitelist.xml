@@ -5,11 +5,14 @@
         <policy id="style-src">
             <values>
                 <value id="sooqr-static" type="host">*.sooqr.com</value>
+                <value id="spotlersearch-static" type="host">*.spotlersearch.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
                 <value id="sooqr-static" type="host">*.sooqr.com</value>
+                <value id="spotlersearch-static" type="host">*.spotlersearch.com</value>
+                <value id="spotlersearchanalytics-static" type="host">spotlersearchanalytics.com</value>
             </values>
         </policy>
     </policies>

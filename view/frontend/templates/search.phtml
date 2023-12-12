@@ -21,8 +21,13 @@ $viewModel = $block->getData('view_model');
             _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $viewModel->getSooqrOptions() ?>}]);
             _wssq.push(['suggest._setPosition', 'screen-middle']);
             _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($viewModel->getSooqrLanguage()) ?>']);
-            <?php if (!$viewModel->isTrackingEnabled()): ?>
-            _wssq.push(['suggest._disableTracking']);
+            <?php if ($viewModel->isTrackingEnabled()): ?>
+            (function() {
+                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
+                ws.src = ('https:' == document.location.protocol ? 'https://' : 'http://')
+                    + '<?= $block->escapeUrl($viewModel->getSooqrInsightsUri()) ?>';
+                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
+            })();
             <?php endif; ?>
             (function () {
                 var ws = document.createElement('script');
