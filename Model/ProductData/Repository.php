@@ -8,6 +8,7 @@ declare(strict_types=1);
 namespace Magmodules\Sooqr\Model\ProductData;
 
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\Filter\FilterManager;
 use Magmodules\Sooqr\Api\Config\RepositoryInterface as DataConfigRepository;
 use Magmodules\Sooqr\Api\ProductData\RepositoryInterface as ProductData;
 use Magmodules\Sooqr\Model\Config\Source\FeedType;
@@ -99,21 +100,28 @@ class Repository implements ProductData
      * @var array
      */
     private $imageData;
+    /**
+     * @var FilterManager
+     */
+    private $filterManager;
 
     /**
      * Repository constructor.
      * @param DataConfigRepository $dataConfigRepository
+     * @param FilterManager $filterManager
      * @param Filter $filter
      * @param Type $type
      * @param Image $image
      */
     public function __construct(
         DataConfigRepository $dataConfigRepository,
+        FilterManager $filterManager,
         Filter $filter,
         Type $type,
         Image $image
     ) {
         $this->dataConfigRepository = $dataConfigRepository;
+        $this->filterManager = $filterManager;
         $this->filter = $filter;
         $this->type = $type;
         $this->image = $image;
@@ -182,7 +190,7 @@ class Repository implements ProductData
 
         $extraAttributes = array_diff_key($attributes, array_flip(self::ATTRIBUTES));
         $this->resultMap += array_combine(array_map(function ($key) {
-            return 'sqr:'. $key;
+            return 'sqr:' . $key;
         }, array_keys($extraAttributes)), $extraAttributes);
 
         $this->attributeMap = array_filter($this->attributeMap);
@@ -353,6 +361,8 @@ class Repository implements ProductData
                 return ($value) ? 'true' : 'false';
             case 'url':
                 return $productData['url'] ?? '';
+            case 'description':
+                return $this->filterManager->removeTags((string)$value);
             case 'price':
             case 'price_ex':
             case 'final_price':

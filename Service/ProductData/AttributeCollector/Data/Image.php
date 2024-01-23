@@ -88,20 +88,23 @@ class Image
         $this->setData('entity_ids', $entityIds);
         $this->setData('store_id', $storeId);
         $this->setData('include_hidden', $includeHidden);
-        $imagesData = $this->collectImages();
-        $typesData = $this->collectTypes();
-        return $this->combineData($imagesData, $typesData);
+
+        $combinedData = $this->combineData(
+            $this->collectImages(),
+            $this->collectTypes()
+        );
+
+        $this->setData('media_url', null);
+
+        return $combinedData;
     }
 
     /**
      * @param string $type
      * @param mixed $data
      */
-    public function setData($type, $data)
+    public function setData(string $type, $data)
     {
-        if (!$data) {
-            return;
-        }
         switch ($type) {
             case 'entity_ids':
                 $this->entityIds = $data;
@@ -111,6 +114,9 @@ class Image
                 break;
             case 'include_hidden':
                 $this->includeHidden = $data;
+                break;
+            case 'media_url':
+                $this->mediaUrl = $data;
                 break;
         }
     }

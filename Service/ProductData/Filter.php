@@ -209,16 +209,18 @@ class Filter
     private function filterByCategories(array $entityIds, string $behaviour, array $categoryIds): array
     {
         $connection = $this->resourceConnection->getConnection();
+        $entityId = $this->entityId;
+
         $select = $connection->select()->from(
             ['catalog_product_entity' => $this->resourceConnection->getTableName('catalog_product_entity')],
-            [$this->entityId]
+            [$entityId]
         )->join(
             ['catalog_category_product' => $this->resourceConnection->getTableName('catalog_category_product')],
             'catalog_product_entity.entity_id = catalog_category_product.product_id',
         )->where(
-            "catalog_product_entity.{$this->entityId} in (?)",
+            "catalog_product_entity.{$entityId} in (?)",
             $entityIds
-        )->group($this->entityId);
+        )->group("catalog_product_entity.{$entityId}");
 
         if ($behaviour == 'in') {
             $select->where('catalog_category_product.category_id in (?)', $categoryIds);
