@@ -261,7 +261,7 @@ class Repository implements GenerateRepository
             $this->feedService->execute($dataFeed, $storeId, $filePath);
 
             if ($type == FeedType::FULL) {
-                $this->file->copy($filePath, str_replace('/data/', '/', $this->getFilePath($type, $storeId)));
+                $this->file->copy($filePath, $this->getFilePath($type, $storeId));
             }
 
             $resultMsg = sprintf(
@@ -316,7 +316,7 @@ class Repository implements GenerateRepository
             : $fileName;
 
         return sprintf(
-            '%s/sooqr/data/%s',
+            $addTimeStamp ? '%s/sooqr/data/%s' : '%s/sooqr/%s',
             $this->directoryList->getPath(DirectoryList::MEDIA),
             $fileName
         );
