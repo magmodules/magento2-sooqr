@@ -179,7 +179,7 @@ class Price
     private function getProductData(array $productIds = [])
     {
         $products = $this->collectionFactory->create()
-            ->addFieldToSelect(['price', 'special_price'])
+            ->addFieldToSelect(['price', 'special_price', 'tax_class_id'])
             ->addFieldToFilter('entity_id', ['in' => $productIds]);
 
         $products->getSelect()->joinLeft(
