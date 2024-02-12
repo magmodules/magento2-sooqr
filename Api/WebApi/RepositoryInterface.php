@@ -15,7 +15,7 @@ interface RepositoryInterface
 
     /**
      * @param string $code
-     * @return array
+     * @return string[]
      */
     public function getFeed(string $code): array;
 }
