@@ -27,7 +27,7 @@ class Generate extends Action
      *
      * @see _isAllowed()
      */
-    public const ADMIN_RESOURCE = 'Magmodules_Sooqr::config';
+    public const ADMIN_RESOURCE = 'Magmodules_Sooqr::feed';
 
     /**
      * @var GenerateFeedRepository

@@ -10,7 +10,7 @@
              title="Sooqr"
              module="Magmodules_Sooqr"
              sortOrder="100"
-             resource="Magmodules_Sooqr::general"
+             resource="Magmodules_Sooqr::feed"
              parent="Magento_Backend::marketing"
         />
         <add id="Magmodules_Sooqr::feed"

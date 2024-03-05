@@ -21,7 +21,7 @@
         <settings>
             <updateUrl path="mui/index/render"/>
         </settings>
-        <aclResource>Magmodules_Sooqr::delta</aclResource>
+        <aclResource>Magmodules_Sooqr::feed</aclResource>
         <dataProvider class="Magento\Framework\View\Element\UiComponent\DataProvider\DataProvider"
                       name="sooqr_delta_listing_data_source">
             <settings>
