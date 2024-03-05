@@ -277,7 +277,7 @@ class Repository implements ProductData
 
         ksort($imageData[$storeId]);
         foreach ($imageData[$storeId] as $image) {
-            if (in_array($imageSource, $image['types'])) {
+            if (in_array($imageSource, $image['types']) || empty($productData['image'])) {
                 $productData['image'] = $image['file'];
             }
         }

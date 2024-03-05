@@ -9,7 +9,7 @@
     <section id="sooqr_data" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
         <label>Data</label>
         <tab>sooqr</tab>
-        <resource>Magmodules_Sooqr::config_search</resource>
+        <resource>Magmodules_Sooqr::config_sooqr_data</resource>
         <group id="general" translate="label comment" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>General</label>
             <attribute type="expanded">1</attribute>

@@ -22,7 +22,7 @@ class Index extends Action
      *
      * @see _isAllowed()
      */
-    public const ADMIN_RESOURCE = 'Magmodules_Sooqr::delta';
+    public const ADMIN_RESOURCE = 'Magmodules_Sooqr::feed';
 
     /**
      * @var PageFactory

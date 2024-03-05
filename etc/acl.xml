@@ -13,7 +13,9 @@
                 <resource id="Magento_Backend::stores">
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
-                            <resource id="Magmodules_Sooqr::config" title="Sooqr" sortOrder="80"/>
+                            <resource id="Magmodules_Sooqr::config_sooqr_general" title="Sooqr General" sortOrder="80"/>
+                            <resource id="Magmodules_Sooqr::config_sooqr_data" title="Sooqr Data" sortOrder="80"/>
+                            <resource id="Magmodules_Sooqr::config_sooqr_search" title="Sooqr Search" sortOrder="80"/>
                         </resource>
                     </resource>
                 </resource>
