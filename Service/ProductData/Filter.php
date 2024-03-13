@@ -61,14 +61,11 @@ class Filter
     public function execute(array $filter, int $storeId = 0): array
     {
         $entityIds = $this->filterVisibility($filter);
+        $entityIds = $this->filterStatus($entityIds, $filter['add_disabled_products']);
 
         if ($storeId) {
             $websiteId = $this->getWebsiteId($storeId);
             $entityIds = $this->filterWebsite($entityIds, $websiteId);
-        }
-
-        if (!$filter['add_disabled_products']) {
-            $entityIds = $this->filterEnabledStatus($entityIds);
         }
 
         if ($filter['restrict_by_category']) {
@@ -169,10 +166,15 @@ class Filter
      * Filter entity ids to exclude products with status disabled
      *
      * @param array $entityIds
+     * @param bool $addDisabled
      * @return array
      */
-    private function filterEnabledStatus(array $entityIds): array
+    private function filterStatus(array $entityIds, bool $addDisabled = false): array
     {
+        $status = $addDisabled
+            ? [Status::STATUS_ENABLED, Status::STATUS_DISABLED]
+            : [Status::STATUS_ENABLED];
+
         $connection = $this->resourceConnection->getConnection();
         $select = $connection->select()->distinct()->from(
             ['catalog_product_entity_int' => $this->resourceConnection->getTableName('catalog_product_entity_int')],
@@ -182,8 +184,8 @@ class Filter
             'eav_attribute.attribute_id = catalog_product_entity_int.attribute_id',
             []
         )->where(
-            'value = ?',
-            Status::STATUS_ENABLED
+            'value in (?)',
+            $status
         )->where(
             'attribute_code = ?',
             'status'

@@ -231,6 +231,10 @@ class Stock
                 ['catalog_product_entity' => $this->resource->getTableName('catalog_product_entity')],
                 "catalog_product_entity.entity_id = cataloginventory_stock_item.product_id",
                 ['sku']
+            )->joinLeft(
+                ['css' => $this->resource->getTableName('cataloginventory_stock_status')],
+                'css.product_id = catalog_product_entity.entity_id',
+                ['stock_status']
             );
         if ($addMsi) {
             $select->joinLeft(
@@ -247,8 +251,8 @@ class Stock
             $result[$value['product_id']] =
                 [
                     'qty' => (int)$value['qty'],
-                    'is_in_stock' => (int)$value['is_in_stock'],
-                    'availability' => (int)$value['is_in_stock'],
+                    'is_in_stock' => (int)$value['stock_status'],
+                    'availability' => (int)$value['stock_status'],
                     'manage_stock' => (int)$value['manage_stock'],
                     'qty_increments' => (int)$value['qty_increments'],
                     'min_sale_qty' => (int)$value['min_sale_qty']

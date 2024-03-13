@@ -192,7 +192,7 @@ class Price
                     'price_index.customer_group_id = 0'
                 ]
             ),
-            ['final_price', 'min_price', 'max_price']
+            ['final_price', 'min_price', 'max_price', 'price']
         );
 
         return $products;
@@ -245,6 +245,10 @@ class Price
 
         if ($this->finalPrice === null && $this->price !== null) {
             $this->finalPrice = $this->price;
+        }
+
+        if ($this->price == '0.0000' && $this->finalPrice > 0) {
+            $this->price = $this->finalPrice;
         }
     }
 

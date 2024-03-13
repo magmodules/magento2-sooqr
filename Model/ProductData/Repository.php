@@ -81,6 +81,10 @@ class Repository implements ProductData
      */
     private $entityIds;
     /**
+     * @var array
+     */
+    private $parentSimples;
+    /**
      * @var Type
      */
     private $type;
@@ -134,6 +138,7 @@ class Repository implements ProductData
     {
         $this->collectIds($storeId, $entityIds);
         $this->collectAttributes($storeId);
+        $this->parentSimples = [];
         $this->staticFields = $this->dataConfigRepository->getStaticFields($storeId);
         $this->imageData = $this->image->execute($this->entityIds, $storeId);
 
@@ -148,17 +153,54 @@ class Repository implements ProductData
                 $result[$entityId][$index] = $this->prepareAttribute($attr, $productData);
             }
             $result[$entityId] += $this->categoryData($productData);
-        }
 
-        if ($this->dataConfigRepository->getFilters($storeId)['exclude_out_of_stock']) {
-            foreach ($result as $id => &$row) {
-                if ($row['sqr:availability'] == 'out of stock') {
-                    unset($result[$id]);
-                }
+            if (!empty($productData['parent_id'])) {
+                $this->parentSimples[$productData['parent_id']][] = $productData['product_id'];
             }
         }
 
-        return $result;
+        return $this->postProcess($result, $storeId);
+    }
+
+    /**
+     * @param array $result
+     * @param int $storeId
+     * @return array
+     */
+    private function postProcess(array $result, int $storeId = 0): array
+    {
+        if (!$this->dataConfigRepository->getFilters($storeId)['exclude_out_of_stock'] || empty($result)) {
+            return $result;
+        }
+
+        $unsetSimples = [];
+        foreach ($result as $id => &$row) {
+
+            // Remove parent products without simples
+            if ($row['sqr:id'] == $row['sqr:assoc_id'] && $row['sqr:price'] == 0.00) {
+                $unsetSimples[] = $id;
+                continue;
+            }
+
+            // Remove out of stock products
+            if ($row['sqr:availability'] != 'out of stock') {
+                continue;
+            }
+            $unsetSimples[] = $id;
+
+            if (!empty($row['sqr:assoc_id']) && isset($this->parentSimples[$row['sqr:assoc_id']])) {
+                $this->parentSimples[$row['sqr:assoc_id']] = array_diff(
+                    $this->parentSimples[$row['sqr:assoc_id']],
+                    [$id]
+                );
+            }
+        }
+
+        $emptyParents = array_keys(array_filter($this->parentSimples), function ($value) {
+            return empty($value);
+        });
+
+        return array_diff_key($result, array_flip($emptyParents) + array_flip($unsetSimples));
     }
 
     /**
@@ -354,7 +396,7 @@ class Repository implements ProductData
                 }
                 break;
             case 'status':
-                return ($value) ? 'Enabled' : 'Disabled';
+                return ($value == 1) ? 'Enabled' : 'Disabled';
             case 'is_in_stock':
                 return ($value) ? 'in stock' : 'out of stock';
             case 'manage_stock':
