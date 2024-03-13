@@ -49,6 +49,7 @@ class Type
      * @param array $attributeMap
      * @param array $extraParameters
      * @param int $storeId
+     * @param bool $addDisabled
      * @return array
      * @throws NoSuchEntityException
      */
@@ -62,7 +63,7 @@ class Type
             return [];
         }
 
-        $parents = $this->parents->execute();
+        $parents = $this->parents->execute($entityIds, $extraParameters['filters']['exclude_disabled']);
         $toUnset = [];
         $parentAttributeToUse = [];
         $extraProductsToLoad = [];
