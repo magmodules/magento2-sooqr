@@ -211,11 +211,11 @@ class Repository implements GenerateRepository
             throw new LocalizedException(__($message, $storeId));
         }
 
-        $credentials = $this->configProvider->getCredentials($storeId);
-        if (count($credentials) != count(array_filter($credentials))) {
-            $message = self::ERROR_CREDENTIALS;
-            throw new LocalizedException(__($message, $storeId));
-        }
+//        $credentials = $this->configProvider->getCredentials($storeId);
+//        if (count($credentials) != count(array_filter($credentials))) {
+//            $message = self::ERROR_CREDENTIALS;
+//            throw new LocalizedException(__($message, $storeId));
+//        }
 
         $dataFeed = [];
         $generatedEntities = [];
