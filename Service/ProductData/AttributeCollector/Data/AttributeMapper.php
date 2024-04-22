@@ -148,6 +148,7 @@ class AttributeMapper
         string $entityTypeCode = '',
         int $storeId = 0
     ): array {
+        $this->result = [];
         $this->attrOptions = $this->collectAttributeOptions();
         $this->setData('map', $map);
         $this->setData('entity_ids', $entityIds);
