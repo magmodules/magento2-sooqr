@@ -67,6 +67,14 @@ class SearchRepository extends BaseConfigRepository implements SearchInterface
     /**
      * @inheritDoc
      */
+    public function addToCompareController(): bool
+    {
+        return $this->isSearchEnabled() && $this->isSetFlag(self::XML_PATH_ADD_TO_COMPARE);
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function isSearchEnabled(): bool
     {
         return $this->isSetFlag(self::XML_PATH_SEARCH_ENABLE)
