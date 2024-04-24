@@ -9,6 +9,7 @@ namespace Magmodules\Sooqr\Model\ProductData;
 
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filter\FilterManager;
+use Magento\Framework\Serialize\Serializer\Json;
 use Magmodules\Sooqr\Api\Config\RepositoryInterface as DataConfigRepository;
 use Magmodules\Sooqr\Api\ProductData\RepositoryInterface as ProductData;
 use Magmodules\Sooqr\Model\Config\Source\FeedType;
@@ -108,6 +109,10 @@ class Repository implements ProductData
      * @var FilterManager
      */
     private $filterManager;
+    /**
+     * @var Json
+     */
+    private $json;
 
     /**
      * Repository constructor.
@@ -119,12 +124,14 @@ class Repository implements ProductData
      */
     public function __construct(
         DataConfigRepository $dataConfigRepository,
+        Json $json,
         FilterManager $filterManager,
         Filter $filter,
         Type $type,
         Image $image
     ) {
         $this->dataConfigRepository = $dataConfigRepository;
+        $this->json = $json;
         $this->filterManager = $filterManager;
         $this->filter = $filter;
         $this->type = $type;
@@ -160,47 +167,6 @@ class Repository implements ProductData
         }
 
         return $this->postProcess($result, $storeId);
-    }
-
-    /**
-     * @param array $result
-     * @param int $storeId
-     * @return array
-     */
-    private function postProcess(array $result, int $storeId = 0): array
-    {
-        if (!$this->dataConfigRepository->getFilters($storeId)['exclude_out_of_stock'] || empty($result)) {
-            return $result;
-        }
-
-        $unsetSimples = [];
-        foreach ($result as $id => &$row) {
-
-            // Remove parent products without simples
-            if ($row['sqr:id'] == $row['sqr:assoc_id'] && $row['sqr:price'] == 0.00) {
-                $unsetSimples[] = $id;
-                continue;
-            }
-
-            // Remove out of stock products
-            if ($row['sqr:availability'] != 'out of stock') {
-                continue;
-            }
-            $unsetSimples[] = $id;
-
-            if (!empty($row['sqr:assoc_id']) && isset($this->parentSimples[$row['sqr:assoc_id']])) {
-                $this->parentSimples[$row['sqr:assoc_id']] = array_diff(
-                    $this->parentSimples[$row['sqr:assoc_id']],
-                    [$id]
-                );
-            }
-        }
-
-        $emptyParents = array_keys(array_filter($this->parentSimples), function ($value) {
-            return empty($value);
-        });
-
-        return array_diff_key($result, array_flip($emptyParents) + array_flip($unsetSimples));
     }
 
     /**
@@ -404,7 +370,7 @@ class Repository implements ProductData
             case 'url':
                 return $productData['url'] ?? '';
             case 'description':
-                return $this->filterManager->removeTags((string)$value);
+                return $this->reformatDescription((string)$value);
             case 'price':
             case 'price_ex':
             case 'final_price':
@@ -440,6 +406,44 @@ class Repository implements ProductData
     }
 
     /**
+     * @param string $value
+     * @return string
+     */
+    private function reformatDescription(string $value): string
+    {
+        if (strpos($value, "[mgz_pagebuilder]") === 0) {
+            try {
+                $pattern = '/\[mgz_pagebuilder\](.*?)\[\/mgz_pagebuilder\]/s';
+                if (preg_match($pattern, $value, $matches)) {
+                    $content = $this->json->unserialize($matches[1]);
+                    $found = $this->findAllContentInArray($content, 'content');
+                    $value = implode(' ', $found);
+                }
+            } catch (\Exception $exception) {
+                return $this->filterManager->removeTags($value);
+            }
+        }
+
+        return $this->filterManager->removeTags($value);
+    }
+
+    /**
+     * @param array $array
+     * @param string|null $key
+     * @return array
+     */
+    private function findAllContentInArray(array $array, ?string $key = null): array
+    {
+        array_walk_recursive($array, function ($v, $k) use ($key, &$val) {
+            if ($key === null || ($key && $k == $key)) {
+                $val[] = $v;
+            }
+        });
+
+        return array_unique($val ?? []);
+    }
+
+    /**
      * Add category data to productData array
      *
      * @param array $productData
@@ -462,6 +466,47 @@ class Repository implements ProductData
         }
 
         return $categoryData;
+    }
+
+    /**
+     * @param array $result
+     * @param int $storeId
+     * @return array
+     */
+    private function postProcess(array $result, int $storeId = 0): array
+    {
+        if (!$this->dataConfigRepository->getFilters($storeId)['exclude_out_of_stock'] || empty($result)) {
+            return $result;
+        }
+
+        $unsetSimples = [];
+        foreach ($result as $id => &$row) {
+
+            // Remove parent products without simples
+            if ($row['sqr:id'] == $row['sqr:assoc_id'] && $row['sqr:price'] == 0.00) {
+                $unsetSimples[] = $id;
+                continue;
+            }
+
+            // Remove out of stock products
+            if ($row['sqr:availability'] != 'out of stock') {
+                continue;
+            }
+            $unsetSimples[] = $id;
+
+            if (!empty($row['sqr:assoc_id']) && isset($this->parentSimples[$row['sqr:assoc_id']])) {
+                $this->parentSimples[$row['sqr:assoc_id']] = array_diff(
+                    $this->parentSimples[$row['sqr:assoc_id']],
+                    [$id]
+                );
+            }
+        }
+
+        $emptyParents = array_keys(array_filter($this->parentSimples), function ($value) {
+            return empty($value);
+        });
+
+        return array_diff_key($result, array_flip($emptyParents) + array_flip($unsetSimples));
     }
 
     /**
