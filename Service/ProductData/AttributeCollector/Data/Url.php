@@ -147,7 +147,8 @@ class Url
                 'url_rewrite.redirect_type = ?',
                 0
             )->where(
-                'url_rewrite.metadata IS NULL'
+                'url_rewrite.metadata IS NULL OR url_rewrite.metadata = ?',
+                '[]'
             )->where(
                 'url_rewrite.store_id = ?',
                 $this->storeId
@@ -167,7 +168,7 @@ class Url
         }
         foreach ($this->entityIds as $entityId) {
             if (!array_key_exists($entityId, $result)) {
-                $result[$this->linkField] = sprintf(
+                $result[$entityId] = sprintf(
                     self::URL_PATTERN_EXTRA[$this->type],
                     $storeUrl,
                     $entityId
