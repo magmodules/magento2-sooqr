@@ -151,7 +151,7 @@ class Repository implements ProductData
 
         $result = [];
         foreach ($this->collectProductData($storeId, $type) as $entityId => $productData) {
-            if (empty($productData['product_id'])) {
+            if (empty($productData['product_id']) || $productData['status'] == 2) {
                 continue;
             }
             $this->addImageData($storeId, (int)$entityId, $productData);
