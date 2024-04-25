@@ -24,6 +24,7 @@ interface SearchInterface
     public const XML_PATH_ADD_TO_CART = 'sooqr_search/frontend/add_to_cart';
     public const XML_PATH_ADD_TO_CART_AJAX = 'sooqr_search/frontend/add_to_cart_ajax';
     public const XML_PATH_ADD_TO_WISHLIST = 'sooqr_search/frontend/add_to_wishlist';
+    public const XML_PATH_ADD_TO_COMPARE = 'sooqr_search/frontend/add_to_compare';
 
     /**
      * @return bool
@@ -59,6 +60,11 @@ interface SearchInterface
      * @return bool
      */
     public function addToWishlistController(): bool;
+
+    /**
+     * @return bool
+     */
+    public function addToCompareController(): bool;
 
     /**
      * @return string
