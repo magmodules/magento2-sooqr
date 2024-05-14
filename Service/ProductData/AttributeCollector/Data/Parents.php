@@ -105,7 +105,6 @@ class Parents
      */
     private function collectParents(array $entityIds, bool $excludeDisabled): array
     {
-        $all = $entityIds;
         $result = [];
         $select = $this->resource->getConnection()
             ->select()
@@ -132,10 +131,9 @@ class Parents
 
         foreach ($this->resource->getConnection()->fetchAll($select) as $item) {
             $result[$item['child_id']][$item['parent_id']] = $item['type_id'];
-            $all += [$item['child_id'], $item['parent_id']];
         }
 
-        return ['all' => array_unique($all), 'relations' => $result];
+        return $result;
     }
 
     /**
