@@ -11,7 +11,7 @@
         <sooqr_general>
             <general>
                 <enable>1</enable>
-                <version>v2.1.0</version>
+                <version>v2.1.1</version>
             </general>
             <credentials>
                 <environment>production</environment>
