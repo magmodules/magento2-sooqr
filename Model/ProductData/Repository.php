@@ -273,22 +273,35 @@ class Repository implements ProductData
                     break;
             }
         }
+        
+        $productData['image'] = $this->getImageWithFallback($imageData, [$storeId, 0]);
+    }
 
+    /**
+     * @param array|null $imageData
+     * @param array $storeIds
+     * @return string|null
+     */
+    private function getImageWithFallback(?array $imageData, array $storeIds): ?string
+    {
         if ($imageData === null) {
-            return;
+            return null;
         }
 
-        $imageSource = $this->dataConfigRepository->getImageAttribute($storeId);
-        if (!isset($imageData[$storeId])) {
-            $storeId = 0;
-        }
-
-        ksort($imageData[$storeId]);
-        foreach ($imageData[$storeId] as $image) {
-            if (in_array($imageSource, $image['types']) || empty($productData['image'])) {
-                $productData['image'] = $image['file'];
+        $imageSource = $this->dataConfigRepository->getImageAttribute($storeIds[0]);
+        foreach ($storeIds as $storeId) {
+            if (!isset($imageData[$storeId])) {
+                continue;
+            }
+            ksort($imageData[$storeId]);
+            foreach ($imageData[$storeId] as $image) {
+                if (in_array($imageSource, $image['types'])) {
+                    return $image['file'];
+                }
             }
         }
+
+        return $imageData[0][0]['file'] ?? null;
     }
 
     /**
