@@ -341,11 +341,14 @@ class Category
                 if (!$categoryPath) {
                     continue;
                 }
+
                 $categoryIds = explode('/', $categoryPath);
                 $key = array_search($rootCategoryId, $categoryIds);
-                if ($key) {
-                    $categoryIds = array_slice($categoryIds, $key + 1, count($categoryIds) - $key);
+                if ($key === false) {
+                    continue;
                 }
+
+                $categoryIds = array_slice($categoryIds, $key + 1, count($categoryIds) - $key);
                 $level = count($categoryIds);
                 if ($level == 0) {
                     continue;

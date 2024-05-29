@@ -2,14 +2,14 @@
     "name": "magmodules/magento2-sooqr",
     "description": "Sooqr integration for Magento 2",
     "type": "magento2-module",
-    "version": "2.1.1",
+    "version": "2.1.2",
     "license": [
         "OSL-3.0",
         "AFL-3.0"
     ],
     "require": {
         "magento/framework": ">=102.0.2",
-        "php": ">=7.3.0",
+        "php": ">=7.4.0",
         "ext-libxml": "*",
         "ext-dom": "*",
         "ext-json": "*"

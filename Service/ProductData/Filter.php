@@ -60,8 +60,8 @@ class Filter
      */
     public function execute(array $filter, int $storeId = 0): array
     {
-        $entityIds = $this->filterVisibility($filter);
-        $entityIds = $this->filterStatus($entityIds, $filter['add_disabled_products']);
+        $entityIds = $this->filterVisibility($filter, $storeId);
+        $entityIds = $this->filterStatus($entityIds, $filter['add_disabled_products'], $storeId);
 
         if ($storeId) {
             $websiteId = $this->getWebsiteId($storeId);
@@ -83,9 +83,10 @@ class Filter
      * Filter entity ids to exclude products based on visibility
      *
      * @param array $filter
+     * @param int $storeId
      * @return array
      */
-    private function filterVisibility(array $filter): array
+    private function filterVisibility(array $filter, int $storeId = 0): array
     {
         if ($filter['filter_by_visibility']) {
             $visibility = is_array($filter['visibility'])
@@ -116,7 +117,9 @@ class Filter
             'visibility'
         )->where(
             'store_id IN (?)',
-            [0]
+            [0, $storeId]
+        )->order(
+            'store_id ASC'
         );
 
         return $connection->fetchCol($select);
@@ -167,9 +170,10 @@ class Filter
      *
      * @param array $entityIds
      * @param bool $addDisabled
+     * @param int $storeId
      * @return array
      */
-    private function filterStatus(array $entityIds, bool $addDisabled = false): array
+    private function filterStatus(array $entityIds, bool $addDisabled = false, int $storeId = 0): array
     {
         $status = $addDisabled
             ? [Status::STATUS_ENABLED, Status::STATUS_DISABLED]
@@ -191,10 +195,12 @@ class Filter
             'status'
         )->where(
             'store_id IN (?)',
-            [0]
+            [0, $storeId]
         )->where(
             $this->entityId . ' IN (?)',
             $entityIds
+        )->order(
+            'store_id ASC'
         );
 
         return $connection->fetchCol($select);
