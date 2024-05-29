@@ -9,7 +9,7 @@
     ],
     "require": {
         "magento/framework": ">=102.0.2",
-        "php": ">=7.3.0",
+        "php": ">=7.4.0",
         "ext-libxml": "*",
         "ext-dom": "*",
         "ext-json": "*"
