@@ -168,26 +168,10 @@ interface DataInterface extends SearchInterface
     public function getCmsSelection(int $storeId): string;
 
     /**
-     * Get Category has changed flag
-     *
-     * @return bool
-     */
-    public function getCategoryChangedFlag(): bool;
-
-    /**
      * Add rating summary
      *
      * @param int $storeId
      * @return bool
      */
     public function addRatingSummary(int $storeId): bool;
-
-    /**
-     * Set/unset a flag when category data is changed
-     *
-     * @param bool $value
-     *
-     * @return void
-     */
-    public function setCategoryChangedFlag(bool $value): void;
 }

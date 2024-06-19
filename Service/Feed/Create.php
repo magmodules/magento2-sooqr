@@ -22,10 +22,6 @@ class Create
     /**
      * @var bool
      */
-    private $categoryTree = false;
-    /**
-     * @var bool
-     */
     private $categoryNode = false;
 
     /**
@@ -66,18 +62,12 @@ XML;
     {
         $xmlStr = '';
         foreach ($data as $key => $value) {
-            if ($key === 'category_tree') {
-                $this->categoryTree = true;
-            }
             if ($key === 'sqr:categories') {
                 $this->categoryNode = true;
             }
-
-            if (is_numeric($key) && $this->categoryTree) {
-                $key = 'category_item';
-            } elseif (is_numeric($key) && $this->categoryNode) {
+            if (is_numeric($key) && $this->categoryNode) {
                 $key = 'node';
-            } elseif (is_numeric($key) && !$this->categoryNode && !$this->categoryTree) {
+            } elseif (is_numeric($key) && !$this->categoryNode) {
                 $key = 'item';
             }
             if (!is_array($value)) {
@@ -95,9 +85,6 @@ XML;
             $xmlStr .= <<<XML
 </$key>
 XML;
-            if ($key == 'category_tree') {
-                $this->categoryTree = false;
-            }
             if ($key == 'sqr:categories') {
                 $this->categoryNode = false;
             }

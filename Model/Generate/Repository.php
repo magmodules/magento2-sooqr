@@ -23,7 +23,6 @@ use Magmodules\Sooqr\Api\ProductData\RepositoryInterface as ProductDataRepositor
 use Magmodules\Sooqr\Model\Config\Source\FeedExecBy;
 use Magmodules\Sooqr\Model\Config\Source\FeedType;
 use Magmodules\Sooqr\Service\Api\Adapter;
-use Magmodules\Sooqr\Service\CategoryData\Tree as CategoryDataTree;
 use Magmodules\Sooqr\Service\Delta\Get as GetDelta;
 use Magmodules\Sooqr\Service\Feed\Create as FeedService;
 use Magento\Framework\Filesystem\Driver\File;
@@ -60,10 +59,6 @@ class Repository implements GenerateRepository
      * @var DirectoryList
      */
     private $directoryList;
-    /**
-     * @var CategoryDataTree
-     */
-    private $categoryDataTree;
     /**
      * @var CmsRepository
      */
@@ -104,7 +99,6 @@ class Repository implements GenerateRepository
      * @param DateTime $datetime
      * @param FeedService $feedService
      * @param ProductDataRepository $productDataRepository
-     * @param CategoryDataTree $categoryDataTree
      * @param DirectoryList $directoryList
      * @param CmsRepository $cmsRepository
      * @param FeedRepository $feedRepository
@@ -120,7 +114,6 @@ class Repository implements GenerateRepository
         DateTime $datetime,
         FeedService $feedService,
         ProductDataRepository $productDataRepository,
-        CategoryDataTree $categoryDataTree,
         DirectoryList $directoryList,
         CmsRepository $cmsRepository,
         FeedRepository $feedRepository,
@@ -135,7 +128,6 @@ class Repository implements GenerateRepository
         $this->datetime = $datetime;
         $this->feedService = $feedService;
         $this->productDataRepository = $productDataRepository;
-        $this->categoryDataTree = $categoryDataTree;
         $this->directoryList = $directoryList;
         $this->cmsRepository = $cmsRepository;
         $this->feedRepository = $feedRepository;
@@ -230,10 +222,6 @@ class Repository implements GenerateRepository
                     ];
                     $generatedEntities[] = 'products';
                 }
-                if ($this->configProvider->getCategoryChangedFlag()) {
-                    $dataFeed['category_tree'] = $this->categoryDataTree->execute($storeId);
-                    $generatedEntities[] = 'categories';
-                }
                 break;
             case FeedType::PREVIEW:
                 $products = $this->productDataRepository->getProductData($storeId, null, $type);
@@ -249,7 +237,6 @@ class Repository implements GenerateRepository
                 $dataFeed = [
                     'config' => $this->configProvider->getFeedHeader($storeId),
                     'products' => array_merge($products, $this->cmsRepository->getCmsPages($storeId)),
-                    'category_tree' => $this->categoryDataTree->execute($storeId),
                     'results' => $this->configProvider->getFeedFooter(count($products))
                 ];
                 $generatedEntities = ['products', 'categories', 'cms_pages'];

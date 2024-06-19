@@ -93,8 +93,5 @@
     <type name="\Magento\CatalogInventory\Model\Indexer\Stock">
         <plugin name="bindDeltaIndexerInventory" type="\Magmodules\Sooqr\Plugin\CatalogInventory\Model\Indexer\Stock\BindDeltaIndexer" />
     </type>
-    <type name="Magento\Catalog\Model\ResourceModel\Category">
-        <plugin name="sooqr-category-save" type="Magmodules\Sooqr\Plugin\Catalog\Category\Save" />
-    </type>
     <!-- Plugins -->
 </config>
