@@ -65,7 +65,5 @@ class Delta
                 $this->logRepository->addErrorLog('Generate', $e->getMessage());
             }
         }
-
-        $this->configProvider->setCategoryChangedFlag(false);
     }
 }

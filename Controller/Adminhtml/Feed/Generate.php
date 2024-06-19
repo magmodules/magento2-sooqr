@@ -93,8 +93,6 @@ class Generate extends Action
             }
         }
 
-        $this->configProvider->setCategoryChangedFlag(false);
-
         /** @var Redirect $resultRedirect */
         $resultRedirect = $this->resultFactory->create(ResultFactory::TYPE_REDIRECT);
         $resultRedirect->setUrl($this->redirect->getRefererUrl());

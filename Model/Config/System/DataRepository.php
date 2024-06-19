@@ -479,29 +479,6 @@ class DataRepository extends SearchRepository implements DataInterface
     /**
      * @inheritDoc
      */
-    public function setCategoryChangedFlag(bool $value): void
-    {
-        $this->setConfigData((int)$value, self::CATEGORY_CHANGED_FLAG_PATH);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getCategoryChangedFlag(): bool
-    {
-        // we can't use scopeConfigInterface because of cache issue
-        $connection = $this->resourceConnection->getConnection();
-        $select = $connection->select()->from(
-            [$this->resourceConnection->getTableName('core_config_data')],
-            ['value']
-        )->where('path = :path');
-        $bind = [':path' => self::CATEGORY_CHANGED_FLAG_PATH];
-        return (bool)$connection->fetchOne($select, $bind);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function addRatingSummary(int $storeId): bool
     {
         return $this->isSetFlag(self::XML_PATH_ADD_RATING_SUMMARY, $storeId);

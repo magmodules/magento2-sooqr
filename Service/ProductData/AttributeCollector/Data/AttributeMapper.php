@@ -149,7 +149,7 @@ class AttributeMapper
         int $storeId = 0
     ): array {
         $this->result = [];
-        $this->attrOptions = $this->collectAttributeOptions();
+        $this->attrOptions = $this->collectAttributeOptions($storeId);
         $this->setData('map', $map);
         $this->setData('entity_ids', $entityIds);
         $this->setData('entity_type_code', $entityTypeCode);
@@ -163,9 +163,10 @@ class AttributeMapper
     /**
      * Attribute options collector
      *
+     * @param int $storeId
      * @return array
      */
-    private function collectAttributeOptions(): array
+    private function collectAttributeOptions(int $storeId = 0): array
     {
         $attrOptions = [];
 
@@ -182,11 +183,16 @@ class AttributeMapper
                     'store_id',
                     'value'
                 ]
+            )->where(
+                'store_id IN (?)',
+                [0, $storeId]
+            )->order(
+                'store_id ASC'
             );
 
         $options = $this->resource->getConnection()->fetchAll($select);
         foreach ($options as $option) {
-            $attrOptions[$option['attribute_id']][$option['option_id']][$option['store_id']] = $option['value'];
+            $attrOptions[$option['attribute_id']][$option['option_id']] = $option['value'];
         }
 
         return $attrOptions;
@@ -298,9 +304,7 @@ class AttributeMapper
                     foreach ($attrValues as $attrValue) {
                         $attributeId = (string)$item['attribute_id'];
                         try {
-                            $item['value'][] = $this->attrOptions[$attributeId]
-                            [$attrValue]
-                            [$item['store_id']];
+                            $item['value'][] = $this->attrOptions[$attributeId][$attrValue];
                         } catch (Exception $exception) {
                             continue;
                         }
@@ -368,7 +372,7 @@ class AttributeMapper
         );
         $taxClassLabels = $connection->fetchPairs($selectClasses);
         foreach ($this->result['tax_class_id'] as &$taxClassId) {
-            $taxClassId = $taxClassLabels[$taxClassId];
+            $taxClassId = $taxClassLabels[$taxClassId] ?? 0;
         }
     }
 
