@@ -368,7 +368,7 @@ class AttributeMapper
         );
         $taxClassLabels = $connection->fetchPairs($selectClasses);
         foreach ($this->result['tax_class_id'] as &$taxClassId) {
-            $taxClassId = $taxClassLabels[$taxClassId];
+            $taxClassId = $taxClassLabels[$taxClassId] ?? 0;
         }
     }
 
