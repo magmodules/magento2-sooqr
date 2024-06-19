@@ -130,6 +130,11 @@ class Category
             return $this->mergeUrl($data);
         }
 
+        // Sort the array by the level column
+        foreach ($data as &$productCats) {
+            array_multisort(array_column($productCats, 'level'), SORT_DESC, $productCats);
+        }
+
         return $data;
     }
 

@@ -62,12 +62,13 @@ XML;
     {
         $xmlStr = '';
         foreach ($data as $key => $value) {
-            if ($key === 'sqr:categories') {
+            if (strpos((string)$key, "sqr:category") === 0) {
                 $this->categoryNode = true;
             }
+
             if (is_numeric($key) && $this->categoryNode) {
                 $key = 'node';
-            } elseif (is_numeric($key) && !$this->categoryNode) {
+            } elseif (is_numeric($key)) {
                 $key = 'item';
             }
             if (!is_array($value)) {
@@ -85,7 +86,7 @@ XML;
             $xmlStr .= <<<XML
 </$key>
 XML;
-            if ($key == 'sqr:categories') {
+            if (strpos((string)$key, "sqr:category") === 0) {
                 $this->categoryNode = false;
             }
         }

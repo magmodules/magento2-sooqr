@@ -273,7 +273,7 @@ class Repository implements ProductData
                     break;
             }
         }
-        
+
         $productData['image'] = $this->getImageWithFallback($imageData, [$storeId, 0]);
     }
 
@@ -357,7 +357,7 @@ class Repository implements ProductData
     }
 
     /**
-     * Attribute data preperation
+     * Attribute data preparation
      *
      * @param string $attribute
      * @param array $productData
@@ -468,14 +468,13 @@ class Repository implements ProductData
         if (empty($productData['category'])) {
             return $categoryData;
         }
-        $i = 1;
+
         foreach ($productData['category'] as $category) {
-            $path = explode(' > ', $category['path']);
-            $categoryData["sqr:category{$i}"] = [
-                'node' => end($path),
-            ];
-            $categoryData["sqr:categories"][] = $category['category_id'];
-            $i++;
+            $categoryNames = explode(' > ', $category['path']);
+            foreach ($categoryNames as $k => $categoryName) {
+                $key = $k + 1;
+                $categoryData["sqr:category{$key}"][] = $categoryName;
+            }
         }
 
         return $categoryData;
