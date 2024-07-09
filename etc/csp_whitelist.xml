@@ -4,15 +4,27 @@
     <policies>
         <policy id="style-src">
             <values>
-                <value id="sooqr-static" type="host">*.sooqr.com</value>
-                <value id="spotlersearch-static" type="host">*.spotlersearch.com</value>
+                <value id="sooqr" type="host">*.sooqr.com</value>
+                <value id="spotlersearch" type="host">*.spotlersearch.com</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="sooqr" type="host">*.sooqr.com</value>
+                <value id="spotlersearch" type="host">*.spotlersearch.com</value>
             </values>
         </policy>
         <policy id="script-src">
             <values>
                 <value id="sooqr-static" type="host">*.sooqr.com</value>
-                <value id="spotlersearch-static" type="host">*.spotlersearch.com</value>
-                <value id="spotlersearchanalytics-static" type="host">spotlersearchanalytics.com</value>
+                <value id="spotlersearch" type="host">*.spotlersearch.com</value>
+                <value id="spotlersearchanalytics" type="host">spotlersearchanalytics.com</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="sooqr" type="host">*.sooqr.com</value>
+                <value id="spotlersearch" type="host">*.spotlersearch.com</value>
             </values>
         </policy>
     </policies>
