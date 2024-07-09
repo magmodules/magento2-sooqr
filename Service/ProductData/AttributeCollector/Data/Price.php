@@ -111,22 +111,22 @@ class Price
 
         foreach ($this->products as $product) {
             $this->setPrices($product, $this->groupedPriceType, $this->bundlePriceType);
-            if (array_key_exists($product->getTaxClassId(), $this->taxClasses)) {
-                $percent = $this->taxClasses[$product->getTaxClassId()];
+
+            if (array_key_exists((int)$product->getTaxClassId(), $this->taxClasses)) {
+                $percent = $this->taxClasses[(int)$product->getTaxClassId()];
             } else {
                 $priceInclTax = $this->processPrice($product, (float)$this->price, $store);
-                if ($this->price == 0) {
-                    $percent = 1;
-                } else {
-                    $percent = $priceInclTax / $this->price;
+                $percent = $this->price == 0 ? 1 : round($priceInclTax / $this->price, 2);
+                if ($percent !== 1) {
+                    $this->taxClasses[(int)$product->getTaxClassId()] = $percent;
                 }
-                $this->taxClasses[$product->getTaxClassId()] = $percent;
             }
+
             $result[$product->getId()] = [
                 'price' => $percent * $this->price,
-                'price_ex' => $percent * $this->price,
+                'price_ex' => $this->price,
                 'final_price' => $percent * $this->finalPrice,
-                'final_price_ex' => $percent * $this->finalPrice,
+                'final_price_ex' => $this->finalPrice,
                 'sales_price' => $percent * $this->salesPrice,
                 'min_price' => $percent * $this->minPrice,
                 'max_price' => $percent * $this->maxPrice,
