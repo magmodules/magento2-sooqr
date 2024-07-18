@@ -145,7 +145,7 @@ class Data
         }
 
         if ($extraParameters['stock']['inventory']) {
-            $result = $this->stock->execute($productIds);
+            $result = $this->stock->execute($productIds, $storeId);
             $inventoryFields = array_merge(
                 $extraParameters['stock']['inventory_fields'],
                 ['qty', 'msi', 'salable_qty', 'reserved', 'is_in_stock']
