@@ -315,26 +315,24 @@ class Price
             }
         }
 
-        $this->minPrice = $minPrice;
-        $this->maxPrice = $maxPrice;
+        $this->minPrice = $product['min_price'] >= 0 ? $product['min_price'] : $minPrice;
+        $this->maxPrice = $product['max_price'] >= 0 ? $product['max_price'] : $maxPrice;
         $this->totalPrice = $totalPrice;
 
         if ($groupedPriceType == 'max') {
-            $this->price = $maxPrice;
-            $this->finalPrice = $maxPrice;
-
+            $this->price = $this->maxPrice;
+            $this->finalPrice = $this->maxPrice;
             return;
         }
 
         if ($groupedPriceType == 'total') {
             $this->price = $totalPrice;
             $this->finalPrice = $totalPrice;
-
             return;
         }
 
-        $this->price = $minPrice;
-        $this->finalPrice = $minPrice;
+        $this->price = $this->minPrice;
+        $this->finalPrice = $this->minPrice;
     }
 
     /**
