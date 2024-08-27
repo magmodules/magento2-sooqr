@@ -70,15 +70,15 @@
                 <comment>Select the attribute associated with the brand or manufacturer.</comment>
                 <config_path>sooqr_data/product_data/brand_attribute</config_path>
             </field>
-<!--            <field id="heading_image" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">-->
-<!--                <label>Images</label>-->
-<!--                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>-->
-<!--            </field>-->
-<!--            <field id="image_source" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
-<!--                <label>Source</label>-->
-<!--                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageSource</source_model>-->
-<!--                <config_path>sooqr_data/product_data/image_source</config_path>-->
-<!--            </field>-->
+            <field id="heading_image" translate="label comment" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Images</label>
+                <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>
+            </field>
+            <field id="image_source" translate="label" type="select" sortOrder="11" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Source</label>
+                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageSource</source_model>
+                <config_path>sooqr_data/product_data/image_source</config_path>
+            </field>
 <!--            <field id="image_resize" translate="label" type="select" sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
 <!--                <label>Resize Image</label>-->
 <!--                <source_model>Magmodules\Sooqr\Model\Config\Source\ImageSize</source_model>-->

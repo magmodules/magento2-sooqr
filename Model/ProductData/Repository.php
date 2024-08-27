@@ -301,6 +301,12 @@ class Repository implements ProductData
             }
         }
 
+        foreach ($storeIds as $storeId) {
+            if (!empty($imageData[0][$storeId]['file'])) {
+                return $imageData[0][$storeId]['file'];
+            }
+        }
+
         return $imageData[0][0]['file'] ?? null;
     }
 
