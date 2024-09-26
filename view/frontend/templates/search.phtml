@@ -1,52 +1,74 @@
 <?php
+
+use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Helper\SecureHtmlRenderer;
+use Magmodules\Sooqr\ViewModel\Search;
+use Magento\Framework\Escaper;
+
 /**
- * @var \Magento\Framework\View\Element\Template $block
- * @var \Magmodules\Sooqr\ViewModel\Search $viewModel
+ * @var Template $block
+ * @var Search $viewModel
+ * @var SecureHtmlRenderer $secureRenderer
+ * @var Escaper $escaper
  */
 $viewModel = $block->getData('view_model');
+
+if (!$viewModel->isSearchEnabled()) {
+    return;
+}
+
+if ($viewModel->getLoaderType() == 'custom'):
+    $scriptString = '
+    (function() {
+        var ws = document.createElement(\'script\'); ws.type = \'text/javascript\'; ws.async = true;
+        ws.src = (\'https:\' === document.location.protocol ? \'https://\' : \'http://\')
+        + \'' . $escaper->escapeUrl($viewModel->getSooqrScriptUri()) . '\';
+        var s = document.getElementsByTagName(\'script\')[0]; s.parentNode.insertBefore(ws, s);
+    })();';
+else:
+    $scriptString = '
+    var _wssq = _wssq || [];
+    _wssq.push([\'_load\', {\'suggest\': ' . /* @noEscape */ $viewModel->getSooqrOptions() . '}]);
+    _wssq.push([\'suggest._setPosition\', \'screen-middle\']);
+    _wssq.push([\'suggest._setLocale\', \'' . $escaper->escapeHtml($viewModel->getSooqrLanguage()) .'\']);';
+
+    if ($viewModel->isTrackingEnabled()):
+        $scriptString .= '
+        (function() {
+            var ws = document.createElement(\'script\'); ws.type = \'text/javascript\'; ws.async = true;
+            ws.src = (\'https:\' == document.location.protocol ? \'https://\' : \'http://\')
+            + \'' . $escaper->escapeUrl($viewModel->getSooqrInsightsUri()) . '\';
+            var s = document.getElementsByTagName(\'script\')[0]; s.parentNode.insertBefore(ws, s);
+        })();';
+    endif;
+
+    $scriptString .= '
+    (function () {
+        var ws = document.createElement(\'script\');
+        ws.type = \'text/javascript\';
+        ws.async = true;
+        ws.src = (\'https:\' === document.location.protocol ? \'https://\' : \'http://\')
+        + \'' . $escaper->escapeUrl($viewModel->getSooqrScriptUri()) . '\';
+        var s = document.getElementsByTagName(\'script\')[0];
+        s.parentNode.insertBefore(ws, s);
+    })();';
+endif;
+
+// @phpstan-ignore-next-line
+if (isset($secureRenderer)) {
+    // phpcs:ignore
+    echo /* @noEscape */ $secureRenderer->renderTag('script', [], $scriptString, false);
+} else {
+    echo /* @noEscape */ '<script>' . $scriptString . '</script>';
+}
 ?>
-<?php if ($viewModel->isSearchEnabled()): ?>
-    <?php if ($viewModel->getLoaderType() == 'custom'): ?>
-        <script>
-            (function() {
-                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
-                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
-                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
-            })();
-        </script>
-    <?php else: ?>
-        <script>
-            var _wssq = _wssq || [];
-            _wssq.push(['_load', {'suggest': <?= /* @noEscape */ $viewModel->getSooqrOptions() ?>}]);
-            _wssq.push(['suggest._setPosition', 'screen-middle']);
-            _wssq.push(['suggest._setLocale', '<?= $block->escapeHtml($viewModel->getSooqrLanguage()) ?>']);
-            <?php if ($viewModel->isTrackingEnabled()): ?>
-            (function() {
-                var ws = document.createElement('script'); ws.type = 'text/javascript'; ws.async = true;
-                ws.src = ('https:' == document.location.protocol ? 'https://' : 'http://')
-                    + '<?= $block->escapeUrl($viewModel->getSooqrInsightsUri()) ?>';
-                var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ws, s);
-            })();
-            <?php endif; ?>
-            (function () {
-                var ws = document.createElement('script');
-                ws.type = 'text/javascript';
-                ws.async = true;
-                ws.src = ('https:' === document.location.protocol ? 'https://' : 'http://')
-                    + '<?= $block->escapeUrl($viewModel->getSooqrScriptUri()) ?>';
-                var s = document.getElementsByTagName('script')[0];
-                s.parentNode.insertBefore(ws, s);
-            })();
-        </script>
-    <?php endif; ?>
-    <?php if ($viewModel->isAjaxAddToCartEnabled()): ?>
-        <script type="text/x-magento-init">
-            {
-                "*": {
-                    "Magmodules_Sooqr/js/add-to-cart": {}
-                }
+
+<?php if ($viewModel->isAjaxAddToCartEnabled()): ?>
+    <script type="text/x-magento-init">
+        {
+            "*": {
+                "Magmodules_Sooqr/js/add-to-cart": {}
             }
-        </script>
-    <?php endif; ?>
+        }
+    </script>
 <?php endif; ?>

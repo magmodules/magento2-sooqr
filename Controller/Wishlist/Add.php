@@ -21,6 +21,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Framework\App\ActionInterface;
 use Magento\Wishlist\Controller\WishlistProviderInterface;
 use Magento\Wishlist\Model\AuthenticationStateInterface;
+use Magento\Wishlist\Model\ResourceModel\Wishlist as WishlistResourceModel;
 use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Controller\Result\Redirect;
@@ -86,24 +87,11 @@ class Add implements ActionInterface
      * @var ResultFactory
      */
     private $resultFactory;
-
     /**
-     * Add constructor.
-     *
-     * @param ConfigProvider $configProvider
-     * @param Session $customerSession
-     * @param WishlistProviderInterface $wishlistProvider
-     * @param ProductRepositoryInterface $productRepository
-     * @param WishlistHelper $wishlistHelper
-     * @param RedirectInterface $redirect
-     * @param LogRepository $logRepository
-     * @param AuthenticationStateInterface $authenticationState
-     * @param ScopeConfigInterface $config
-     * @param MessageManagerInterface $messageManager
-     * @param RequestInterface $request
-     * @param EventManagerInterface $eventManager
-     * @param ResultFactory $resultFactory
+     * @var WishlistResourceModel
      */
+    private $wishlistResource;
+
     public function __construct(
         ConfigProvider $configProvider,
         Session $customerSession,
@@ -117,6 +105,7 @@ class Add implements ActionInterface
         MessageManagerInterface $messageManager,
         RequestInterface $request,
         EventManagerInterface $eventManager,
+        WishlistResourceModel $wishlistResource,
         ResultFactory $resultFactory
     ) {
         $this->configProvider = $configProvider;
@@ -132,6 +121,7 @@ class Add implements ActionInterface
         $this->request = $request;
         $this->eventManager = $eventManager;
         $this->resultFactory = $resultFactory;
+        $this->wishlistResource = $wishlistResource;
     }
 
     /**
@@ -140,7 +130,7 @@ class Add implements ActionInterface
      * We can't extend default execute method, because it works only with POST requests
      *
      * @return Redirect
-     * @throws NotFoundException
+     * @throws NotFoundException|SessionException
      */
     public function execute(): Redirect
     {
@@ -193,7 +183,7 @@ class Add implements ActionInterface
                 throw new LocalizedException(__($result));
             }
             if ($wishlist->isObjectNew()) {
-                $wishlist->save();
+                $this->wishlistResource->save($wishlist);
             }
             $this->eventManager->dispatch(
                 'wishlist_add_product',
