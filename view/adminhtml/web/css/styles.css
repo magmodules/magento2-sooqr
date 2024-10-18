@@ -23,13 +23,14 @@
 }
 
 .sooqr-header {
-    background-color: #e3f9ff;
+    background-color: white;
     padding: 30px;
     color: #000041;
     display: block;
     text-align: center;
     line-height: 25px;
-    border-radius: 8px;
+    border: solid 10px;
+    border-radius: 20px;
 }
 
 .sooqr-header img {
@@ -46,7 +47,7 @@
 
 .sooqr-header a {
     margin-right: 50px;
-    background: #ec008c;
+    background: #23afe6;
     padding: 10px 20px 10px 20px;
     color: white;
     border-radius: 4px;
@@ -54,7 +55,7 @@
 
 .sooqr-header a:hover {
     box-shadow: 0px 1px 5px 0 rgb(0 0 0 / 30%);
-    background: #e0007a;
+    background: #002a4d;
     color: white;
     text-decoration: none;
 }
@@ -90,7 +91,7 @@
     /* border-bottom-left-radius: 4px; */
     /* border-bottom-right-radius: 4px; */
     text-align: center;
-    padding: 5px;
+    padding: 5px 25px 5px 5px;
     font-size: 12px;
     width: auto;
     float: right;
