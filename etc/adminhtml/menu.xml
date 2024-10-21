@@ -7,7 +7,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
         <add id="Magmodules_Sooqr::general"
-             title="Sooqr"
+             title="Spotler"
              module="Magmodules_Sooqr"
              sortOrder="100"
              resource="Magmodules_Sooqr::feed"

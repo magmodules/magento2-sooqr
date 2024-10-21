@@ -9,7 +9,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
     <system>
         <tab id="sooqr" translate="label" sortOrder="300" class="sooqr-plugin">
-            <label>Sooqr</label>
+            <label>Spotler</label>
         </tab>
         <include path="Magmodules_Sooqr::system/general.xml"/>
         <include path="Magmodules_Sooqr::system/data.xml"/>
