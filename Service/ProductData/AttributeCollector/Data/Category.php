@@ -13,73 +13,23 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\EntityManager\MetadataPool;
 use Magento\Store\Api\StoreRepositoryInterface;
 
-/**
- * Service class for category path for products
- */
 class Category
 {
-    public const REQUIRE = [
-        'entity_ids',
-        'store_id'
-    ];
+    public const REQUIRE = ['entity_ids', 'store_id'];
 
-    /**
-     * @var ResourceConnection
-     */
-    private $resource;
-    /**
-     * @var array[]
-     */
-    private $entityIds;
-    /**
-     * @var StoreRepositoryInterface
-     */
-    private $storeRepository;
-    /**
-     * @var int
-     */
-    private $storeId;
-    /**
-     * @var string
-     */
-    private $format;
-    /**
-     * @var array
-     */
-    private $categoryNames = [];
-    /**
-     * @var array
-     */
-    private $excluded = [];
-    /**
-     * @var array
-     */
-    private $exclude = [];
-    /**
-     * @var string
-     */
-    private $linkField;
-    /**
-     * @var string
-     */
-    private $replaceName = '';
-    /**
-     * @var array
-     */
-    private $categoryIds = [];
-    /**
-     * @var bool
-     */
-    private $includeAnchor = false;
+    private ResourceConnection $resource;
+    private StoreRepositoryInterface $storeRepository;
+    private array $entityIds = [];
+    private int $storeId;
+    private string $format;
+    private array $categoryNames = [];
+    private array $excludedCategories = [];
+    private array $excludeAttribute = [];
+    private string $linkField;
+    private string $customAttribute = '';
+    private array $categoryIds = [];
+    private bool $includeAnchor = false;
 
-    /**
-     * Category constructor.
-     *
-     * @param ResourceConnection $resource
-     * @param StoreRepositoryInterface $storeRepository
-     * @param MetadataPool $metadataPool
-     * @throws Exception
-     */
     public function __construct(
         ResourceConnection $resource,
         StoreRepositoryInterface $storeRepository,
@@ -91,46 +41,40 @@ class Category
     }
 
     /**
-     * Get array of products with path of all assigned categories
+     * Executes the collection of category paths with names and custom attribute values.
      *
-     * Structure of response
-     * [product_id] = [path1, path2, ..., pathN]catalog_category_entity_varchar
-     *
-     * @param array[] $entityIds array of product IDs
-     * @param int $storeId
-     * @param string $format
-     * @param array $extraParameters
-     * @return array[]
+     * @param array $entityIds Array of product IDs.
+     * @param int $storeId Current store ID.
+     * @param string $format Format of the return data ('raw' or other).
+     * @param array $extraParameters Additional parameters (keys: custom, exclude_attribute, include_anchor, add_url).
+     * @return array
      */
     public function execute(
-        $entityIds = [],
+        array $entityIds = [],
         int $storeId = 0,
         string $format = 'raw',
         array $extraParameters = []
     ): array {
-        if (isset($extraParameters['category']['exclude_attribute'])) {
-            $this->setData('exclude', $extraParameters['category']['exclude_attribute']);
-        }
-        if (isset($extraParameters['category']['replace_attribute'])) {
-            $this->setData('replaceName', $extraParameters['category']['replace_attribute']);
-        }
-        if (isset($extraParameters['category']['include_anchor'])) {
-            $this->setData('include_anchor', $extraParameters['category']['include_anchor']);
-        }
-        $this->setData('entity_ids', $entityIds);
-        $this->setData('store_id', $storeId);
-        $this->setData('format', $format);
+        $this->entityIds = $entityIds;
+        $this->storeId = $storeId;
+        $this->format = $format;
+        $this->customAttribute = $extraParameters['category']['custom'] ?? '';
+        $this->includeAnchor = $extraParameters['category']['include_anchor'] ?? false;
+        $this->excludeAttribute = $extraParameters['category']['exclude_attribute'] ?? [];
+
         $this->collectCategoryNames();
-        if (isset($extraParameters['category']['exclude_attribute'])) {
+        if (!empty($this->excludeAttribute)) {
             $this->collectExcluded();
         }
+
         $data = $this->collectCategories();
         $data = $this->mergeNames($data);
-        if (isset($extraParameters['category']['add_url'])) {
+
+        if (!empty($extraParameters['category']['add_url'])) {
             return $this->mergeUrl($data);
         }
 
-        // Sort the array by the level column
+        // Sort each product's categories by level (descending).
         foreach ($data as &$productCats) {
             array_multisort(array_column($productCats, 'level'), SORT_DESC, $productCats);
         }
@@ -139,192 +83,155 @@ class Category
     }
 
     /**
-     * @param string $type
-     * @param mixed $data
-     */
-    public function setData($type, $data): void
-    {
-        if (!$data) {
-            return;
-        }
-        switch ($type) {
-            case 'entity_ids':
-                $this->entityIds = $data;
-                break;
-            case 'store_id':
-                $this->storeId = $data;
-                break;
-            case 'format':
-                $this->format = $data;
-                break;
-            case 'exclude':
-                $this->exclude = $data;
-                break;
-            case 'include_anchor':
-                $this->includeAnchor = (bool)$data;
-                break;
-            case 'replaceName':
-                $this->replaceName = $data;
-                break;
-        }
-    }
-
-    /**
-     * Collect categories name according store IDs
+     * Collects category names and custom attribute values from the database.
+     *
      * @return void
      */
     private function collectCategoryNames(): void
     {
         $connection = $this->resource->getConnection();
-        $select = $connection->select()->from(
-            ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
-            ['attribute_code']
-        )->joinLeft(
-            ['catalog_category_entity_varchar' => $this->resource->getTableName('catalog_category_entity_varchar')],
-            'catalog_category_entity_varchar.attribute_id = eav_attribute.attribute_id',
-            ['entity_id' => $this->linkField, 'value', 'store_id']
-        )->where(
-            'eav_attribute.attribute_code = ?',
-            'name'
-        );
+        $attributes = $this->customAttribute ? ['name', $this->customAttribute] : ['name'];
+        $varCharTable = $this->resource->getTableName('catalog_category_entity_varchar');
 
-        if ($this->replaceName) {
-            $select->orWhere('eav_attribute.attribute_code = ?', $this->replaceName);
-        }
+        $select = $connection->select()
+            ->from(
+                ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
+                ['attribute_id', 'attribute_code']
+            )
+            ->joinLeft(
+                ['catalog_category_entity_varchar' => $varCharTable],
+                'catalog_category_entity_varchar.attribute_id = eav_attribute.attribute_id',
+                ['entity_id' => $this->linkField, 'value', 'store_id']
+            )
+            ->where('eav_attribute.attribute_code IN (?)', $attributes)
+            ->where('catalog_category_entity_varchar.store_id IN (?)', [0, $this->storeId]);
 
-        $select->where('catalog_category_entity_varchar.store_id IN (?)', [0, $this->storeId]);
         foreach ($connection->fetchAll($select) as $item) {
             if (!$item['value']) {
                 continue;
             }
-            if (isset($this->categoryNames[$item['entity_id']][$item['store_id']])
-                && $item['attribute_code'] == 'name'
-                && $this->replaceName
-            ) {
-                continue;
+            if (!isset($this->categoryNames[$item['entity_id']][$item['store_id']])) {
+                $this->categoryNames[$item['entity_id']][$item['store_id']] = [];
             }
-            $this->categoryNames[$item['entity_id']][$item['store_id']] = $item['value'];
+            $this->categoryNames[$item['entity_id']][$item['store_id']][$item['attribute_code']] = $item['value'];
         }
     }
 
     /**
-     * Collect excluded categories
+     * Collects excluded category IDs based on the provided attribute configuration.
+     *
      * @return void
      */
     private function collectExcluded(): void
     {
         $connection = $this->resource->getConnection();
-        $select = $connection->select()->from(
-            ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
-            ['attribute_code']
-        )->joinLeft(
-            ['catalog_category_entity_varchar' => $this->resource->getTableName('catalog_category_entity_int')],
-            'catalog_category_entity_varchar.attribute_id = eav_attribute.attribute_id',
-            ['entity_id' => $this->linkField, 'value', 'store_id']
-        )->where(
-            'eav_attribute.attribute_code = ?',
-            $this->exclude['code']
-        )->where(
-            'catalog_category_entity_varchar.store_id IN (?)',
-            [0, $this->storeId]
-        );
+        $select = $connection->select()
+            ->from(
+                ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
+                ['attribute_code']
+            )
+            ->joinLeft(
+                ['catalog_category_entity_int' => $this->resource->getTableName('catalog_category_entity_int')],
+                'catalog_category_entity_int.attribute_id = eav_attribute.attribute_id',
+                ['entity_id' => $this->linkField, 'value', 'store_id']
+            )
+            ->where('eav_attribute.attribute_code = ?', $this->excludeAttribute['code'])
+            ->where('catalog_category_entity_int.store_id IN (?)', [0, $this->storeId]);
 
         foreach ($connection->fetchAll($select) as $item) {
-            if ($item['value'] == $this->exclude['value']) {
-                $this->excluded[$item['store_id']][] = $item['entity_id'];
+            if ($item['value'] == $this->excludeAttribute['value']) {
+                $this->excludedCategories[$item['store_id']][] = $item['entity_id'];
             }
         }
     }
 
     /**
-     * Get path data assigned to products
+     * Collects category paths assigned to products.
      *
-     * @return array[]
+     * @return array
      */
     private function collectCategories(): array
     {
-        $path = [];
-        $parentIds = [];
-
-        $select = $this->resource->getConnection()
-            ->select()
+        $connection = $this->resource->getConnection();
+        $select = $connection->select()
             ->from(
                 ['catalog_category_product' => $this->resource->getTableName('catalog_category_product')],
                 'product_id'
-            )->joinLeft(
+            )
+            ->joinLeft(
                 ['catalog_category_entity' => $this->resource->getTableName('catalog_category_entity')],
                 "catalog_category_entity.{$this->linkField} = catalog_category_product.category_id",
                 ['path', 'parent_id']
-            )->where(
-                'product_id IN (?)',
-                $this->entityIds
-            );
-        if ($this->excluded) {
-            $select->where('catalog_category_entity.' . $this->linkField . ' NOT IN (?)', $this->excluded);
+            )
+            ->where('product_id IN (?)', $this->entityIds);
+
+        if (!empty($this->excludedCategories)) {
+            $select->where("catalog_category_entity.{$this->linkField} NOT IN (?)", $this->excludedCategories);
         }
 
-        $result = $this->resource->getConnection()->fetchAll($select);
+        $result = $connection->fetchAll($select);
+        $paths = [];
+        $parentIds = [];
+
         foreach ($result as $item) {
+            $paths[$item['product_id']][] = $item['path'];
             $parentIds[] = $item['parent_id'];
-            $path[$item['product_id']][] = $item['path'];
         }
 
         if ($this->includeAnchor) {
-            $this->addAnchorCategories($path, array_unique($parentIds));
+            $this->addAnchorCategories($paths, array_unique($parentIds));
         }
 
-        return $path;
+        return $paths;
     }
 
     /**
-     * Add parent anchor categories
+     * Appends anchor category paths (parent categories marked as anchors) to product paths.
      *
-     * @param array $path
-     * @param array $parentIds
+     * @param array &$paths Reference to array of category paths.
+     * @param array $parentIds Array of parent category IDs.
+     * @return void
      */
-    private function addAnchorCategories(array &$path, array $parentIds): void
+    private function addAnchorCategories(array &$paths, array $parentIds): void
     {
-        $select = $this->resource->getConnection()
-            ->select()
+        $connection = $this->resource->getConnection();
+        $select = $connection->select()
             ->from(
                 ['catalog_category_entity' => $this->resource->getTableName('catalog_category_entity')],
                 ['entity_id' => $this->linkField, 'path']
-            )->joinLeft(
+            )
+            ->joinLeft(
                 ['catalog_category_entity_int' => $this->resource->getTableName('catalog_category_entity_int')],
-                'catalog_category_entity_int.' . $this->linkField . ' = catalog_category_entity.' . $this->linkField,
+                "catalog_category_entity_int.{$this->linkField} = catalog_category_entity.{$this->linkField}",
                 []
-            )->joinLeft(
+            )
+            ->joinLeft(
                 ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
                 'catalog_category_entity_int.' . $this->linkField . ' = catalog_category_entity.entity_id',
                 []
-            )->where(
-                'eav_attribute.attribute_code = ?',
-                'is_anchor'
-            )->where(
-                'catalog_category_entity_int.value = ?',
-                1
-            )->where(
-                'catalog_category_entity.entity_id IN (?)',
-                $parentIds
-            );
+            )
+            ->where('eav_attribute.attribute_code = ?', 'is_anchor')
+            ->where('catalog_category_entity_int.value = ?', 1)
+            ->where('catalog_category_entity.entity_id IN (?)', $parentIds);
 
-        if ($this->excluded) {
-            $select->where(
-                'catalog_category_entity.entity_id NOT IN (?)',
-                $this->excluded
-            );
+        if (!empty($this->excludedCategories)) {
+            $select->where('catalog_category_entity.entity_id NOT IN (?)', $this->excludedCategories);
         }
-        $result = $this->resource->getConnection()->fetchPairs($select);
-        foreach ($path as $productId => $pathArray) {
-            foreach ($pathArray as $pathSingle) {
-                $pathSingle = explode('/', $pathSingle);
-                array_pop($pathSingle);
-                $pathSingle = array_flip($pathSingle);
-                if ($diff = array_intersect_key($pathSingle, $result)) {
-                    foreach ($diff as $catId => $index) {
-                        if (!in_array($result[$catId], $path[$productId])) {
-                            $path[$productId][] = $result[$catId];
-                        }
+
+        $anchorPaths = $connection->fetchPairs($select);
+
+        foreach ($paths as $productId => $pathArray) {
+            foreach ($pathArray as $singlePath) {
+                if ($singlePath === null) {
+                    continue;
+                }
+
+                $categoryIds = explode('/', $singlePath);
+                array_pop($categoryIds);
+                $diff = array_intersect(array_keys(array_flip($categoryIds)), array_keys($anchorPaths));
+                foreach ($diff as $catId) {
+                    if (!in_array($anchorPaths[$catId], $paths[$productId], true)) {
+                        $paths[$productId][] = $anchorPaths[$catId];
                     }
                 }
             }
@@ -332,71 +239,78 @@ class Category
     }
 
     /**
-     * @param array $data
+     * Merges category paths with their names and custom attribute values.
+     *
+     * For each product and each category path (after removing the root category),
+     * this function builds a "name" path and uses fallback logic to get a custom attribute value.
+     *
+     * @param array $data Array of category paths.
      * @return array
      */
     private function mergeNames(array $data): array
     {
         $result = [];
-        $realId = 0;
         $rootCategoryId = $this->getRootCategoryId();
+
         foreach ($data as $entityId => $categoryPaths) {
-            $usedPath = [];
+            $usedPaths = [];
             foreach ($categoryPaths as $categoryPath) {
                 if (!$categoryPath) {
                     continue;
                 }
-
                 $categoryIds = explode('/', $categoryPath);
-                $key = array_search($rootCategoryId, $categoryIds);
-                if ($key === false) {
+                $rootKey = array_search($rootCategoryId, $categoryIds);
+                if ($rootKey === false) {
                     continue;
                 }
-
-                $categoryIds = array_slice($categoryIds, $key + 1, count($categoryIds) - $key);
+                // Work only on categories below the root.
+                $categoryIds = array_slice($categoryIds, $rootKey + 1);
                 $level = count($categoryIds);
-                if ($level == 0) {
+                if ($level === 0) {
                     continue;
                 }
-                $categoryNames = [];
-                foreach ($categoryIds as &$categoryId) {
-                    if (!array_key_exists($categoryId, $this->categoryNames)) {
+                $fullPath = $categoryIds;
+                $namesForPath = [];
+                $realId = 0;
+                foreach ($categoryIds as $categoryId) {
+                    if (!isset($this->categoryNames[$categoryId])) {
                         continue;
                     }
-                    if (!in_array(end($categoryIds), $this->categoryIds)) {
-                        $this->categoryIds[] = end($categoryIds);
-                    }
-                    $realId = $categoryId;
-                    if (!array_key_exists($this->storeId, $this->categoryNames[$categoryId])) {
-                        $categoryNames[] = $this->categoryNames[$categoryId][0];
-                    } else {
-                        $categoryNames[] = $this->categoryNames[$categoryId][$this->storeId];
+                    $namesForPath[] = $this->getCategoryAttribute((int)$categoryId, 'name');
+                    $realId = (int)$categoryId;
+                    if (!in_array($categoryId, $this->categoryIds, true)) {
+                        $this->categoryIds[] = $categoryId;
                     }
                 }
-                if ($this->format == 'raw') {
+                if ($this->format === 'raw') {
                     do {
-                        $path = implode(' > ', $categoryNames);
-                        if (!in_array($path, $usedPath)) {
+                        $pathString = implode(' > ', $namesForPath);
+                        $customForPath = $this->getCustomForTruncatedPath($fullPath, count($namesForPath));
+                        if (!in_array($pathString, $usedPaths, true)) {
                             $result[$entityId][] = [
                                 'level' => $level,
-                                'path' => $path,
-                                'category_id' => $realId
+                                'name' => $this->getCategoryAttribute($realId, 'name'),
+                                'custom' => end($customForPath),
+                                'path' => $pathString,
+                                'category_id' => $realId,
                             ];
                         }
-                        $usedPath[] = $path;
-                        array_pop($categoryIds);
+                        $usedPaths[] = $pathString;
+                        array_pop($namesForPath);
                         $level--;
                     } while ($level > 0);
                 } else {
-                    $path = implode(' > ', $categoryNames);
-                    $result[$entityId][] = $path;
+                    $result[$entityId][] = implode(' > ', $namesForPath);
                 }
             }
         }
+
         return $result;
     }
 
     /**
+     * Retrieves the root category ID for the current store.
+     *
      * @return int|null
      */
     private function getRootCategoryId(): ?int
@@ -409,34 +323,79 @@ class Category
     }
 
     /**
-     * @param array $data
+     * Retrieves a category's attribute value for the current store, with a fallback to store 0.
+     *
+     * @param int $categoryId
+     * @param string $attribute
+     * @return string
+     */
+    private function getCategoryAttribute(int $categoryId, string $attribute): string
+    {
+        return $this->categoryNames[$categoryId][$this->storeId][$attribute]
+            ?? $this->categoryNames[$categoryId][0][$attribute]
+            ?? '';
+    }
+
+    /**
+     * Returns an array of custom attribute values for the truncated path.
+     * If a category does not have a custom value, a fallback from deeper categories is used.
+     *
+     * @param array $fullPath Array of category IDs (after the root).
+     * @param int $truncatedCount Count of elements in the truncated path.
+     * @return array
+     */
+    private function getCustomForTruncatedPath(array $fullPath, int $truncatedCount): array
+    {
+        $customValues = [];
+        $fullPathCount = count($fullPath);
+
+        for ($i = 0; $i < $truncatedCount; $i++) {
+            $catId = $fullPath[$i];
+            $custom = $this->getCategoryAttribute((int)$catId, $this->customAttribute);
+
+            if ($custom === '' && $this->customAttribute) {
+                for ($j = $i + 1; $j < $fullPathCount; $j++) {
+                    $fallback = $this->getCategoryAttribute((int)$fullPath[$j], $this->customAttribute);
+                    if ($fallback !== '') {
+                        $custom = $fallback;
+                        break;
+                    }
+                }
+            }
+            $customValues[] = $custom;
+        }
+
+        return array_filter($customValues, static fn ($val) => $val !== '');
+    }
+
+    /**
+     * Merges URL information into the category data.
+     *
+     * @param array $data Category data array.
      * @return array
      */
     private function mergeUrl(array $data): array
     {
         try {
-            $baseUrl = $this->storeRepository->getById((int)$this->storeId)->getBaseUrl();
-        } catch (\Exception $exception) {
+            $baseUrl = $this->storeRepository->getById($this->storeId)->getBaseUrl();
+        } catch (Exception $exception) {
             $baseUrl = '';
         }
-
-        $select = $this->resource->getConnection()
-            ->select()
+        $connection = $this->resource->getConnection();
+        $select = $connection->select()
             ->from(
                 ['catalog_category_entity' => $this->resource->getTableName('catalog_category_entity')],
                 [$this->linkField]
-            )->join(
+            )
+            ->join(
                 ['url_rewrite' => $this->resource->getTableName('url_rewrite')],
                 'catalog_category_entity.entity_id = url_rewrite.entity_id',
-            )->where(
-                "catalog_category_entity.{$this->linkField} in (?)",
-                $this->categoryIds,
-            )->where(
-                'entity_type = ?',
-                'category'
-            );
+                ['request_path']
+            )
+            ->where("catalog_category_entity.{$this->linkField} IN (?)", $this->categoryIds)
+            ->where('entity_type = ?', 'category');
 
-        $urls = $this->resource->getConnection()->fetchAll($select);
+        $urls = $connection->fetchAll($select);
         foreach ($data as &$datum) {
             foreach ($datum as &$item) {
                 $key = array_search($item['category_id'], array_column($urls, 'entity_id'));
@@ -445,42 +404,16 @@ class Category
                 }
             }
         }
-
         return $data;
     }
 
     /**
-     * Return Required Parameters
+     * Returns the required parameters.
      *
      * @return string[]
      */
     public function getRequiredParameters(): array
     {
         return self::REQUIRE;
-    }
-
-    /**
-     * @param string $type
-     */
-    public function resetData(string $type = 'all'): void
-    {
-        if ($type == 'all') {
-            unset($this->entityIds);
-            unset($this->storeId);
-        }
-        switch ($type) {
-            case 'entity_ids':
-                unset($this->entityIds);
-                break;
-            case 'store_id':
-                unset($this->storeId);
-                break;
-            case 'format':
-                unset($this->format);
-                break;
-            case 'exclude':
-                unset($this->exclude);
-                break;
-        }
     }
 }

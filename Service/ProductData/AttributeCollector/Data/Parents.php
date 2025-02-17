@@ -14,22 +14,16 @@ use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\EntityManager\MetadataPool;
 
 /**
- * Service class for category path for products
+ * Service class for retrieving parent products.
  */
 class Parents
 {
+    private ResourceConnection $resource;
+    private string $linkField;
+    private ?int $statusAttributeId = null;
 
     /**
-     * @var ResourceConnection
-     */
-    private $resource;
-    /**
-     * @var string
-     */
-    private $linkField;
-
-    /**
-     * Category constructor.
+     * Constructor.
      *
      * @param ResourceConnection $resource
      * @param MetadataPool $metadataPool
@@ -44,53 +38,53 @@ class Parents
     }
 
     /**
-     * Get array of products with parent IDs and types
+     * Execute parent product collection.
      *
-     * Structure of response
-     *
-     * @param array[] $entityIds array of product IDs
+     * @param array $entityIds Array of product IDs.
+     * @param bool $excludeDisabled Whether to exclude disabled parent products.
      * @return array[]
      */
-    public function execute($entityIds = [], bool $excludeDisabled = true): array
+    public function execute(array $entityIds = [], bool $excludeDisabled = true): array
     {
-        if (empty($entityIds)) {
-            return $this->collectAllParents($excludeDisabled);
-        }
-        return $this->collectParents($entityIds, $excludeDisabled);
+        $this->statusAttributeId = $this->fetchStatusAttributeId();
+
+        return empty($entityIds)
+            ? $this->collectAllParents($excludeDisabled)
+            : $this->collectParents($entityIds, $excludeDisabled);
     }
 
     /**
-     * Get parent product IDs
+     * Get all parent product IDs.
      *
+     * @param bool $excludeDisabled Whether to exclude disabled parent products.
      * @return array[]
      */
     private function collectAllParents(bool $excludeDisabled): array
     {
+        $connection = $this->resource->getConnection();
         $result = [];
-        $select = $this->resource->getConnection()
-            ->select()
-            ->from(
-                ['catalog_product_relation' => $this->resource->getTableName('catalog_product_relation')]
-            )->joinLeft(
-                ['catalog_product_entity' => $this->resource->getTableName('catalog_product_entity')],
-                "catalog_product_entity.{$this->linkField} = catalog_product_relation.parent_id",
-                'type_id'
+
+        $cprTable = $this->resource->getTableName('catalog_product_relation');
+        $cpeTable = $this->resource->getTableName('catalog_product_entity');
+        $cpeiTable = $this->resource->getTableName('catalog_product_entity_int');
+
+        $select = $connection->select()
+            ->from(['cpr' => $cprTable], ['child_id', 'parent_id'])
+            ->join(
+                ['cpe' => $cpeTable],
+                "cpe.{$this->linkField} = cpr.parent_id",
+                ['type_id' => new \Zend_Db_Expr("COALESCE(cpe.type_id, 'simple')")]
             );
 
-        if ($excludeDisabled && $attributeId = $this->getStatusAttributeId()) {
-            $select->joinLeft(
-                ['catalog_product_entity_int' => $this->resource->getTableName('catalog_product_entity_int')],
-                "catalog_product_entity_int.entity_id = catalog_product_entity.{$this->linkField}"
-            )->where(
-                'catalog_product_entity_int.value = ?',
-                Status::STATUS_ENABLED
-            )->where(
-                'catalog_product_entity_int.attribute_id = ?',
-                $attributeId
-            );
+        if ($excludeDisabled && $this->statusAttributeId) {
+            $select->join(
+                ['cpei' => $cpeiTable],
+                "cpei.{$this->linkField} = cpe.{$this->linkField} AND cpei.attribute_id = {$this->statusAttributeId}",
+                []
+            )->where('cpei.value = ?', Status::STATUS_ENABLED);
         }
 
-        foreach ($this->resource->getConnection()->fetchAll($select) as $item) {
+        foreach ($connection->fetchAll($select) as $item) {
             $result[$item['child_id']][$item['parent_id']] = $item['type_id'];
         }
 
@@ -98,38 +92,39 @@ class Parents
     }
 
     /**
-     * Get parent products IDs
+     * Get parent product IDs for a specific list of entities.
      *
-     * @param array[] $entityIds array of product IDs
+     * @param array $entityIds Array of product IDs.
+     * @param bool $excludeDisabled Whether to exclude disabled parent products.
      * @return array[]
      */
     private function collectParents(array $entityIds, bool $excludeDisabled): array
     {
+        $connection = $this->resource->getConnection();
         $result = [];
-        $select = $this->resource->getConnection()
-            ->select()
-            ->from(
-                ['catalog_product_relation' => $this->resource->getTableName('catalog_product_relation')]
-            )->joinLeft(
-                ['catalog_product_entity' => $this->resource->getTableName('catalog_product_entity')],
-                "catalog_product_entity.{$this->linkField} = catalog_product_relation.parent_id",
-                'type_id'
-            )->where('child_id IN (?)', $entityIds);
 
-        if ($excludeDisabled && $attributeId = $this->getStatusAttributeId()) {
-            $select->joinLeft(
-                ['catalog_product_entity_int' => $this->resource->getTableName('catalog_product_entity_int')],
-                "catalog_product_entity_int.entity_id = catalog_product_entity.{$this->linkField}"
-            )->where(
-                'catalog_product_entity_int.value = ?',
-                Status::STATUS_ENABLED
-            )->where(
-                'catalog_product_entity_int.attribute_id = ?',
-                $attributeId
-            );
+        $cprTable = $this->resource->getTableName('catalog_product_relation');
+        $cpeTable = $this->resource->getTableName('catalog_product_entity');
+        $cpeiTable = $this->resource->getTableName('catalog_product_entity_int');
+
+        $select = $connection->select()
+            ->from(['cpr' => $cprTable], ['child_id', 'parent_id'])
+            ->join(
+                ['cpe' => $cpeTable],
+                "cpe.{$this->linkField} = cpr.parent_id",
+                ['type_id' => new \Zend_Db_Expr("COALESCE(cpe.type_id, 'simple')")]
+            )
+            ->where('cpr.child_id IN (?)', $entityIds);
+
+        if ($excludeDisabled && $this->statusAttributeId) {
+            $select->join(
+                ['cpei' => $cpeiTable],
+                "cpei.{$this->linkField} = cpe.{$this->linkField} AND cpei.attribute_id = {$this->statusAttributeId}",
+                []
+            )->where('cpei.value = ?', Status::STATUS_ENABLED);
         }
 
-        foreach ($this->resource->getConnection()->fetchAll($select) as $item) {
+        foreach ($connection->fetchAll($select) as $item) {
             $result[$item['child_id']][$item['parent_id']] = $item['type_id'];
         }
 
@@ -137,28 +132,21 @@ class Parents
     }
 
     /**
-     * Get attribute id for status attribute
+     * Fetch the `status` attribute ID for products.
      *
-     * @return int
+     * @return int|null
      */
-    private function getStatusAttributeId(): int
+    private function fetchStatusAttributeId(): ?int
     {
         $connection = $this->resource->getConnection();
-        $selectAttributeId = $connection->select()->from(
-            ['eav_attribute' => $this->resource->getTableName('eav_attribute')],
-            ['attribute_id']
-        )->joinLeft(
-            ['eav_entity_type' => $this->resource->getTableName('eav_entity_type')],
-            'eav_entity_type.entity_type_id = eav_attribute.entity_type_id',
-            []
-        )->where(
-            'entity_type_code = ?',
-            'catalog_product'
-        )->where(
-            'attribute_code = ?',
-            'status'
-        );
+        $eavTable = $this->resource->getTableName('eav_attribute');
 
-        return (int)$connection->fetchOne($selectAttributeId);
+        return (int) $connection->fetchOne(
+            $connection->select()
+                ->from($eavTable, ['attribute_id'])
+                ->where('entity_type_id = ?', 4)
+                ->where('attribute_code = ?', 'status')
+                ->limit(1)
+        ) ?: null;
     }
 }

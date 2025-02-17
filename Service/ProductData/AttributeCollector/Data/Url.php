@@ -40,30 +40,13 @@ class Url
         'category' => '%scatalog/category/view/id/%s'
     ];
 
-    /**
-     * @var ResourceConnection
-     */
-    private $resource;
-    /**
-     * @var array
-     */
-    private $entityIds;
-    /**
-     * @var string
-     */
-    private $type;
-    /**
-     * @var string
-     */
-    private $storeId;
-    /**
-     * @var StoreRepositoryInterface
-     */
-    private $storeRepository;
-    /**
-     * @var string
-     */
-    private $linkField;
+    private ResourceConnection $resource;
+    private StoreRepositoryInterface $storeRepository;
+
+    private array $entityIds;
+    private string $type;
+    private int $storeId;
+    private string $linkField;
 
     /**
      * @param ResourceConnection $resource
