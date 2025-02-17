@@ -22,7 +22,7 @@
                 <cleanup_offset>7</cleanup_offset>
                 <filename>sooqr.xml</filename>
                 <cron_frequency>0 0 * * *</cron_frequency>
-<!--                <cron_frequency_delta>0 * * * *</cron_frequency_delta>-->
+                <batch_size>20000</batch_size>
             </general>
             <product_data>
                 <name_attribute>name</name_attribute>

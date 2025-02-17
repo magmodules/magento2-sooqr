@@ -10,7 +10,7 @@ namespace Magmodules\Sooqr\Model\ProductData;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Filter\FilterManager;
 use Magento\Framework\Serialize\Serializer\Json;
-use Magmodules\Sooqr\Api\Config\RepositoryInterface as DataConfigRepository;
+use Magmodules\Sooqr\Api\Config\RepositoryInterface as ConfigProvider;
 use Magmodules\Sooqr\Api\ProductData\RepositoryInterface as ProductData;
 use Magmodules\Sooqr\Model\Config\Source\FeedType;
 use Magmodules\Sooqr\Service\ProductData\AttributeCollector\Data\Image;
@@ -30,24 +30,14 @@ class Repository implements ProductData
         'brand'
     ];
 
-    /**
-     * Base attributes map to pull from product
-     *
-     * @var array
-     */
-    private $attributeMap = [
+    private array $attributeMap = [
         'product_id' => 'entity_id',
         'visibility' => 'visibility',
         'type_id' => 'type_id',
         'status' => 'status'
     ];
 
-    /**
-     * Base map of feed structure data. Values as magento data, keys as data for feed
-     *
-     * @var array
-     */
-    private $resultMap = [
+    private array $resultMap = [
         'sqr:content_type' => 'content_type',
         'sqr:id' => 'product_id',
         'sqr:title' => 'name',
@@ -73,64 +63,27 @@ class Repository implements ProductData
         'sqr:rating' => 'rating_summary'
     ];
 
-    /**
-     * @var DataConfigRepository
-     */
-    private $dataConfigRepository;
-    /**
-     * @var array
-     */
-    private $entityIds;
-    /**
-     * @var array
-     */
-    private $parentSimples;
-    /**
-     * @var Type
-     */
-    private $type;
-    /**
-     * @var Filter
-     */
-    private $filter;
-    /**
-     * @var Image
-     */
-    private $image;
-    /**
-     * @var array
-     */
-    private $staticFields;
-    /**
-     * @var array
-     */
-    private $imageData;
-    /**
-     * @var FilterManager
-     */
-    private $filterManager;
-    /**
-     * @var Json
-     */
-    private $json;
+    private array $entityIds;
+    private array $parentSimples;
+    private array $staticFields;
+    private array $imageData;
 
-    /**
-     * Repository constructor.
-     * @param DataConfigRepository $dataConfigRepository
-     * @param FilterManager $filterManager
-     * @param Filter $filter
-     * @param Type $type
-     * @param Image $image
-     */
+    private Type $type;
+    private Filter $filter;
+    private Image $image;
+    private ConfigProvider $configProvider;
+    private FilterManager$filterManager;
+    private Json $json;
+
     public function __construct(
-        DataConfigRepository $dataConfigRepository,
+        ConfigProvider $configProvider,
         Json $json,
         FilterManager $filterManager,
         Filter $filter,
         Type $type,
         Image $image
     ) {
-        $this->dataConfigRepository = $dataConfigRepository;
+        $this->configProvider = $configProvider;
         $this->json = $json;
         $this->filterManager = $filterManager;
         $this->filter = $filter;
@@ -146,23 +99,35 @@ class Repository implements ProductData
         $this->collectIds($storeId, $entityIds);
         $this->collectAttributes($storeId);
         $this->parentSimples = [];
-        $this->staticFields = $this->dataConfigRepository->getStaticFields($storeId);
-        $this->imageData = $this->image->execute($this->entityIds, $storeId);
+        $this->staticFields = $this->configProvider->getStaticFields($storeId);
 
         $result = [];
-        foreach ($this->collectProductData($storeId, $type) as $entityId => $productData) {
-            if (empty($productData['product_id']) || $productData['status'] == 2) {
+
+        $totalIds = count($this->entityIds);
+        $batchSize = $this->configProvider->getBatchSize();
+        $batches = $type !== FeedType::FULL ? 1 : (int) ceil($totalIds / $batchSize);
+
+        for ($batch = 0; $batch < $batches; $batch++) {
+            $batchIds = array_slice($this->entityIds, $batch * $batchSize, $batchSize);
+            if (empty($batchIds)) {
                 continue;
             }
-            $this->addImageData($storeId, (int)$entityId, $productData);
-            $this->addStaticFields($productData);
-            foreach ($this->resultMap as $index => $attr) {
-                $result[$entityId][$index] = $this->prepareAttribute($attr, $productData);
-            }
-            $result[$entityId] += $this->categoryData($productData);
 
-            if (!empty($productData['parent_id'])) {
-                $this->parentSimples[$productData['parent_id']][] = $productData['product_id'];
+            $this->imageData = $this->image->execute($batchIds, $storeId);
+            foreach ($this->collectProductData($storeId, $batchIds) as $entityId => $productData) {
+                if (empty($productData['product_id']) || $productData['status'] == 2) {
+                    continue;
+                }
+                $this->addImageData($storeId, (int)$entityId, $productData);
+                $this->addStaticFields($productData);
+                foreach ($this->resultMap as $index => $attr) {
+                    $result[$entityId][$index] = $this->prepareAttribute($attr, $productData);
+                }
+                $result[$entityId] += $this->categoryData($productData);
+
+                if (!empty($productData['parent_id'])) {
+                    $this->parentSimples[$productData['parent_id']][] = $productData['product_id'];
+                }
             }
         }
 
@@ -178,7 +143,7 @@ class Repository implements ProductData
     private function collectIds(int $storeId, ?array $entityIds = null): void
     {
         $this->entityIds = $this->filter->execute(
-            $this->dataConfigRepository->getFilters($storeId),
+            $this->configProvider->getFilters($storeId),
             $storeId
         );
         if ($entityIds !== null) {
@@ -193,7 +158,7 @@ class Repository implements ProductData
      */
     private function collectAttributes(int $storeId = 0): void
     {
-        $attributes = $this->dataConfigRepository->getAttributes($storeId);
+        $attributes = $this->configProvider->getAttributes($storeId);
         $this->attributeMap += $attributes;
 
         $extraAttributes = array_diff_key($attributes, array_flip(self::ATTRIBUTES));
@@ -208,16 +173,16 @@ class Repository implements ProductData
      * Collect all product data
      *
      * @param int $storeId
-     * @param int $type
+     * @param array $batchIds
      * @return array
      * @throws NoSuchEntityException
      */
-    private function collectProductData(int $storeId, int $type = 3): array
+    private function collectProductData(int $storeId, array $batchIds): array
     {
         $extraParameters = [
             'filters' => [
                 'exclude_attribute' => null,
-                'exclude_disabled' => !$this->dataConfigRepository->getFilters($storeId)['add_disabled_products'],
+                'exclude_disabled' => !$this->configProvider->getFilters($storeId)['add_disabled_products'],
                 'custom' => []
             ],
             'stock' => [
@@ -225,21 +190,21 @@ class Repository implements ProductData
                 'inventory_fields' => ['qty', 'is_in_stock', 'salable_qty']
             ],
             'rating_summary' => [
-                'enabled' => $this->dataConfigRepository->addRatingSummary($storeId),
+                'enabled' => $this->configProvider->addRatingSummary($storeId),
             ],
             'category' => [
                 'exclude_attribute' => ['code' => 'sooqr_cat_disable_export', 'value' => 1],
                 'include_anchor' => true
             ],
             'behaviour' => [
-                'configurable' => $this->dataConfigRepository->getConfigProductsBehaviour($storeId),
-                'bundle' => $this->dataConfigRepository->getBundleProductsBehaviour($storeId),
-                'grouped' => $this->dataConfigRepository->getGroupedProductsBehaviour($storeId)
+                'configurable' => $this->configProvider->getConfigProductsBehaviour($storeId),
+                'bundle' => $this->configProvider->getBundleProductsBehaviour($storeId),
+                'grouped' => $this->configProvider->getGroupedProductsBehaviour($storeId)
             ]
         ];
 
         return $this->type->execute(
-            $this->entityIds,
+            $batchIds,
             $this->attributeMap,
             $extraParameters,
             $storeId
@@ -288,7 +253,7 @@ class Repository implements ProductData
             return null;
         }
 
-        $imageSource = $this->dataConfigRepository->getImageAttribute($storeIds[0]);
+        $imageSource = $this->configProvider->getImageAttribute($storeIds[0]);
         foreach ($storeIds as $storeId) {
             if (!isset($imageData[$storeId])) {
                 continue;
@@ -493,7 +458,7 @@ class Repository implements ProductData
      */
     private function postProcess(array $result, int $storeId = 0): array
     {
-        if (!$this->dataConfigRepository->getFilters($storeId)['exclude_out_of_stock'] || empty($result)) {
+        if (!$this->configProvider->getFilters($storeId)['exclude_out_of_stock'] || empty($result)) {
             return $result;
         }
 
