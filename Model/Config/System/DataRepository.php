@@ -52,6 +52,16 @@ class DataRepository extends SearchRepository implements DataInterface
     /**
      * @inheritDoc
      */
+    public function getBatchSize(): int
+    {
+        return $this->getStoreValue(self::XML_PATH_BATCH_SIZE)
+            ? (int)$this->getStoreValue(self::XML_PATH_BATCH_SIZE)
+            : 20000;
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function getAttributes(int $storeId): array
     {
         $attributes = [
@@ -200,8 +210,12 @@ class DataRepository extends SearchRepository implements DataInterface
      */
     private function getCategoryIds(int $storeId): array
     {
-        $categoryIds = $this->getStoreValue(self::XML_PATH_CATEGORY_IDS, $storeId);
-        return $categoryIds ? explode(',', $categoryIds) : [];
+        if ($this->getStoreValue(self::XML_PATH_CATEGORY_FILTER, $storeId)) {
+            $categoryIds = $this->getStoreValue(self::XML_PATH_CATEGORY_IDS, $storeId);
+            return $categoryIds ? explode(',', $categoryIds) : [];
+        }
+
+        return [];
     }
 
     /**

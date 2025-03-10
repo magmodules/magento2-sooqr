@@ -16,6 +16,7 @@ interface DataInterface extends SearchInterface
     /** General Group */
     public const XML_PATH_ENABLED = 'sooqr_data/general/enable';
     public const XML_PATH_FILENAME = 'sooqr_data/general/filename';
+    public const XML_PATH_BATCH_SIZE = 'sooqr_data/general/batch_size';
 
     /** Product Data Group */
     public const XML_PATH_NAME_SOURCE = 'sooqr_data/product_data/name_attribute';
@@ -78,6 +79,13 @@ interface DataInterface extends SearchInterface
      * @return string
      */
     public function getFilename(int $storeId): string;
+
+    /**
+     * Get batch size for feed
+     *
+     * @return int
+     */
+    public function getBatchSize(): int;
 
     /**
      * Return all enabled storeIds
