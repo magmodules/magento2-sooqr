@@ -59,7 +59,7 @@ interface RepositoryInterface extends DataInterface
      *
      * @return array
      */
-    public function getCredentials(int $storeId = null): array;
+    public function getCredentials(?int $storeId = null): array;
 
     /**
      * @param int $storeId
@@ -79,7 +79,7 @@ interface RepositoryInterface extends DataInterface
      *
      * @return bool
      */
-    public function isInProduction(int $storeId = null): bool;
+    public function isInProduction(?int $storeId = null): bool;
 
     /**
      * Get current or specified store
@@ -88,7 +88,7 @@ interface RepositoryInterface extends DataInterface
      *
      * @return StoreInterface
      */
-    public function getStore(int $storeId = null): StoreInterface;
+    public function getStore(?int $storeId = null): StoreInterface;
 
     /**
      * Returns true if debug log is enabled

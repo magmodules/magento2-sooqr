@@ -11,32 +11,19 @@ use Magento\Framework\Serialize\Serializer\Json;
 use Monolog\Logger;
 
 /**
- * DebugLogger logger class
+ * DebugLogger uses composition to log debug data via Monolog
  */
-class DebugLogger extends Logger
+class DebugLogger
 {
+    private Logger $logger;
+    private Json $json;
 
-    /**
-     * @var Json
-     */
-    private $json;
-
-    /**
-     * DebugLogger constructor.
-     *
-     * @param Json $json
-     * @param string $name
-     * @param array $handlers
-     * @param array $processors
-     */
     public function __construct(
-        Json $json,
-        string $name,
-        array $handlers = [],
-        array $processors = []
+        Logger $logger,
+        Json $json
     ) {
+        $this->logger = $logger;
         $this->json = $json;
-        parent::__construct($name, $handlers, $processors);
     }
 
     /**
@@ -44,13 +31,18 @@ class DebugLogger extends Logger
      *
      * @param string $type
      * @param mixed $data
+     * @return void
      */
     public function addLog(string $type, $data): void
     {
+        $message = $type . ': ';
+
         if (is_array($data) || is_object($data)) {
-            $this->addRecord(static::INFO, $type . ': ' . $this->json->serialize($data));
+            $message .= $this->json->serialize($data);
         } else {
-            $this->addRecord(static::INFO, $type . ': ' . $data);
+            $message .= (string)$data;
         }
+
+        $this->logger->info($message);
     }
 }

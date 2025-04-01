@@ -30,7 +30,7 @@ class Repository extends DataRepository implements ConfigRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function getStore(int $storeId = null): StoreInterface
+    public function getStore(?int $storeId = null): StoreInterface
     {
         try {
             if ($storeId) {
@@ -74,7 +74,7 @@ class Repository extends DataRepository implements ConfigRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function getCredentials(int $storeId = null): array
+    public function getCredentials(?int $storeId = null): array
     {
         return [
             'account_id'  => trim($this->getStoreValue(self::XML_PATH_ACCOUNT_ID, $storeId)),
@@ -110,7 +110,7 @@ class Repository extends DataRepository implements ConfigRepositoryInterface
     /**
      * @inheritDoc
      */
-    public function isInProduction(int $storeId = null): bool
+    public function isInProduction(?int $storeId = null): bool
     {
         return $this->getStoreValue(self::XML_PATH_ENVIRONMENT, $storeId) === Environment::PRODUCTION;
     }

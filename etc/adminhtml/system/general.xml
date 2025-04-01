@@ -52,7 +52,7 @@
                 <label>Debug Mode</label>
                 <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 <config_path>sooqr_general/debug/enable</config_path>
-                <comment>Enable this function to write debug records into a sooqr/debug.log file.</comment>
+                <comment>Enable this function to write debug records into a sooqr-debug.log file.</comment>
             </field>
         </group>
     </section>

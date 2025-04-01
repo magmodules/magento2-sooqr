@@ -32,20 +32,30 @@
     <!-- CLI End -->
 
     <!-- Log Block Start -->
-    <type name="Magmodules\Sooqr\Logger\ErrorLogger">
+    <virtualType name="MagmodulesSooqrDebugLogger" type="Monolog\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">SooqrError</argument>
+            <argument name="name" xsi:type="string">MagmodulesSooqrDebug</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Debug</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="MagmodulesSooqrErrorLogger" type="Monolog\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">MagmodulesSooqrError</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Error</item>
             </argument>
         </arguments>
-    </type>
+    </virtualType>
     <type name="Magmodules\Sooqr\Logger\DebugLogger">
         <arguments>
-            <argument name="name" xsi:type="string">SooqrDebug</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Debug</item>
-            </argument>
+            <argument name="logger" xsi:type="object">MagmodulesSooqrDebugLogger</argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Logger\ErrorLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">MagmodulesSooqrErrorLogger</argument>
         </arguments>
     </type>
     <!-- Log Block End -->

@@ -34,7 +34,7 @@ class DataRepository extends SearchRepository implements DataInterface
     /**
      * @inheritDoc
      */
-    public function isDataEnabled(int $storeId = null): bool
+    public function isDataEnabled(?int $storeId = null): bool
     {
         return $this->isSetFlag(self::XML_PATH_ENABLED, $storeId)
             && $this->isSetFlag(ConfigInterface::XML_PATH_EXTENSION_ENABLE, $storeId);
@@ -43,7 +43,7 @@ class DataRepository extends SearchRepository implements DataInterface
     /**
      * @inheritDoc
      */
-    public function getFilename(int $storeId = null): string
+    public function getFilename(?int $storeId = null): string
     {
         $fileName = strtolower($this->getStoreValue(self::XML_PATH_FILENAME, $storeId));
         return str_replace('.xml', '', $fileName) . '-' . $storeId . '.xml';
