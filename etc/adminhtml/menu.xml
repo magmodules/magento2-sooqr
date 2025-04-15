@@ -21,15 +21,5 @@
              resource="Magmodules_Sooqr::feed"
              action="sooqr/feed/index"
         />
-        <!--
-        <add id="Magmodules_Sooqr::delta"
-             title="Product Updates"
-             module="Magmodules_Sooqr"
-             sortOrder="20"
-             parent="Magmodules_Sooqr::general"
-             resource="Magmodules_Sooqr::delta"
-             action="sooqr/delta/index"
-        />
-        -->
     </menu>
 </config>

@@ -23,7 +23,6 @@ use Magmodules\Sooqr\Api\ProductData\RepositoryInterface as ProductDataRepositor
 use Magmodules\Sooqr\Model\Config\Source\FeedExecBy;
 use Magmodules\Sooqr\Model\Config\Source\FeedType;
 use Magmodules\Sooqr\Service\Api\Adapter;
-use Magmodules\Sooqr\Service\Delta\Get as GetDelta;
 use Magmodules\Sooqr\Service\Feed\Create as FeedService;
 use Magento\Framework\Filesystem\Driver\File;
 
@@ -68,10 +67,6 @@ class Repository implements GenerateRepository
      */
     private $feedRepository;
     /**
-     * @var GetDelta
-     */
-    private $getDelta;
-    /**
      * @var Adapter
      */
     private $adapter;
@@ -92,23 +87,6 @@ class Repository implements GenerateRepository
      */
     private $file;
 
-    /**
-     * Repository constructor.
-     *
-     * @param ConfigProvider $configProvider
-     * @param DateTime $datetime
-     * @param FeedService $feedService
-     * @param ProductDataRepository $productDataRepository
-     * @param DirectoryList $directoryList
-     * @param CmsRepository $cmsRepository
-     * @param FeedRepository $feedRepository
-     * @param GetDelta $getDelta
-     * @param Adapter $adapter
-     * @param StoreManagerInterface $storeManager
-     * @param Encryptor $encryptor
-     * @param EncoderInterface $encoder
-     * @param File $file
-     */
     public function __construct(
         ConfigProvider $configProvider,
         DateTime $datetime,
@@ -117,7 +95,6 @@ class Repository implements GenerateRepository
         DirectoryList $directoryList,
         CmsRepository $cmsRepository,
         FeedRepository $feedRepository,
-        GetDelta $getDelta,
         Adapter $adapter,
         StoreManagerInterface $storeManager,
         Encryptor $encryptor,
@@ -131,7 +108,6 @@ class Repository implements GenerateRepository
         $this->directoryList = $directoryList;
         $this->cmsRepository = $cmsRepository;
         $this->feedRepository = $feedRepository;
-        $this->getDelta = $getDelta;
         $this->adapter = $adapter;
         $this->storeManager = $storeManager;
         $this->encryptor = $encryptor;
@@ -203,26 +179,8 @@ class Repository implements GenerateRepository
             throw new LocalizedException(__($message, $storeId));
         }
 
-//        $credentials = $this->configProvider->getCredentials($storeId);
-//        if (count($credentials) != count(array_filter($credentials))) {
-//            $message = self::ERROR_CREDENTIALS;
-//            throw new LocalizedException(__($message, $storeId));
-//        }
-
-        $dataFeed = [];
         $generatedEntities = [];
         switch ($type) {
-            case FeedType::DELTA:
-                $productIds = $this->getDelta->execute($storeId);
-                if ($products = $this->productDataRepository->getProductData($storeId, $productIds, $type)) {
-                    $dataFeed = [
-                        'config' => $this->configProvider->getFeedHeader($storeId),
-                        'products' => $products,
-                        'results' => $this->configProvider->getFeedFooter(count($products))
-                    ];
-                    $generatedEntities[] = 'products';
-                }
-                break;
             case FeedType::PREVIEW:
                 $products = $this->productDataRepository->getProductData($storeId, null, $type);
                 $dataFeed = [
@@ -243,43 +201,40 @@ class Repository implements GenerateRepository
                 break;
         }
 
-        if (!empty($dataFeed)) {
-            $filePath = $this->getFilePath($type, $storeId, true);
-            $this->feedService->execute($dataFeed, $storeId, $filePath);
+        $filePath = $this->getFilePath($type, $storeId, true);
+        $this->feedService->execute($dataFeed, $storeId, $filePath);
 
-            if ($type == FeedType::FULL) {
-                $this->file->copy($filePath, $this->getFilePath($type, $storeId));
-            }
-
-            $resultMsg = sprintf(
-                'Feed generated in %s on %s (%s)',
-                $this->getTimeUsage($timeStart),
-                $this->datetime->gmtDate(),
-                FeedType::TYPES[$type]
-            );
-
-            $feed = $this->feedRepository->create();
-            $feed->setStoreId($storeId)
-                ->setExecutionTime((int)round((microtime(true) - $timeStart)))
-                ->setResult($resultMsg)
-                ->setStartedAt($start)
-                ->setFinishedAt($this->datetime->gmtDate())
-                ->setType($type)
-                ->setExecutedBy($executedBy)
-                ->setFilename($filePath);
-            foreach ($generatedEntities as $entity) {
-                $feed->setData($entity, true);
-            }
-
-            $this->feedRepository->save($feed);
-            // disable for release 2.0.0
-            // $this->sendNotification($feed);
+        if ($type == FeedType::FULL) {
+            $this->file->copy($filePath, $this->getFilePath($type, $storeId));
         }
+
+        $resultMsg = sprintf(
+            'Feed generated in %s on %s (%s)',
+            $this->getTimeUsage($timeStart),
+            $this->datetime->gmtDate(),
+            FeedType::TYPES[$type]
+        );
+
+        $feed = $this->feedRepository->create();
+        $feed->setStoreId($storeId)
+            ->setExecutionTime((int)round((microtime(true) - $timeStart)))
+            ->setResult($resultMsg)
+            ->setStartedAt($start)
+            ->setFinishedAt($this->datetime->gmtDate())
+            ->setType($type)
+            ->setExecutedBy($executedBy)
+            ->setFilename($filePath);
+
+        foreach ($generatedEntities as $entity) {
+            $feed->setData($entity, true);
+        }
+
+        $this->feedRepository->save($feed);
 
         return [
             'success' => true,
-            'message' => sprintf('Store ID %s: %s', $storeId, $resultMsg ?? 'No data found to export'),
-            'path' => $filePath ?? null
+            'message' => sprintf('Store ID %s: %s', $storeId, $resultMsg),
+            'path' => $filePath
         ];
     }
 
