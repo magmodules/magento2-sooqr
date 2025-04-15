@@ -129,7 +129,6 @@ class Image
         if (empty($this->entityIds)) {
             return [];
         }
-
         $connection = $this->resource->getConnection();
         $eavTable = $this->resource->getTableName('eav_attribute');
         $cpevTable = $this->resource->getTableName('catalog_product_entity_varchar');
@@ -150,7 +149,7 @@ class Image
 
         $data = [];
         foreach ($connection->fetchAll($select) as $item) {
-            $data[$item['entity_id']][$item['value']][] = $item['attribute_code'];
+            $data[$item['entity_id']][$item['value']][$item['store_id']][] = $item['attribute_code'];
         }
 
         return $data;
@@ -176,7 +175,7 @@ class Image
             $result[$entityId][$storeId][$position] = [
                 'file' => $this->getMediaUrl('catalog/product' . $imageValue),
                 'position' => $position,
-                'types' => $typesData[$entityId][$imageValue] ?? []
+                'types' => $typesData[$entityId][$imageValue][$storeId] ?? []
             ];
         }
 
