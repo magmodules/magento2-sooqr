@@ -172,11 +172,20 @@ class Image
             $position = $imageData['position'];
             $imageValue = $imageData['value'];
 
-            $result[$entityId][$storeId][$position] = [
+            $result[$entityId][$storeId][] = [
                 'file' => $this->getMediaUrl('catalog/product' . $imageValue),
                 'position' => $position,
                 'types' => $typesData[$entityId][$imageValue][$storeId] ?? []
             ];
+        }
+
+        // Sort by position ascending
+        foreach ($result as &$stores) {
+            foreach ($stores as &$images) {
+                usort($images, function ($a, $b) {
+                    return (int)$a['position'] <=> (int)$b['position'];
+                });
+            }
         }
 
         return $result;
