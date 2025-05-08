@@ -69,7 +69,7 @@ interface DataInterface extends SearchInterface
      *
      * @return bool
      */
-    public function isDataEnabled(int $storeId = null): bool;
+    public function isDataEnabled(?int $storeId = null): bool;
 
     /**
      * Get filename

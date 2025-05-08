@@ -125,13 +125,13 @@ class Price
             $result[$product->getId()] = [
                 'price' => $percent * $this->price,
                 'price_ex' => $this->price,
-                'final_price' => $percent * $this->finalPrice,
+                'final_price' => $this->finalPrice ? $percent * $this->finalPrice : null,
                 'final_price_ex' => $this->finalPrice,
-                'sales_price' => $percent * $this->salesPrice,
-                'min_price' => $percent * $this->minPrice,
-                'max_price' => $percent * $this->maxPrice,
-                'special_price' => $percent * $this->specialPrice,
-                'total_price' => $percent * $this->totalPrice,
+                'sales_price' => $this->salesPrice ? $percent * $this->salesPrice : null,
+                'min_price' => $this->minPrice ? $percent * $this->minPrice : null,
+                'max_price' => $this->maxPrice ? $percent * $this->maxPrice : null,
+                'special_price' => $this->specialPrice ? $percent * $this->specialPrice : null,
+                'total_price' => $this->totalPrice ? $percent * $this->totalPrice : null,
                 'sales_date_range' => $this->getSpecialPriceDateRang($product),
                 'discount_perc' => $this->getDiscountPercentage(),
                 'tax' => abs(1 - $percent) * 100
@@ -183,7 +183,7 @@ class Price
     private function getProductData(array $productIds = [])
     {
         $products = $this->collectionFactory->create()
-            ->addFieldToSelect(['special_price', 'tax_class_id'])
+            ->addFieldToSelect(['price', 'special_price', 'tax_class_id', 'special_from_date', 'special_to_date'])
             ->addFieldToFilter('entity_id', ['in' => $productIds]);
 
         $products->getSelect()->joinLeft(
@@ -196,7 +196,7 @@ class Price
                     'price_index.customer_group_id = 0'
                 ]
             ),
-            ['final_price', 'min_price', 'max_price', 'price']
+            ['final_price', 'min_price', 'max_price', 'price_index_price' => 'price']
         );
 
         return $products;
@@ -359,11 +359,18 @@ class Price
      */
     private function setSimplePrices(Product $product)
     {
-        $this->price = $product->getData('price') !== 0.0 ? $product->getData('price') : null;
-        $this->finalPrice = $product->getData('final_price') !== 0.0
-            ? $product->getData('final_price') : null;
+        $this->price = $product->getData('price_index_price') != 0
+            ? $product->getData('price_index_price')
+            : $product->getData('price');
+
+        $this->finalPrice = $product->getData('final_price') !== 0
+            ? $product->getData('final_price')
+            : null;
+
         $this->specialPrice = $product->getData('special_price')
-            ? $product->getData('special_price') : 0;
+            ? $product->getData('special_price')
+            : 0;
+
         $this->minPrice = $product['min_price'] >= 0 ? $product['min_price'] : null;
         $this->maxPrice = $product['max_price'] >= 0 ? $product['max_price'] : null;
     }

@@ -32,20 +32,30 @@
     <!-- CLI End -->
 
     <!-- Log Block Start -->
-    <type name="Magmodules\Sooqr\Logger\ErrorLogger">
+    <virtualType name="MagmodulesSooqrDebugLogger" type="Monolog\Logger">
         <arguments>
-            <argument name="name" xsi:type="string">SooqrError</argument>
+            <argument name="name" xsi:type="string">MagmodulesSooqrDebug</argument>
+            <argument name="handlers" xsi:type="array">
+                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Debug</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="MagmodulesSooqrErrorLogger" type="Monolog\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">MagmodulesSooqrError</argument>
             <argument name="handlers" xsi:type="array">
                 <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Error</item>
             </argument>
         </arguments>
-    </type>
+    </virtualType>
     <type name="Magmodules\Sooqr\Logger\DebugLogger">
         <arguments>
-            <argument name="name" xsi:type="string">SooqrDebug</argument>
-            <argument name="handlers" xsi:type="array">
-                <item name="system" xsi:type="object">Magmodules\Sooqr\Logger\Handler\Debug</item>
-            </argument>
+            <argument name="logger" xsi:type="object">MagmodulesSooqrDebugLogger</argument>
+        </arguments>
+    </type>
+    <type name="Magmodules\Sooqr\Logger\ErrorLogger">
+        <arguments>
+            <argument name="logger" xsi:type="object">MagmodulesSooqrErrorLogger</argument>
         </arguments>
     </type>
     <!-- Log Block End -->
@@ -67,31 +77,8 @@
         <arguments>
             <argument name="collections" xsi:type="array">
                 <item name="sooqr_feed_listing_data_source" xsi:type="string">Magmodules\Sooqr\Model\Feed\Grid\Collection</item>
-                <item name="sooqr_delta_listing_data_source" xsi:type="string">Magmodules\Sooqr\Model\Delta\Grid\Collection</item>
             </argument>
         </arguments>
     </type>
     <!-- Data Providers End -->
-
-    <!-- Delta Block Start -->
-    <preference for="Magmodules\Sooqr\Api\Delta\Data\DataInterface" type="Magmodules\Sooqr\Model\Delta\DataModel"/>
-    <type name="Magmodules\Sooqr\Model\Delta\Grid\Collection">
-        <arguments>
-            <argument name="mainTable" xsi:type="string">sooqr_delta</argument>
-            <argument name="resourceModel" xsi:type="string">Magmodules\Sooqr\Model\Delta\Collection</argument>
-        </arguments>
-    </type>
-    <!-- Delta Block End -->
-
-    <!-- Plugins -->
-    <type name="\Magento\Catalog\Model\Indexer\Product\Eav">
-        <plugin name="bindDeltaIndexer" type="\Magmodules\Sooqr\Plugin\Catalog\Model\Indexer\Product\Eav\BindDeltaIndexer" />
-    </type>
-    <type name="\Magento\Catalog\Controller\Adminhtml\Product\MassDelete">
-        <plugin name="bindDeltaIndexerMassDelete" type="\Magmodules\Sooqr\Plugin\Catalog\Controller\Adminhtml\Product\MassDelete\BindDeltaIndexer" />
-    </type>
-    <type name="\Magento\CatalogInventory\Model\Indexer\Stock">
-        <plugin name="bindDeltaIndexerInventory" type="\Magmodules\Sooqr\Plugin\CatalogInventory\Model\Indexer\Stock\BindDeltaIndexer" />
-    </type>
-    <!-- Plugins -->
 </config>

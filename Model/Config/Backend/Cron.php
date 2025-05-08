@@ -21,7 +21,6 @@ class Cron extends Value
 {
 
     private const CRON_FULL = 'crontab/default/jobs/sooqr_data/general/cron_frequency';
-    private const CRON_DELTA = 'crontab/default/jobs/sooqr_data/general/cron_frequency_delta';
 
     /**
      * @var ValueFactory
@@ -46,8 +45,8 @@ class Cron extends Value
         ScopeConfigInterface $config,
         TypeListInterface $cacheTypeList,
         ValueFactory $configValueFactory,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = []
     ) {
         $this->configValueFactory = $configValueFactory;
@@ -69,16 +68,6 @@ class Cron extends Value
             )->setPath(
                 self::CRON_FULL
             )->save();
-
-//            $this->configValueFactory->create()->load(
-//                self::CRON_DELTA,
-//                'path'
-//            )->setValue(
-//                $this->getData('groups/general/fields/cron_frequency_delta/value') ?? ''
-//            )->setPath(
-//                self::CRON_DELTA
-//            )->save();
-
         } catch (\Exception $e) {
             throw new LocalizedException(__('We can\'t save the cron expression.'));
         }

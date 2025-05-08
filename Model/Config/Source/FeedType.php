@@ -15,7 +15,7 @@ class FeedType implements OptionSourceInterface
 {
 
     public const PREVIEW = 1;
-    public const DELTA = 2;
+    public const DELTA = 2; // Deprecated
     public const FULL = 3;
 
     public const TYPES = [

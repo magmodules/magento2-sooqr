@@ -111,7 +111,7 @@ class BaseConfigRepository
     /**
      * @inheritDoc
      */
-    public function getStore(int $storeId = null): StoreInterface
+    public function getStore(?int $storeId = null): StoreInterface
     {
         try {
             if ($storeId) {
@@ -139,8 +139,8 @@ class BaseConfigRepository
      */
     protected function getStoreValue(
         string $path,
-        int $storeId = null,
-        string $scope = null
+        ?int $storeId = null,
+        ?string $scope = null
     ): string {
         if (!$storeId) {
             $storeId = (int)$this->getStore()->getId();
@@ -156,7 +156,7 @@ class BaseConfigRepository
      * @param string $key
      * @param int|null $storeId
      */
-    public function setConfigData($value, string $key, int $storeId = null): void
+    public function setConfigData($value, string $key, ?int $storeId = null): void
     {
         if ($storeId) {
             $this->config->saveConfig($key, $value, 'stores', $storeId);
@@ -173,7 +173,7 @@ class BaseConfigRepository
      * @param string|null $scope
      * @return array
      */
-    protected function getStoreValueArray(string $path, int $storeId = null, string $scope = null): array
+    protected function getStoreValueArray(string $path, ?int $storeId = null, ?string $scope = null): array
     {
         if (!$value = $this->getStoreValue($path, (int)$storeId, $scope)) {
             return [];
@@ -193,7 +193,7 @@ class BaseConfigRepository
      * @param int|null $storeId
      * @return string
      */
-    protected function getUncachedStoreValue(string $path, int $storeId = null): string
+    protected function getUncachedStoreValue(string $path, ?int $storeId = null): string
     {
         $collection = $this->configDataCollectionFactory->create()
             ->addFieldToSelect('value')
@@ -221,7 +221,7 @@ class BaseConfigRepository
      *
      * @return bool
      */
-    protected function isSetFlag(string $path, int $storeId = null, string $scope = null): bool
+    protected function isSetFlag(string $path, ?int $storeId = null, ?string $scope = null): bool
     {
         $scope = $scope ?: ScopeInterface::SCOPE_STORE;
         $storeId = $storeId ?: $this->getStore()->getId();

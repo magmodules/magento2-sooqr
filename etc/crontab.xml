@@ -9,10 +9,6 @@
             <schedule>0 0 * * *</schedule>
             <config_path>crontab/default/jobs/sooqr_data/general/cron_frequency</config_path>
         </job>
-<!--        <job instance="Magmodules\Sooqr\Cron\Delta" method="execute" name="sooqr_generate_delta_feed">-->
-<!--            <schedule>0 * * * *</schedule>-->
-<!--            <config_path>crontab/default/jobs/sooqr_data/general/cron_frequency_delta</config_path>-->
-<!--        </job>-->
         <job instance="Magmodules\Sooqr\Cron\Cleanup" method="execute" name="sooqr_cleanup_old_feeds">
             <schedule>0 0 * * *</schedule>
         </job>

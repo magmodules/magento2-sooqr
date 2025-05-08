@@ -65,7 +65,7 @@ class Add extends Compare implements HttpGetActionInterface
         Escaper $escaper,
         ConfigProvider $configProvider,
         CompareHelper $compareHelper,
-        AddToCompareAvailability $compareAvailability = null
+        ?AddToCompareAvailability $compareAvailability = null
     ) {
         parent::__construct(
             $context,
