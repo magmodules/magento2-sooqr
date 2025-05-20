@@ -223,7 +223,7 @@ class Repository implements GenerateRepository
             ->setFinishedAt($this->datetime->gmtDate())
             ->setType($type)
             ->setExecutedBy($executedBy)
-            ->setFilename($filePath);
+            ->setFilename(basename($filePath, '.xml'));
 
         foreach ($generatedEntities as $entity) {
             $feed->setData($entity, true);

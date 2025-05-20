@@ -9,6 +9,7 @@ namespace Magmodules\Sooqr\Model\Feed;
 
 use Magento\Framework\Api\DataObjectHelper;
 use Magento\Framework\Api\ExtensibleDataInterface;
+use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Registry;
@@ -23,19 +24,10 @@ use Magmodules\Sooqr\Api\Feed\Data\DataInterfaceFactory;
 class DataModel extends AbstractModel implements ExtensibleDataInterface, DataInterface
 {
 
-    /**
-     * @var string
-     */
     protected $_eventPrefix = 'sooqr_feed';
-
-    /**
-     * @var DataObjectHelper
-     */
-    protected $dataObjectHelper;
-    /**
-     * @var DataInterfaceFactory
-     */
-    protected $dataFactory;
+    protected DataObjectHelper $dataObjectHelper;
+    protected DataInterfaceFactory $dataFactory;
+    private DirectoryList $directoryList;
 
     /**
      * DataModel constructor.
@@ -45,6 +37,7 @@ class DataModel extends AbstractModel implements ExtensibleDataInterface, DataIn
      * @param DataObjectHelper $dataObjectHelper
      * @param ResourceModel $resource
      * @param Collection $collection
+     * @param DirectoryList $directoryList
      * @param array $data
      */
     public function __construct(
@@ -54,10 +47,12 @@ class DataModel extends AbstractModel implements ExtensibleDataInterface, DataIn
         DataObjectHelper $dataObjectHelper,
         ResourceModel $resource,
         Collection $collection,
+        DirectoryList $directoryList,
         array $data = []
     ) {
         $this->dataFactory = $dataFactory;
         $this->dataObjectHelper = $dataObjectHelper;
+        $this->directoryList = $directoryList;
         parent::__construct($context, $registry, $resource, $collection, $data);
     }
 
@@ -196,7 +191,14 @@ class DataModel extends AbstractModel implements ExtensibleDataInterface, DataIn
      */
     public function getFilename(): ?string
     {
-        return $this->getData(self::FILENAME);
+        if ($filename = $this->getData(self::FILENAME)) {
+            return sprintf(
+                '%s/sooqr/data/%s.xml',
+                $this->directoryList->getPath(DirectoryList::MEDIA),
+                $filename
+            );
+        }
+        return null;
     }
 
     /**
