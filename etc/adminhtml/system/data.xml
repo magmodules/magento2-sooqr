@@ -175,6 +175,16 @@
                 </depends>
                 <config_path>sooqr_data/product_types/configurable_use_non_visible_fallback</config_path>
             </field>
+            <field id="configurable_super_attributes" translate="label comment" type="select" sortOrder="26" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                <label>Add super attributes to parent</label>
+                <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <comment>
+                    <![CDATA[<strong>Recommended:</strong> Yes]]></comment>
+                <depends>
+                    <field id="configurable_use" separator=",">parent,both</field>
+                </depends>
+                <config_path>sooqr_data/product_types/configurable_super_attributes</config_path>
+            </field>
             <field id="heading_bundle" translate="label comment" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Bundle Products</label>
                 <frontend_model>Magmodules\Sooqr\Block\Adminhtml\System\Config\Form\Field\Heading</frontend_model>

@@ -7,65 +7,29 @@ declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Service\ProductData;
 
-use Exception;
 use Magento\Catalog\Api\Data\CategoryInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\EntityManager\MetadataPool;
-use Magento\Framework\Exception\NoSuchEntityException;
 
-/**
- * Data class
- * Collecting products data according provided IDs and attributes to fetch
- * Return array where keys are product IDs and values is arrays of required data
- */
 class Data
 {
 
-    /**
-     * @var AttributeCollector\Data\AttributeMapper
-     */
-    private $attributeMapper;
-    /**
-     * @var AttributeCollector\Data\Url
-     */
-    private $url;
-    /**
-     * @var AttributeCollector\Data\Category
-     */
-    private $category;
-    /**
-     * @var AttributeCollector\Data\Stock
-     */
-    private $stock;
-    /**
-     * @var AttributeCollector\Data\Price
-     */
-    private $price;
-    /**
-     * @var AttributeCollector\Data\Rating
-     */
-    private $rating;
-    /**
-     * @var ResourceConnection
-     */
-    private $resourceConnection;
-    /**
-     * @var string
-     */
-    private $linkField;
+    private AttributeCollector\Data\AttributeMapper $attributeMapper;
+    private AttributeCollector\Data\Url $url;
+    private AttributeCollector\Data\Category $category;
+    private AttributeCollector\Data\Stock $stock;
+    private AttributeCollector\Data\Price $price;
+    private AttributeCollector\Data\Rating $rating;
+    private AttributeCollector\Data\SuperAttribute $superAttribute;
+    private ResourceConnection $resourceConnection;
 
-    /**
-     * Data constructor.
-     * @param AttributeCollector\Data\AttributeMapper $attributeMapper
-     * @param AttributeCollector\Data\Url $url
-     * @param AttributeCollector\Data\Category $category
-     * @param AttributeCollector\Data\Stock $stock
-     * @param AttributeCollector\Data\Price $price
-     * @param AttributeCollector\Data\Rating $rating
-     * @param ResourceConnection $resourceConnection
-     * @param MetadataPool $metadataPool
-     * @throws Exception
-     */
+    private string $linkField;
+    private array $entityIds = [];
+    private int $storeId = 0;
+    private array $rowIds = [];
+    private array $productIds = [];
+    private array $extraParameters = [];
+
     public function __construct(
         AttributeCollector\Data\AttributeMapper $attributeMapper,
         AttributeCollector\Data\Url $url,
@@ -73,6 +37,7 @@ class Data
         AttributeCollector\Data\Stock $stock,
         AttributeCollector\Data\Price $price,
         AttributeCollector\Data\Rating $rating,
+        AttributeCollector\Data\SuperAttribute $superAttribute,
         ResourceConnection $resourceConnection,
         MetadataPool $metadataPool
     ) {
@@ -81,32 +46,75 @@ class Data
         $this->category = $category;
         $this->stock = $stock;
         $this->price = $price;
+        $this->superAttribute = $superAttribute;
         $this->rating = $rating;
         $this->resourceConnection = $resourceConnection;
         $this->linkField = $metadataPool->getMetadata(CategoryInterface::class)->getLinkField();
     }
 
     /**
-     * @param array $entityIds
-     * @param array $attributeMap
-     * @param array $extraParameters
-     * @param int $storeId
-     * @return array
-     * @throws NoSuchEntityException
+     * Collect product data based on IDs and attributes.
+     *
+     * @param array $entityIds Product entity IDs to process.
+     * @param array $attributeMap Mapping of attributes to collect.
+     * @param array $extraParameters Additional parameters for processing.
+     * @param int $storeId Store ID context.
+     * @return array Collected product data.
      */
     public function execute(array $entityIds, array $attributeMap, array $extraParameters, int $storeId = 0): array
     {
-        $rowIds = $this->getRowsIds($entityIds);
-        $productIds = array_flip($rowIds);
+        if (empty($entityIds)) {
+            return [];
+        }
 
-        $result = $this->attributeMapper->execute(
-            $entityIds,
-            $attributeMap,
-            'catalog_product',
-            $storeId
-        );
+        $this->entityIds = $entityIds;
+        $this->storeId = $storeId;
+        $this->extraParameters = $extraParameters;
+        $this->rowIds = $this->getRowsIds($entityIds);
+        $this->productIds = array_flip($this->rowIds);
 
         $data = [];
+
+        $this->mergeAttributeData($data, $attributeMap);
+        $this->mergeUrlData($data);
+        $this->mergeCategoryData($data);
+        $this->mergeStockData($data);
+        $this->mergePriceData($data);
+        $this->mergeSuperAttributeData($data);
+        $this->mergeRatingData($data);
+
+        return $data;
+    }
+
+    /**
+     * Get row IDs for the provided entity IDs.
+     *
+     * @param array $entityIds Product entity IDs.
+     * @return array Mapped row IDs with entity IDs as keys.
+     */
+    private function getRowsIds(array $entityIds): array
+    {
+        $connection = $this->resourceConnection->getConnection();
+        $table = $this->resourceConnection->getTableName('catalog_product_entity');
+
+        $select = $connection->select()
+            ->from($table, ['entity_id', $this->linkField])
+            ->where("{$this->linkField} IN (?)", $entityIds);
+
+        return $connection->fetchPairs($select);
+    }
+
+    /**
+     * Merge attribute data into the main result set.
+     *
+     * @param array $data Existing data array.
+     * @param array $attributeMap Mapping of attributes to collect.
+     * @return void
+     */
+    private function mergeAttributeData(array &$data, array $attributeMap): void
+    {
+        $result = $this->attributeMapper->execute($this->entityIds, $attributeMap, 'catalog_product', $this->storeId);
+
         foreach ($attributeMap as $targetCode => $attributeCode) {
             if (!isset($result[$attributeCode])) {
                 continue;
@@ -115,73 +123,125 @@ class Data
                 $data[$entityId][$targetCode] = $value;
             }
         }
+    }
 
-        $result = $this->url->execute(
-            $entityIds,
-            'product',
-            $storeId
-        );
+    /**
+     * Merge URL data into the main result set.
+     *
+     * @param array $data Existing data array.
+     * @return void
+     */
+    private function mergeUrlData(array &$data): void
+    {
+        $result = $this->url->execute($this->entityIds, 'product', $this->storeId);
 
         foreach ($result as $urlEntityId => $url) {
             $data[$urlEntityId]['url'] = $url;
         }
-
-        $result = $this->category->execute(
-            $productIds,
-            $storeId,
-            'raw',
-            $extraParameters
-        );
-
-        foreach ($result as $productId => $categoryData) {
-            $data[$rowIds[$productId]]['category'] = $categoryData;
-        }
-
-        if (!empty($extraParameters['rating_summary']['enabled'])) {
-            $ratings = $this->rating->execute($entityIds, $storeId);
-            foreach ($ratings as $productId => $rating) {
-                $data[$rowIds[$productId]]['rating_summary'] = $rating;
-            }
-        }
-
-        if ($extraParameters['stock']['inventory']) {
-            $result = $this->stock->execute($productIds, $storeId);
-            $inventoryFields = array_merge(
-                $extraParameters['stock']['inventory_fields'],
-                ['qty', 'msi', 'salable_qty', 'reserved', 'is_in_stock']
-            );
-
-            foreach ($result as $productId => $stockData) {
-                $data[$rowIds[$productId]] += array_intersect_key($stockData, array_flip($inventoryFields));
-            }
-        }
-
-        $result = $this->price->execute(
-            $productIds,
-            $extraParameters['behaviour']['grouped']['price_logic'] ?? 'max',
-            $extraParameters['behaviour']['bundle']['price_logic'] ?? 'min',
-            $storeId
-        );
-
-        foreach ($result as $productId => $priceData) {
-            $data[$rowIds[$productId]] += $priceData;
-        }
-
-        return $data;
     }
 
     /**
-     * @param array $entityIds
-     * @return int[]|string[]
+     * Merge category data into the main result set.
+     *
+     * @param array $data Existing data array.
+     * @return void
      */
-    private function getRowsIds(array $entityIds): array
+    private function mergeCategoryData(array &$data): void
     {
-        $connection = $this->resourceConnection->getConnection();
-        $table = $this->resourceConnection->getTableName('catalog_product_entity');
-        $select = $connection->select()
-            ->from($table, ['entity_id', $this->linkField])
-            ->where("{$this->linkField} IN (?)", $entityIds);
+        $result = $this->category->execute($this->productIds, $this->storeId, 'raw', $this->extraParameters);
 
-        return $connection->fetchPairs($select);
+        foreach ($result as $productId => $categoryData) {
+            $data[$this->rowIds[$productId]]['category'] = $categoryData;
+        }
+    }
+
+    /**
+     * Merge stock data into the main result set.
+     *
+     * @param array $data Existing data array.
+     * @return void
+     */
+    private function mergeStockData(array &$data): void
+    {
+        if (!$this->extraParameters['stock']['inventory']) {
+            return;
+        }
+
+        $result = $this->stock->execute($this->productIds, $this->storeId);
+        $inventoryFields = array_merge(
+            $this->extraParameters['stock']['inventory_fields'],
+            ['qty', 'msi', 'salable_qty', 'reserved', 'is_in_stock']
+        );
+
+        foreach ($result as $productId => $stockData) {
+            $data[$this->rowIds[$productId]] += array_intersect_key($stockData, array_flip($inventoryFields));
+        }
+    }
+
+    /**
+     * Merge price data into the main result set.
+     *
+     * @param array $data Existing data array.
+     * @return void
+     */
+    private function mergePriceData(array &$data): void
+    {
+        $result = $this->price->execute(
+            $this->productIds,
+            $this->extraParameters['behaviour']['grouped']['price_logic'] ?? 'max',
+            $this->extraParameters['behaviour']['bundle']['price_logic'] ?? 'min',
+            $this->storeId
+        );
+
+        foreach ($result as $productId => $priceData) {
+            $data[$this->rowIds[$productId]] += $priceData;
+        }
+    }
+
+    /**
+     * Merge super attribute labels into the main result set.
+     * This method collects labels for configurable attributes (e.g., color, size)
+     * for parent products and merges them into the data array based on the
+     * mapping of entity IDs to row IDs.
+     *
+     * @param array $data Existing data array keyed by row ID.
+     * @return void
+     */
+    private function mergeSuperAttributeData(array &$data): void
+    {
+        if (empty($this->extraParameters['behaviour']['configurable']['add_super_attributes'])) {
+            return;
+        }
+
+        $result = $this->superAttribute->execute($this->entityIds, $this->storeId);
+        foreach ($result as $productId => $superAttributes) {
+            if (!isset($this->rowIds[$productId])) {
+                continue;
+            }
+            $data[$this->rowIds[$productId]] += $superAttributes;
+        }
+    }
+
+    /**
+     * Merge product rating summary into the main result set.
+     * If enabled via extraParameters, this method retrieves and merges the rating summary
+     * per product into the data array, using row ID as the key.
+     *
+     * @param array $data Existing data array keyed by row ID.
+     * @return void
+     */
+    private function mergeRatingData(array &$data): void
+    {
+        if (empty($this->extraParameters['rating_summary']['enabled'])) {
+            return;
+        }
+
+        $ratings = $this->rating->execute($this->entityIds, $this->storeId);
+        foreach ($ratings as $productId => $rating) {
+            if (!isset($this->rowIds[$productId])) {
+                continue;
+            }
+            $data[$this->rowIds[$productId]]['rating_summary'] = $rating;
+        }
     }
 }
