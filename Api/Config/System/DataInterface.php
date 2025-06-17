@@ -38,6 +38,8 @@ interface DataInterface extends SearchInterface
     public const XML_PATH_CONFIGURABLE_PARENT_ATTRIBUTES =
         'sooqr_data/product_types/configurable_use_parent_attributes';
     public const XML_PATH_CONFIGURABLE_NON_VISIBLE = 'sooqr_data/product_types/configurable_use_non_visible_fallback';
+    public const XML_PATH_CONFIGURABLE_SUPER_ATTRIBUTES = 'sooqr_data/product_types/configurable_super_attributes';
+
     public const XML_PATH_BUNDLE = 'sooqr_data/product_types/bundle_use';
     public const XML_PATH_BUNDLE_LINK = 'sooqr_data/product_types/bundle_link';
     public const XML_PATH_BUNDLE_IMAGE = 'sooqr_data/product_types/bundle_image';

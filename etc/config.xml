@@ -11,7 +11,7 @@
         <sooqr_general>
             <general>
                 <enable>1</enable>
-                <version>v2.4.0</version>
+                <version>v2.5.0</version>
             </general>
             <credentials>
                 <environment>production</environment>
@@ -39,6 +39,7 @@
                 <configurable_image>2</configurable_image>
                 <configurable_use_parent_attributes>description</configurable_use_parent_attributes>
                 <configurable_use_non_visible_fallback>1</configurable_use_non_visible_fallback>
+                <configurable_super_attributes>0</configurable_super_attributes>
                 <bundle>parent</bundle>
                 <grouped>parent</grouped>
                 <grouped_price_logic/>

@@ -72,7 +72,7 @@ class Repository implements ProductData
     private Filter $filter;
     private Image $image;
     private ConfigProvider $configProvider;
-    private FilterManager$filterManager;
+    private FilterManager $filterManager;
     private Json $json;
 
     public function __construct(
@@ -105,7 +105,7 @@ class Repository implements ProductData
 
         $totalIds = count($this->entityIds);
         $batchSize = $this->configProvider->getBatchSize();
-        $batches = $type !== FeedType::FULL ? 1 : (int) ceil($totalIds / $batchSize);
+        $batches = $type !== FeedType::FULL ? 1 : (int)ceil($totalIds / $batchSize);
 
         for ($batch = 0; $batch < $batches; $batch++) {
             $batchIds = array_slice($this->entityIds, $batch * $batchSize, $batchSize);
@@ -118,11 +118,11 @@ class Repository implements ProductData
                 if (empty($productData['product_id']) || $productData['status'] == 2) {
                     continue;
                 }
+
                 $this->addImageData($storeId, (int)$entityId, $productData);
                 $this->addStaticFields($productData);
-                foreach ($this->resultMap as $index => $attr) {
-                    $result[$entityId][$index] = $this->prepareAttribute($attr, $productData);
-                }
+
+                $result[$entityId] = $this->mapResultAttributes($productData);
                 $result[$entityId] += $this->categoryData($productData);
 
                 if (!empty($productData['parent_id'])) {
@@ -328,6 +328,26 @@ class Repository implements ProductData
     }
 
     /**
+     * Map product data attributes to the result structure.
+     */
+    private function mapResultAttributes(array $productData): array
+    {
+        $mappedAttributes = [];
+        foreach ($this->resultMap as $index => $attr) {
+            $mappedAttributes[$index] = $this->prepareAttribute($attr, $productData);
+        }
+
+        // Include all config_options_* keys as-is
+        foreach ($productData as $key => $value) {
+            if (strpos($key, 'config_options_') === 0) {
+                $mappedAttributes[$key] = is_array($value) ? implode(',', $value) : $value;
+            }
+        }
+
+        return $mappedAttributes;
+    }
+
+    /**
      * Attribute data preparation
      *
      * @param string $attribute
@@ -464,7 +484,6 @@ class Repository implements ProductData
 
         $unsetSimples = [];
         foreach ($result as $id => &$row) {
-
             // Remove parent products without simples
             if ($row['sqr:id'] == $row['sqr:assoc_id'] && $row['sqr:price'] == 0.00) {
                 $unsetSimples[] = $id;

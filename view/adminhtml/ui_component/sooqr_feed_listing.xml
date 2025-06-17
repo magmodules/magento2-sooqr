@@ -59,6 +59,25 @@
                 </settings>
             </filterSelect>
         </filters>
+        <massaction name="listing_massaction">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="component" xsi:type="string">Magento_Ui/js/grid/tree-massactions</item>
+                    <item name="indexField" xsi:type="string">entity_id</item>
+                </item>
+            </argument>
+            <action name="mass_delete">
+                <settings>
+                    <type>mass_delete</type>
+                    <label>Delete Feeds</label>
+                    <url path="*/*/massDelete"/>
+                    <confirm>
+                        <title translate="true">Mass Delete Feeds?</title>
+                        <message translate="true">Are you sure you want to delete feeds for selected records?</message>
+                    </confirm>
+                </settings>
+            </action>
+        </massaction>
         <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="feed_columns">

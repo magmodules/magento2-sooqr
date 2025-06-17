@@ -18,31 +18,11 @@ use Magento\Framework\EntityManager\MetadataPool;
 class ConfigurableKey
 {
 
-    public const REQUIRE = [
-        'entity_ids'
-    ];
+    public const REQUIRE = ['entity_ids'];
+    private ResourceConnection $resource;
+    private array $entityIds;
+    private string $linkField;
 
-    /**
-     * @var ResourceConnection
-     */
-    private $resource;
-
-    /**
-     * @var array
-     */
-    private $entityIds;
-    /**
-     * @var string
-     */
-    private $linkField;
-
-    /**
-     * Price constructor.
-     *
-     * @param ResourceConnection $resource
-     * @param MetadataPool $metadataPool
-     * @throws Exception
-     */
     public function __construct(
         ResourceConnection $resource,
         MetadataPool $metadataPool
@@ -53,12 +33,10 @@ class ConfigurableKey
 
     /**
      * Get URL data
-     *
      * Structure of response
      * [product_id][store_id] = url
      *
      * @param array[] $entityIds array with IDs or products, categories or pages
-     *
      * @return array[]
      */
     public function execute(array $entityIds = []): array
@@ -69,9 +47,9 @@ class ConfigurableKey
 
     /**
      * @param string $type
-     * @param mixed $data
+     * @param array|null $data
      */
-    public function setData($type, $data): void
+    public function setData(string $type, ?array $data): void
     {
         if (!$data) {
             return;
@@ -89,9 +67,6 @@ class ConfigurableKey
     private function collectKeys(): array
     {
         $result = [];
-        $condition = 'catalog_product_entity_int.attribute_id = catalog_product_super_attribute.attribute_id
-and catalog_product_entity_int.' . $this->linkField . ' = catalog_product_relation.child_id';
-
         $select = $this->resource->getConnection()
             ->select()->from(
                 ['catalog_product_relation' => $this->resource->getTableName('catalog_product_relation')]
@@ -100,11 +75,19 @@ and catalog_product_entity_int.' . $this->linkField . ' = catalog_product_relati
                 'catalog_product_super_attribute.product_id = catalog_product_relation.parent_id',
                 'attribute_id'
             )->joinLeft(
+                ['cpe' => $this->resource->getTableName('catalog_product_entity')],
+                'cpe.entity_id = catalog_product_relation.child_id',
+                []
+            )->joinLeft(
                 ['catalog_product_entity_int' => $this->resource->getTableName('catalog_product_entity_int')],
-                $condition,
+                'catalog_product_entity_int.attribute_id = catalog_product_super_attribute.attribute_id'
+                . ' AND catalog_product_entity_int.' . $this->linkField . ' = cpe.' . $this->linkField,
                 ['value', 'store_id']
             )->where(
-                'child_id IN (?)',
+                'catalog_product_relation.child_id IN (?)',
+                $this->entityIds
+            )->where(
+                'catalog_product_relation.parent_id IN (?)',
                 $this->entityIds
             );
 

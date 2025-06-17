@@ -7,6 +7,8 @@ declare(strict_types=1);
 
 namespace Magmodules\Sooqr\Cron;
 
+use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Filesystem\Driver\File;
@@ -19,39 +21,31 @@ use Magmodules\Sooqr\Api\Log\RepositoryInterface as LogRepository;
 class Cleanup
 {
 
-    /**
-     * @var ConfigProvider
-     */
-    private $configProvider;
-    /**
-     * @var File
-     */
-    private $file;
-    /**
-     * @var ResourceConnection
-     */
-    private $resourceConnection;
-    /**
-     * @var LogRepository
-     */
-    private $logger;
+    private ConfigProvider $configProvider;
+    private File $file;
+    private ResourceConnection $resourceConnection;
+    private LogRepository $logger;
+    private DirectoryList $directoryList;
 
     /**
      * @param ConfigProvider $configProvider
      * @param File $file
      * @param LogRepository $logger
      * @param ResourceConnection $resourceConnection
+     * @param DirectoryList $directoryList
      */
     public function __construct(
         ConfigProvider $configProvider,
         File $file,
         LogRepository $logger,
-        ResourceConnection $resourceConnection
+        ResourceConnection $resourceConnection,
+        DirectoryList $directoryList
     ) {
         $this->configProvider = $configProvider;
         $this->file = $file;
         $this->logger = $logger;
         $this->resourceConnection = $resourceConnection;
+        $this->directoryList = $directoryList;
     }
 
     /**
@@ -74,30 +68,74 @@ class Cleanup
     private function removeFiles($offset)
     {
         $connection = $this->resourceConnection->getConnection();
-        $selectFiles = $connection->select()->from(
-            $this->resourceConnection->getTableName('sooqr_feed'),
-            ['filename']
-        )->where(
-            'created_at < ?',
-            date("Y-m-d h:i:s", strtotime("-{$offset} days"))
-        )->where(
-            'filename IS NOT NULL'
-        );
+        $filesToDelete = $this->getFilesToDelete($connection, $offset);
 
-        foreach ($connection->fetchCol($selectFiles) as $filename) {
-            try {
-                if ($this->file->isExists($filename)) {
-                    $this->file->deleteFile($filename);
-                }
-            } catch (FileSystemException $exception) {
-                $this->logger->addDebugLog('removeFiles', $exception->getMessage());
-            }
+        $path = $this->directoryList->getPath(DirectoryList::MEDIA) . '/sooqr/data/';
+
+        foreach ($filesToDelete as $filename) {
+            $this->deleteFile($path, $filename);
         }
+
+        $this->clearFileReferencesInDatabase($connection, $offset);
 
         $connection->update(
             $this->resourceConnection->getTableName('sooqr_feed'),
             ['filename' => null, 'webhook_url' => null],
             ['created_at < ?' => date("Y-m-d h:i:s", strtotime("-{$offset} days"))]
+        );
+    }
+
+    /**
+     * Clear file references in the database for outdated entries.
+     *
+     * @param AdapterInterface $connection
+     * @param int $offset
+     * @return void
+     */
+    private function clearFileReferencesInDatabase(AdapterInterface $connection, int $offset): void
+    {
+        $connection->update(
+            $this->resourceConnection->getTableName('sooqr_feed'),
+            ['filename' => null],
+            ['created_at < ?' => $this->getPastDate($offset)]
+        );
+    }
+
+    /**
+     * Delete a file and log any errors.
+     *
+     * @param string $path
+     * @param string $filename
+     * @return void
+     */
+    private function deleteFile(string $path, string $filename): void
+    {
+        try {
+            $filename = $path . $filename . '.xml';
+            if ($this->file->isExists($filename)) {
+                $this->file->deleteFile($filename);
+            }
+        } catch (FileSystemException $exception) {
+            $this->logger->addDebugLog('cleanupFiles', $exception->getMessage());
+        }
+    }
+
+    /**
+     * Get files to delete based on the offset.
+     *
+     * @param AdapterInterface $connection
+     * @param int $offset
+     * @return array
+     */
+    private function getFilesToDelete(AdapterInterface $connection, int $offset): array
+    {
+        $tableName = $this->resourceConnection->getTableName('sooqr_feed');
+
+        return $connection->fetchCol(
+            $connection->select()
+                ->from($tableName, ['filename'])
+                ->where('created_at < ?', $this->getPastDate($offset))
+                ->where('filename IS NOT NULL')
         );
     }
 
@@ -114,5 +152,16 @@ class Cleanup
             $this->resourceConnection->getTableName('sooqr_feed'),
             ['created_at < ?' => date("Y-m-d h:i:s", strtotime("-{$offset} days"))]
         );
+    }
+
+    /**
+     * Get a formatted past date based on the offset.
+     *
+     * @param int $offset
+     * @return string
+     */
+    private function getPastDate(int $offset): string
+    {
+        return date('Y-m-d H:i:s', strtotime("-{$offset} days"));
     }
 }

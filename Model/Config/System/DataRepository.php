@@ -240,7 +240,8 @@ class DataRepository extends SearchRepository implements DataInterface
             'use_parent_url' => $this->configurableProductUrl($storeId),
             'use_parent_images' => $this->configurableProductImage($storeId),
             'use_parent_attributes' => $this->configurableParentAttributes($storeId),
-            'use_non_visible_fallback' => $this->configurableNonVisibleFallback($storeId)
+            'use_non_visible_fallback' => $this->configurableNonVisibleFallback($storeId),
+            'add_super_attributes' => $this->configurableSuperAttributes($storeId)
         ];
     }
 
@@ -305,6 +306,18 @@ class DataRepository extends SearchRepository implements DataInterface
     private function configurableNonVisibleFallback(int $storeId): bool
     {
         return $this->isSetFlag(self::XML_PATH_CONFIGURABLE_NON_VISIBLE, $storeId);
+    }
+
+    /**
+     * Flag to add 'Super Attributes' to configurable parent products
+     *
+     * @param int $storeId
+     *
+     * @return bool
+     */
+    private function configurableSuperAttributes(int $storeId): bool
+    {
+        return $this->isSetFlag(self::XML_PATH_CONFIGURABLE_SUPER_ATTRIBUTES, $storeId);
     }
 
     /**
