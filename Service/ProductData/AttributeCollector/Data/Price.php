@@ -32,30 +32,12 @@ class Price
         'bundle_price_type'
     ];
 
-    /**
-     * @var CatalogPrice
-     */
-    private $commonPriceModel;
-    /**
-     * @var RuleFactory
-     */
-    private $resourceRuleFactory;
-    /**
-     * @var CatalogHelper
-     */
-    private $catalogHelper;
-    /**
-     * @var StoreManagerInterface
-     */
-    private $storeManager;
-    /**
-     * @var TimezoneInterface
-     */
-    private $localeDate;
-    /**
-     * @var CollectionFactory
-     */
-    private $collectionFactory;
+    private CatalogPrice $commonPriceModel;
+    private RuleFactory $resourceRuleFactory;
+    private CatalogHelper $catalogHelper;
+    private StoreManagerInterface $storeManager;
+    private TimezoneInterface $localeDate;
+    private CollectionFactory $collectionFactory;
 
     private $price = null;
     private $finalPrice = null;
@@ -66,6 +48,7 @@ class Price
     private $maxPrice = null;
     private $totalPrice = null;
     private $websiteId = null;
+    private $currecy = null;
     private $taxClasses = [];
     private $bundlePriceType = null;
     private $groupedPriceType = null;
@@ -102,43 +85,74 @@ class Price
         int $storeId = 0
     ): array {
         $store = $this->getStore((int)$storeId);
+        $this->currecy = $store->getDefaultCurrencyCode();
         $this->websiteId = $store->getWebsiteId();
         $this->taxClasses = [];
 
-        $this->setData('products', $this->getProductData($productIds));
+        $this->setData('products', $this->getProductData($productIds, $storeId));
         $this->setData('grouped_price_type', $groupedPriceType);
         $this->setData('bundle_price_type', $bundlePriceType);
+        $rate = $store->getBaseCurrency()->getRate($this->currecy);
 
         foreach ($this->products as $product) {
             $this->setPrices($product, $this->groupedPriceType, $this->bundlePriceType);
-
-            if (array_key_exists((int)$product->getTaxClassId(), $this->taxClasses)) {
-                $percent = $this->taxClasses[(int)$product->getTaxClassId()];
-            } else {
-                $priceInclTax = $this->processPrice($product, (float)$this->price, $store);
-                $percent = $this->price == 0 ? 1 : round($priceInclTax / $this->price, 2);
-                if ($percent !== 1) {
-                    $this->taxClasses[(int)$product->getTaxClassId()] = $percent;
-                }
-            }
+            $percent = $this->getPercentage($product, $store);
 
             $result[$product->getId()] = [
-                'price' => $percent * $this->price,
-                'price_ex' => $this->price,
-                'final_price' => $this->finalPrice ? $percent * $this->finalPrice : null,
-                'final_price_ex' => $this->finalPrice,
-                'sales_price' => $this->salesPrice ? $percent * $this->salesPrice : null,
-                'min_price' => $this->minPrice ? $percent * $this->minPrice : null,
-                'max_price' => $this->maxPrice ? $percent * $this->maxPrice : null,
-                'special_price' => $this->specialPrice ? $percent * $this->specialPrice : null,
-                'total_price' => $this->totalPrice ? $percent * $this->totalPrice : null,
+                'price' => $this->round($percent * $this->price),
+                'price_ex' => $this->round($this->price * $rate),
+                'final_price' => $this->round($this->finalPrice ? $percent * $this->finalPrice : null),
+                'final_price_ex' => $this->round($this->finalPrice * $rate),
+                'sales_price' => $this->round($this->salesPrice ? $percent * $this->salesPrice : null),
+                'min_price' => $this->round($this->minPrice ? $percent * $this->minPrice : null),
+                'max_price' => $this->round($this->maxPrice ? $percent * $this->maxPrice : null),
+                'special_price' => $this->round($this->specialPrice ? $percent * $this->specialPrice : null),
+                'total_price' => $this->round($this->totalPrice ? $percent * $this->totalPrice : null),
                 'sales_date_range' => $this->getSpecialPriceDateRang($product),
                 'discount_perc' => $this->getDiscountPercentage(),
-                'tax' => abs(1 - $percent) * 100
+                'tax' => abs(1 - ($percent/$rate)) * 100,
+                'currency' => $this->currecy
             ];
         }
 
         return $result ?? [];
+    }
+
+    /**
+     * Calculate price multiplier including tax adjustments and currency rate differences.
+     *
+     * Returns a float multiplier based on the processed price (incl. tax) and original price,
+     * potentially adjusted for base-to-store currency conversion.
+     *
+     * @param Product $product The product for which to calculate the price multiplier.
+     * @param StoreInterface|null $store The store context used to resolve tax and currency.
+     * @return float The price multiplier relative to base price.
+     */
+    private function getPercentage(Product $product, ?StoreInterface $store): float
+    {
+        $taxClassId = (int)$product->getTaxClassId();
+
+        if (isset($this->taxClasses[$taxClassId])) {
+            return $this->taxClasses[$taxClassId];
+        }
+
+        if ($this->price == 0.0) {
+            $percent = 1.0;
+        } else {
+            $processed = $this->processPrice($product, (float)$this->price, $store);
+            $percent = round($processed / $this->price, 2);
+        }
+
+        // Adjust for currency difference
+        if ($store->getBaseCurrencyCode() !== $this->currecy) {
+            $rate = $store->getBaseCurrency()->getRate($this->currecy);
+            if ($rate > 0) {
+                $percent *= $rate;
+            }
+        }
+
+        $this->taxClasses[$taxClassId] = $percent;
+        return $percent;
     }
 
     /**
@@ -178,14 +192,18 @@ class Price
 
     /**
      * @param array $productIds
+     * @param int $storeId
      * @return Collection|AbstractDb
      */
-    private function getProductData(array $productIds = [])
+    private function getProductData(array $productIds = [], int $storeId = 0)
     {
         $products = $this->collectionFactory->create()
             ->addFieldToSelect(['price', 'special_price', 'tax_class_id', 'special_from_date', 'special_to_date'])
-            ->addFieldToFilter('entity_id', ['in' => $productIds]);
+            ->addFieldToFilter('entity_id', ['in' => $productIds])
+            ->addStoreFilter($storeId)
+            ->setStoreId($storeId);
 
+        // Join the price attributes
         $products->getSelect()->joinLeft(
             ['price_index' => $products->getTable('catalog_product_index_price')],
             join(
@@ -254,6 +272,11 @@ class Price
         if ($this->price == '0.0000' && $this->finalPrice > 0) {
             $this->price = $this->finalPrice;
         }
+    }
+
+    private function round($price)
+    {
+        return round((float)$price, 2);
     }
 
     /**
@@ -412,7 +435,6 @@ class Price
      */
     private function processPrice(Product $product, float $price, ?StoreInterface $store): float
     {
-
         return (float)$this->catalogHelper->getTaxPrice(
             $product,
             $price,

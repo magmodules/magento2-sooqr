@@ -382,10 +382,7 @@ class Repository implements ProductData
             case 'min_price':
             case 'max_price':
             case 'sales_price':
-                if ($value !== null) {
-                    return number_format((float)$value, 2, '.', '');
-                }
-            // no break
+                return $value !== null ? number_format(round((float)$value, 2), 2, '.', '') : null;
             case 'visibility':
                 switch ($value) {
                     case 1:
