@@ -140,12 +140,18 @@ class Parents
     {
         $connection = $this->resource->getConnection();
         $eavTable = $this->resource->getTableName('eav_attribute');
+        $entityTypeTable = $this->resource->getTableName('eav_entity_type');
 
         return (int) $connection->fetchOne(
             $connection->select()
-                ->from($eavTable, ['attribute_id'])
-                ->where('entity_type_id = ?', 4)
-                ->where('attribute_code = ?', 'status')
+                ->from(['ea' => $eavTable], ['attribute_id'])
+                ->join(
+                    ['et' => $entityTypeTable],
+                    'ea.entity_type_id = et.entity_type_id',
+                    []
+                )
+                ->where('et.entity_type_code = ?', 'catalog_product')
+                ->where('ea.attribute_code = ?', 'status')
                 ->limit(1)
         ) ?: null;
     }
