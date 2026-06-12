@@ -48,17 +48,16 @@ class Filter
         $entityIds = $this->filterVisibility($filter, $storeId);
         $entityIds = $this->filterStatus($entityIds, $filter['add_disabled_products'], $storeId);
 
-        if ($filter['restrict_by_category']) {
-            $websiteId = $storeId ? $this->getWebsiteId($storeId) : null;
-            $entityIds = $this->filterByWebsiteAndCategory(
-                $entityIds,
-                $websiteId,
-                $filter['category_restriction_behaviour'],
-                $filter['category']
-            );
-        }
-
-        return $entityIds;
+        return $this->filterByWebsiteAndCategory(
+            $entityIds,
+            $storeId
+                ? $this->getWebsiteId($storeId)
+                : null,
+            $filter['restrict_by_category']
+                ? $filter['category_restriction_behaviour']
+                : null,
+            $filter['category']
+        );
     }
 
     /**
