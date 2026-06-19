@@ -70,6 +70,8 @@ class Price
     private $bundlePriceType = null;
     private $groupedPriceType = null;
     private $products = null;
+    
+    private $configurableRegularPrices = null;
 
     public function __construct(
         CatalogPrice $commonPriceModel,
@@ -269,7 +271,9 @@ class Price
             return;
         }
 
-        $this->price = $product->getData('price');
+        $regularPrice = $this->getConfigurableRegularPrice((int)$product->getEntityId());
+        
+        $this->price = $regularPrice ?: $product->getData('price');
         $this->finalPrice = $product->getData('final_price');
         $this->specialPrice = $product->getData('special_price');
         $this->minPrice = $product['min_price'] >= 0 ? $product['min_price'] : null;
@@ -278,6 +282,33 @@ class Price
         if ($this->minPrice && $this->minPrice < $this->finalPrice) {
             $this->finalPrice = $this->minPrice;
         }
+    }
+    
+    private function getConfigurableRegularPrice(int $productId)
+    {
+        if (null === $this->configurableRegularPrices) {
+            $this->configurableRegularPrices = [];
+            /** @var Collection $collection */
+            $collection = $this->collectionFactory->create();
+            $select = $collection->getConnection()->select();
+            $select->from(['e' => $collection->getTable('catalog_product_index_price')])
+            ->join(['sl' => $collection->getTable('catalog_product_super_link')], 
+                'e.entity_id = sl.product_id',
+                ['parent_id'])
+            ;
+            foreach ($collection->getConnection()->fetchAll($select) as $item) {
+                if (empty($item['parent_id']) || empty($item['price'])) {
+                    continue;
+                }
+                $parentId = (int)$item['parent_id'];
+                $price = (float)$item['price'];
+                if (!isset($this->configurableRegularPrices[$parentId]) 
+                    || $price > $this->configurableRegularPrices[$parentId]) {
+                    $this->configurableRegularPrices[$parentId] = $price;
+                }
+            }
+        }
+        return $this->configurableRegularPrices[$productId] ?? null;
     }
 
     /**
