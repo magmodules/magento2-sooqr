@@ -79,7 +79,7 @@ class CreateFeed extends Command
     /**
      * @inheritdoc
      */
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->state->setAreaCode(\Magento\Framework\App\Area::AREA_FRONTEND);
         foreach ($this->getStoreIds($input) as $storeId) {
