@@ -363,13 +363,13 @@ class Price
             ? $product->getData('price_index_price')
             : $product->getData('price');
 
-        $this->finalPrice = $product->getData('final_price') !== 0
+        $this->finalPrice = $product->getData('final_price') && $product->getData('final_price') !== 0
             ? $product->getData('final_price')
             : null;
 
         $this->specialPrice = $product->getData('special_price')
             ? $product->getData('special_price')
-            : 0;
+            : null;
 
         $this->minPrice = $product['min_price'] >= 0 ? $product['min_price'] : null;
         $this->maxPrice = $product['max_price'] >= 0 ? $product['max_price'] : null;
