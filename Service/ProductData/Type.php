@@ -90,7 +90,7 @@ class Type
         if ($extraParameters['behaviour']['bundle']['use_parent_images']) {
             $parentAttributes['bundle'][] = 'image';
         }
-        $parentType = false;
+        $parentTypes = [];
 
         foreach ($entityIds as $entityId) {
             if (!array_key_exists($entityId, $parents)) {
@@ -104,6 +104,7 @@ class Type
             if (!isset($extraParameters['behaviour'][$parentType])) {
                 continue;
             }
+            $parentTypes[$entityId] = $parentType;
 
             if ($extraParameters['behaviour'][$parentType]['use'] == 'simple') {
                 $toUnset[] = $parentId;
@@ -149,17 +150,12 @@ class Type
                     }
                     $data[$entityId][$parentAttribute] = $data[$parentId][$parentAttribute];
 
+                    $parentType = $parentTypes[$entityId];
                     if ($extraParameters['behaviour'][$parentType]['use_parent_url'] == 2
                         && $parentAttribute == 'url'
                     ) {
-                        if (!array_key_exists($entityId, $configkeys)) {
-                            continue;
-                        }
-                        if (array_key_exists($storeId, $configkeys[$entityId][$parentId])) {
-                            $data[$entityId]['url'] .= $configkeys[$entityId][$parentId][$storeId];
-                        } else {
-                            $data[$entityId]['url'] .= $configkeys[$entityId][$parentId][0];
-                        }
+                        $urlKeys = $configkeys[$entityId][$parentId] ?? [];
+                        $data[$entityId]['url'] .= $urlKeys[$storeId] ?? $urlKeys[0] ?? '';
                     }
                 }
             }

@@ -111,29 +111,30 @@ class Filter
                 Visibility::VISIBILITY_BOTH,
             ];
 
-        // Convert visibility values to integers (ensures SQL compatibility)
+        // Convert to integers for SQL safety
         $visibility = array_map('intval', $visibility);
 
-        // Get entity IDs from global store (store_id = 0)
-        $selectBase = $connection->select()
+        $select = $connection->select()
             ->distinct()
-            ->from(['cpei' => $table], [$this->entityId])
-            ->where('cpei.attribute_id = ?', $this->visibilityAttributeId)
-            ->where('cpei.value IN (?)', $visibility)
-            ->where('cpei.store_id = ?', 0);
+            ->from(['base' => $table], [$this->entityId])
+            ->joinLeft(
+                ['override' => $table],
+                sprintf(
+                    'base.%1$s = override.%1$s AND base.attribute_id = override.attribute_id AND override.store_id = %2$d',
+                    $this->entityId,
+                    $storeId
+                ),
+                []
+            )
+            ->where('base.attribute_id = ?', $this->visibilityAttributeId)
+            ->where('base.store_id = ?', 0)
+            ->where('base.value IN (?)', $visibility)
+            ->where(sprintf(
+                '(override.value IS NULL OR override.value IN (%s))',
+                implode(',', array_fill(0, count($visibility), '?'))
+            ), $visibility);
 
-        // Get entity IDs where store-specific visibility overrides global setting
-        $selectStore = $connection->select()
-            ->distinct()
-            ->from(['cpei' => $table], [$this->entityId])
-            ->where('cpei.attribute_id = ?', $this->visibilityAttributeId)
-            ->where('cpei.value NOT IN (?)', $visibility)
-            ->where('cpei.store_id = ?', $storeId);
-
-        return array_diff(
-            $connection->fetchCol($selectBase),
-            $connection->fetchCol($selectStore)
-        );
+        return $connection->fetchCol($select);
     }
 
     /**
@@ -154,13 +155,26 @@ class Filter
         $table = $this->resourceConnection->getTableName('catalog_product_entity_int');
 
         $select = $connection->select()
-            ->from(['cpei' => $table], [$this->entityId])
-            ->where('cpei.attribute_id = ?', $this->statusAttributeId)
-            ->where('cpei.value = ?', Status::STATUS_ENABLED)
-            ->where('cpei.store_id IN (?)', [0, $storeId])
-            ->order('cpei.store_id ASC');
+            ->distinct()
+            ->from(['base' => $table], [$this->entityId])
+            ->joinLeft(
+                ['override' => $table],
+                sprintf(
+                    'base.%1$s = override.%1$s AND base.attribute_id = override.attribute_id AND override.store_id = %2$d',
+                    $this->entityId,
+                    $storeId
+                ),
+                []
+            )
+            ->where('base.attribute_id = ?', $this->statusAttributeId)
+            ->where('base.store_id = ?', 0)
+            ->where('base.' . $this->entityId . ' IN (?)', $entityIds)
+            ->where(sprintf(
+                '(COALESCE(override.value, base.value) = %d)',
+                Status::STATUS_ENABLED
+            ));
 
-        return array_intersect($entityIds, $connection->fetchCol($select));
+        return $connection->fetchCol($select);
     }
 
     /**

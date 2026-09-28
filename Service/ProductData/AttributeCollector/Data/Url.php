@@ -11,6 +11,7 @@ use Exception;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\EntityManager\MetadataPool;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
 
 /**
@@ -167,7 +168,7 @@ class Url
     private function getStoreUrl(): string
     {
         try {
-            return $this->storeRepository->getById($this->storeId)->getBaseUrl();
+            return $this->storeRepository->getById($this->storeId)->getBaseUrl(UrlInterface::URL_TYPE_WEB);
         } catch (Exception $exception) {
             return '';
         }
