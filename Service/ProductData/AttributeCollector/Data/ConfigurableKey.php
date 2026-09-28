@@ -96,18 +96,18 @@ class ConfigurableKey
             if (!$item['value']) {
                 continue;
             }
-            if (!isset($result[$item['child_id']])) {
-                $result[$item['child_id']] = [];
-            }
-            if (!isset($result[$item['child_id']][$item['parent_id']])) {
-                $result[$item['child_id']][$item['parent_id']] = [];
-            }
-            if (!isset($result[$item['child_id']][$item['parent_id']][$item['store_id']])) {
-                $result[$item['child_id']][$item['parent_id']][$item['store_id']] = '#';
-            }
-            $result[$item['child_id']][$item['parent_id']][$item['store_id']]
-                .= $item['attribute_id'] . '=' . $item['value'] . '&';
+            $result[$item['child_id']][$item['parent_id']][$item['store_id']][]
+                = $item['attribute_id'] . '=' . $item['value'];
         }
+
+        foreach ($result as $childId => $parents) {
+            foreach ($parents as $parentId => $stores) {
+                foreach ($stores as $storeId => $values) {
+                    $result[$childId][$parentId][$storeId] = '#' . implode('&', $values);
+                }
+            }
+        }
+
         return $result;
     }
 
