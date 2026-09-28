@@ -25,7 +25,8 @@ class Image
     private array $entityIds;
     private int $storeId;
     private bool $includeHidden;
-    private ?string $mediaUrl = null;
+    /** @var array<int, string> */
+    private array $mediaUrls = [];
     private string $linkField;
 
     public function __construct(
@@ -80,9 +81,6 @@ class Image
                 break;
             case 'include_hidden':
                 $this->includeHidden = $data;
-                break;
-            case 'media_url':
-                $this->mediaUrl = $data;
                 break;
         }
     }
@@ -196,17 +194,18 @@ class Image
      */
     private function getMediaUrl(string $path): string
     {
-        if ($this->mediaUrl == null) {
+        $storeId = (int)$this->storeId;
+        if (!isset($this->mediaUrls[$storeId])) {
             try {
-                $this->mediaUrl = $this->storeRepository
-                    ->getById((int)$this->storeId)
+                $this->mediaUrls[$storeId] = $this->storeRepository
+                    ->getById($storeId)
                     ->getBaseUrl(UrlInterface::URL_TYPE_MEDIA);
             } catch (Exception $exception) {
-                $this->mediaUrl = '';
+                $this->mediaUrls[$storeId] = '';
             }
         }
 
-        return $this->mediaUrl . $path;
+        return $this->mediaUrls[$storeId] . $path;
     }
 
     /**
