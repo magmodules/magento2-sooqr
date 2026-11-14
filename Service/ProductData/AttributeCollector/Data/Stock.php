@@ -144,13 +144,13 @@ class Stock
             }
 
             $quantity = (int)($value['quantity'] ?? 0);
-            $reservations = max($reservations[$value['product_id']] ?? 0, 0);
+            $reservationQty = (int)($reservations[$value['product_id']] ?? 0);
 
             $result[$value['product_id']]['qty'] = $quantity;
             $result[$value['product_id']]['is_salable'] = $value['is_salable'] ?? 0;
             $result[$value['product_id']]['availability'] = $value['is_salable'] ?? 0;
             $result[$value['product_id']]['is_in_stock'] = $value['is_salable'] ?? 0;
-            $result[$value['product_id']]['salable_qty'] = $quantity - $reservations;
+            $result[$value['product_id']]['salable_qty'] = max($quantity + $reservationQty, 0);
         }
 
         return $result;
@@ -228,7 +228,7 @@ class Stock
                 ['inv_res' => $this->resource->getTableName('inventory_reservation')],
                 "inv_res.sku = cpe.sku AND inv_res.stock_id = {$stockId}",
                 ['reserved' => 'SUM(COALESCE(inv_res.quantity, 0))']
-            );
+            )->group('cpe.entity_id');
 
         return $this->resource->getConnection()->fetchPairs($select);
     }
